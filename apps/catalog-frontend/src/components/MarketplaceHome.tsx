@@ -134,6 +134,14 @@ export const MarketplaceHome: React.FC = () => {
   } = useApp();
   const [advertisements, setAdvertisements] = useState<TargetedAdvertisement[]>([]);
   const [adsLoading, setAdsLoading] = useState(true);
+  const heroAdvertisements = useMemo(
+    () => advertisements.filter((ad) => ad.ad_space_id === 'HOME_HERO'),
+    [advertisements]
+  );
+  const sponsoredAdvertisements = useMemo(
+    () => advertisements.filter((ad) => ad.ad_space_id === 'HOME_SPONSORED'),
+    [advertisements]
+  );
   const openSearch = () => setCurrentView('directory');
   const openBusiness = async (business: Business): Promise<void> => {
     const opened = await openPublicBusiness(business.id);
@@ -259,6 +267,44 @@ export const MarketplaceHome: React.FC = () => {
       </section>
 
       <div className="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 lg:px-8">
+        {heroAdvertisements.length > 0 && (
+          <section aria-label="الإعلان الرئيسي الممول" data-testid="home-hero-sponsored-placement" className="grid gap-4 md:grid-cols-2">
+            {heroAdvertisements.slice(0, 2).map((ad) => {
+              const href = isSafeHttpsUrl(ad.target_url);
+              const adFallback = resolveDefaultImage({ name: ad.title || 'إعلان رئيسي', kind: 'cover' });
+              const banner = (
+                <div className="group relative isolate aspect-[16/5] min-h-36 overflow-hidden rounded-3xl border border-[#ead5c5] bg-gradient-to-br from-[#3a0000] via-[#7a0000] to-[#3a0000] shadow-sm">
+                  <img
+                    src={ad.creative_url || adFallback}
+                    alt={ad.title || 'إعلان ممول'}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
+                    onError={(event) => {
+                      const image = event.currentTarget;
+                      if (image.dataset.fallbackApplied !== 'true') {
+                        image.dataset.fallbackApplied = 'true';
+                        image.src = adFallback;
+                      } else {
+                        image.onerror = null;
+                        image.style.visibility = 'hidden';
+                      }
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-l from-[#260000]/90 via-[#260000]/45 to-transparent" />
+                  <div className="absolute inset-y-0 right-0 flex max-w-[82%] flex-col items-start justify-center gap-2 p-4 text-white sm:p-7">
+                    <span className="rounded-full border border-white/25 bg-black/25 px-3 py-1 text-[10px] font-black">إعلان ممول · مساحة رئيسية</span>
+                    <h2 className="line-clamp-2 text-lg font-black leading-tight sm:text-2xl">{ad.title || 'إعلان من شركاء منطقتيX'}</h2>
+                    <span className="inline-flex items-center gap-1 rounded-xl bg-[#f6c04d] px-3 py-2 text-xs font-black text-[#3a0000]">اكتشف الإعلان <ArrowLeft className="h-3.5 w-3.5" /></span>
+                  </div>
+                </div>
+              );
+              return href
+                ? <a key={ad.advertisement_id} href={href} target="_blank" rel="noopener noreferrer" aria-label={`فتح الإعلان: ${ad.title}`}>{banner}</a>
+                : <div key={ad.advertisement_id}>{banner}</div>;
+            })}
+          </section>
+        )}
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <button type="button" onClick={openSearch} className="flex min-h-20 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-[#d9a5a5] hover:shadow">
             <span className="rounded-xl bg-[#fff3e0] p-2.5 text-[#7a0000]"><Search className="h-5 w-5" /></span><span className="text-sm font-black">ابحث عن نشاط</span>
@@ -281,10 +327,10 @@ export const MarketplaceHome: React.FC = () => {
               <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">لا توجد أنشطة موثقة متاحة للعرض حاليًا.</p>}
         </section>
 
-        <section aria-label="إعلانات المنصة">
-          <SectionHeading title="إعلانات وشراكات المنصة" subtitle="تظهر الإعلانات المعتمدة والنشطة فقط." icon={<Megaphone className="h-5 w-5" />} />
-          {advertisements.length ? <div className="grid gap-4 md:grid-cols-2">
-            {advertisements.slice(0, 4).map((ad) => {
+        {(sponsoredAdvertisements.length > 0 || adsLoading) && <section aria-label="الإعلانات الممولة">
+          <SectionHeading title="مساحات إعلانية ممولة" subtitle="تظهر الحملات المعتمدة في مواضعها المخصصة فقط." icon={<Megaphone className="h-5 w-5" />} />
+          {sponsoredAdvertisements.length ? <div className="grid gap-4 md:grid-cols-2">
+            {sponsoredAdvertisements.slice(0, 4).map((ad) => {
               const href = isSafeHttpsUrl(ad.target_url);
               const adFallback = resolveDefaultImage({ name: ad.title || 'إعلان المنصة', kind: 'cover' });
               const card = <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
@@ -308,10 +354,10 @@ export const MarketplaceHome: React.FC = () => {
             })}
           </div> : <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-6 text-center">
             <Megaphone className="mx-auto h-7 w-7 text-slate-400" />
-            <p className="mt-2 text-sm font-bold text-slate-700">{adsLoading ? 'جارٍ تحميل الإعلانات المعتمدة…' : 'لا توجد إعلانات معتمدة متاحة الآن'}</p>
-            <p className="mt-1 text-xs text-slate-500">تظهر هنا الحملات بعد اعتمادها وتحديد موعد عرضها من إدارة المنصة.</p>
+            <p className="mt-2 text-sm font-bold text-slate-700">جارٍ تحميل الإعلانات المعتمدة…</p>
+            <p className="mt-1 text-xs text-slate-500">تظهر الحملات بعد اعتمادها وتحديد موعد عرضها من إدارة المنصة.</p>
           </div>}
-        </section>
+        </section>}
 
         <section aria-label="مقترحات الطعام والمشروبات">
           <SectionHeading title="أماكن للأكل والقهوة والمشروبات" subtitle="اقتراحات من الأنشطة الموثقة في قطاع الأغذية والضيافة." icon={<Utensils className="h-5 w-5" />} action={openSearch} />
