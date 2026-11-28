@@ -166,6 +166,23 @@ grant execute on function public.mnty_list_expired_catalog_media(integer) to ser
 comment on table public.mnty_catalog_media_retention_state is
   'Service-role-only state for continuous five-day unused media retention; a live reference resets unreferenced_since.';
 
+-- Keep the existing hourly worker alive after applying the reference-aware
+-- retention upgrade. Do not create a second schedule with the same purpose.
+do $schedule$
+declare
+  v_job_id bigint;
+begin
+  update cron.job
+  set active = true
+  where jobname = 'mnty-cleanup-unused-catalog-media'
+  returning jobid into v_job_id;
+
+  if v_job_id is null then
+    raise exception 'MNTY_CATALOG_MEDIA_CLEANUP_CRON_JOB_MISSING';
+  end if;
+end;
+$schedule$;
+
 create or replace function public.mnty_catalog_media_object_is_referenced(p_object_path text)
 returns boolean
 language plpgsql
