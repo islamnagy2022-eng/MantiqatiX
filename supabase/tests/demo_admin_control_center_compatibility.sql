@@ -25,6 +25,17 @@ DECLARE
   v_delete_definer boolean;
   v_delete_config text[];
   v_delete_body text;
+  v_delete_select_tables text[] := ARRAY[
+    'businesses','branches','orders','restaurant_orders','fashion_orders',
+    'erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','refund_transactions',
+    'subscription_payment_intents','business_referral_events','agreements',
+    'inventory_transactions','journal_entries','order_status_history','stock_balances'
+  ];
+  v_delete_tables text[] := ARRAY[
+    'user_memberships','departments','restaurant_inventory','restaurant_menu_items',
+    'restaurant_tables','fashion_products','warehouses','catalog_items',
+    'catalog_business_settings','advertisements','marketing_provider_profiles','branches','businesses'
+  ];
 
   v_rpc_signatures text[] := ARRAY[
     'public.mnty_platform_admin_list_custom_roles()',
@@ -196,6 +207,21 @@ BEGIN
   IF position('business_delete_blocked_by_history' IN lower(coalesce(v_delete_body,'')))=0
      OR position('bizcatalog_business_deleted' IN lower(coalesce(v_delete_body,'')))=0 THEN
     RAISE EXCEPTION 'DEMO_ADMIN_DELETE_RPC_HISTORY_OR_AUDIT_GUARD_MISSING';
+  END IF;
+
+  FOREACH v_table IN ARRAY v_delete_select_tables LOOP
+    IF NOT pg_catalog.has_table_privilege('service_role',pg_catalog.format('public.%I',v_table),'SELECT') THEN
+      RAISE EXCEPTION 'DEMO_ADMIN_DELETE_RPC_SERVICE_SELECT_MISSING: %',v_table;
+    END IF;
+  END LOOP;
+  FOREACH v_table IN ARRAY v_delete_tables LOOP
+    IF NOT pg_catalog.has_table_privilege('service_role',pg_catalog.format('public.%I',v_table),'DELETE') THEN
+      RAISE EXCEPTION 'DEMO_ADMIN_DELETE_RPC_SERVICE_DELETE_MISSING: %',v_table;
+    END IF;
+  END LOOP;
+  IF NOT pg_catalog.has_table_privilege('service_role','public.businesses','UPDATE')
+     OR NOT pg_catalog.has_table_privilege('service_role','public.audit_logs','INSERT') THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_DELETE_RPC_SERVICE_LOCK_OR_AUDIT_PRIVILEGE_MISSING';
   END IF;
 
   -- The full replay must include the canonical registry-backed root helper,
