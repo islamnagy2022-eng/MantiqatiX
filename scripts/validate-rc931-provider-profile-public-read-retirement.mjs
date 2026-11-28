@@ -56,7 +56,7 @@ assert.match(migration, /RC931_SERVICE_ROLE_DIRECTORY_READ_REGRESSED/);
 assert.match(migration, /RC931_AUTHENTICATED_OWNER_AND_CRM_READ_REGRESSED/);
 assert.doesNotMatch(migration, /\b(?:GRANT|REVOKE)\b/i, "RC931 must not change table privileges");
 assert.doesNotMatch(migration, /^\s*(?:INSERT\s+INTO|UPDATE\s+public\.|DELETE\s+FROM\s+public\.|TRUNCATE\s+(?:TABLE\s+)?public\.)/im, "RC931 must not mutate business data");
-assert.match(migration, /^\\s*(?:--[^\\n]*\\n\\s*)*begin;/i, "RC931 migration must start with a transaction after optional SQL comments");
+assert.match(migration, /^\s*(?:--[^\n]*\n\s*)*begin;/i, "RC931 migration must start with a transaction after optional SQL comments");
 assert.ok(migration.trim().endsWith("commit;"), "RC931 migration must finish the transaction");
 
 assert.match(fixture, /ALTER TABLE public\.marketing_provider_profiles FORCE ROW LEVEL SECURITY/);
