@@ -738,9 +738,17 @@ export const AdminDashboard: React.FC = () => {
           <span>إعدادات الإدارة وواتساب الكتالوج</span>
         </button>
 
-        {/* Tab 6: Backup */}
-        
-        
+        {/* Limited export/import tools. These are not a complete database or Storage backup. */}
+        <button
+          type="button"
+          aria-pressed={activeAdminTab === 'backup'}
+          onClick={() => setActiveAdminTab('backup')}
+          className={adminTabClass('backup')}
+          data-testid="platform-admin-backup-tab"
+        >
+          <Database className="w-4 h-4 text-amber-500" />
+          <span>التصدير المحدود والاستعادة</span>
+        </button>
       </nav>
 
       {activeAdminTab === 'overview' && (
