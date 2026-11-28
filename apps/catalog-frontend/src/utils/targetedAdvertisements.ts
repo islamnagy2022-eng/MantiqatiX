@@ -56,6 +56,29 @@ export const getPublicGovernorateAdCode = (governorate: string | null | undefine
   return GOVERNORATE_CODE_BY_NAME.get(normalized) ?? null;
 };
 
+/**
+ * Describes the geographic scope actually matched by the public ad-delivery RPC.
+ * The label intentionally follows match_level rather than assuming every ad
+ * belongs to the visitor's selected governorate.
+ */
+export const getTargetedAdvertisementAudienceLabel = (
+  matchLevel: unknown,
+  governorate?: string | null,
+  center?: string | null,
+): string => {
+  const level = String(matchLevel || '').trim().toUpperCase();
+  const selectedGovernorate = String(governorate || '').trim();
+  const hasGovernorate = Boolean(selectedGovernorate && selectedGovernorate.toLowerCase() !== 'all');
+  const selectedCenter = String(center || '').trim();
+  const hasCenter = Boolean(selectedCenter && selectedCenter.toLowerCase() !== 'all');
+
+  if (level === 'CENTER') return hasCenter ? `موجه لمركز ${selectedCenter}` : 'موجه لمركزك';
+  if (level === 'GOVERNORATE') return hasGovernorate ? `موجه لمحافظة ${selectedGovernorate}` : 'موجه لمحافظة محددة';
+  if (level === 'COUNTRY') return 'حملة عامة على مستوى مصر';
+  if (level === 'NEAREST') return 'أقرب نطاق إعلاني متاح لموقعك';
+  return hasGovernorate ? `إعلان متاح ضمن نطاق ${selectedGovernorate}` : 'إعلان متاح داخل مصر';
+};
+
 const validEgyptCoordinates = (latitude: unknown, longitude: unknown): { latitude: number; longitude: number } | null => {
   if (typeof latitude !== 'number' || typeof longitude !== 'number' ||
       !Number.isFinite(latitude) || !Number.isFinite(longitude) ||
