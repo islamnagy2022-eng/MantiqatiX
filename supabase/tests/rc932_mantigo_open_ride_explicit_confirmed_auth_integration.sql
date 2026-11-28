@@ -51,7 +51,16 @@ BEGIN
   VALUES (v_captain),(v_customer)
   ON CONFLICT (id) DO NOTHING;
 
-  -- The schema-only production checkpoint omits config rows; seed the trigger prerequisite transactionally.
+  -- Minimal disposable trigger prerequisite; the standalone RC446 workflow does not replay RC070.
+  IF pg_catalog.to_regclass('public.mantigo_rate_limit_config') IS NULL THEN
+    EXECUTE 'CREATE TABLE public.mantigo_rate_limit_config (
+      action text PRIMARY KEY,
+      max_events integer NOT NULL CHECK (max_events > 0),
+      window_minutes integer NOT NULL CHECK (window_minutes > 0)
+    )';
+  END IF;
+
+  -- Seed the trigger prerequisite transactionally.
   INSERT INTO public.mantigo_rate_limit_config(action,max_events,window_minutes)
   VALUES ('CREATE_RIDE',10,60)
   ON CONFLICT (action) DO NOTHING;
