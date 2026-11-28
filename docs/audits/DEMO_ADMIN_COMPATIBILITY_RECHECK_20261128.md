@@ -120,4 +120,14 @@ The core platform-root sequence is RC464 → RC469 → RC471 → RC484 → RC485
 - [ ] Reconcile and rehearse the ordered RC464/RC469/RC471/RC484/RC485 authority chain with dependent caller/policy tests.
 - [ ] Deploy compatible admin Edge Functions to DEMO only, then run HTTP and browser smoke tests.
 
+## Latest exact-head CI follow-up — 2026-11-28
+
+- Latest Pages PR validation passed on the current development series, including `npm run validate:demo-admin-compatibility`, activity-module server fail-closed validation, professional-dashboard contract checks, V6 Preview desktop/mobile validation, and read-only deployed-origin redirect smoke.
+- Primary catalog build and isolated employee RBAC PostgreSQL behavior test passed. Browser E2E for the professional dashboard was still running at the latest check.
+- Module Professionalization Validation passed all jobs, including RC471/RC482 platform-admin registry/ACL tests, RC479 provider-profile anonymous read, RC483 atomic legal CMS audit, RC481 service-role column ACL, and related PostgreSQL suites.
+- The chronological PostgreSQL 17 replay applied 134 migrations including the new compatibility migration. The first admin ACL/RLS/DEFINER SQL block completed successfully; the service-role BizCatalog settings write also succeeded.
+- The first behavioral delete-fixture attempt correctly triggered `LEGAL_BUSINESS_OWNER_REQUIRED`: the synthetic business was inserted ACTIVE before an owner membership existed. The test fixture was corrected to insert INACTIVE, create a synthetic ACTIVE OWNER membership using the existing disposable CI auth fixture, activate through the real legal trigger, and only then execute delete + audit + ROLLBACK. No trigger or production rule is bypassed. Post-correction replay is pending.
+- The disposable replay restores a captured Production schema checkpoint into localhost-only Supabase/PostgreSQL 17; it is not an exact replay against current DEMO.
+- The current DEMO read-only root authority check remains unchanged: the shared helper does not query `private.platform_admins`, and FORCE RLS on the registry is off. The new migration therefore still fails fast before DDL on current DEMO.
+
 No migration was applied, no Edge Function was deployed, and no DEMO or Production data/configuration was mutated in this checkpoint. PR #1216 remains Draft and must not be merged or applied until the replay, authority-bootstrap, and runtime gates pass.
