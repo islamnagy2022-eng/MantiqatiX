@@ -6,6 +6,7 @@ on:
     paths:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
+      - "scripts/validate-development-supabase-isolation.mjs"
       - "scripts/validate-marketing-official-storefront-target.mjs"
       - "scripts/validate-approved-brand-image.py"
       - "scripts/smoke-test-public-catalog-disclosure.mjs"
@@ -76,6 +77,7 @@ on:
     paths:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
+      - "scripts/validate-development-supabase-isolation.mjs"
       - "scripts/validate-marketing-official-storefront-target.mjs"
       - "scripts/smoke-test-public-catalog-disclosure.mjs"
       - "scripts/validate-catalog-google-auth-contract.mjs"
@@ -166,6 +168,8 @@ jobs:
       - name: TypeScript check
         working-directory: apps/catalog-frontend
         run: npm run lint
+      - name: Validate isolated Free Supabase DEMO runtime
+        run: node scripts/validate-development-supabase-isolation.mjs
       - name: Validate MantiqatiX red-gold brand palette and status semantics
         run: node scripts/validate-mantiqatix-brand-palette.mjs
       - name: Test business creation identity and geographic validation
