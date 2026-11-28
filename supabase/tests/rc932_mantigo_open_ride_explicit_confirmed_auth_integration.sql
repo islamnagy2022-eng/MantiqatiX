@@ -1,6 +1,10 @@
 -- RC932: strict confirmed-identity gate for MantiGO open-ride location disclosure.
 -- Disposable PostgreSQL 17 only; exercise missing, null, true and explicit-false JWT claims.
 BEGIN;
+-- The dedicated vanilla-PostgreSQL CI database has no Supabase Auth schema.
+-- Model only the referenced principal key; never use this fixture outside CI.
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY);
 DO $test$
 DECLARE
   v_captain uuid := '30000000-0000-4000-8000-000000000481';
