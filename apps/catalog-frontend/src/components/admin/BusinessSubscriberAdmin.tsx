@@ -132,8 +132,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     if(action==='CHANGE_ROLE'){
       const result=await supabase.functions.invoke('catalog-platform-admin',{body:{
         action:'SAVE_MEMBERSHIP',tenantId:parent.tenant_id,businessId:parent.id,branchId:m.branch_id||'',
-        membershipId:m.id,userId:m.user_id,role,status:m.status==='ACTIVE'?'ACTIVE':'INACTIVE',
-        catalogEnabled:true,catalogWrite:true,accountRestricted:false
+        membershipId:m.id,userId:m.user_id,role,status:['ACTIVE','INACTIVE','SUSPENDED'].includes(String(m.status||'').toUpperCase())?String(m.status).toUpperCase():'INACTIVE'
       }});
       data=result.data;error=result.error;
     }else{
