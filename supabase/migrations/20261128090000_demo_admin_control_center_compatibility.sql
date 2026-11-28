@@ -8,27 +8,9 @@
 -- RLS remains enabled/forced for the privileged role registry and employee tables.
 -- The user-membership index is intentionally created only after duplicate preflight.
 
--- Null-safe unique membership scope key. Fail the transaction rather than
--- silently choosing between duplicate memberships.
-do $preflight$
-begin
-  if exists (
-    select 1 from public.user_memberships
-    group by user_id, business_id, coalesce(branch_id, '')
-    having count(*) > 1
-  ) then
-    raise exception 'DEMO_MEMBERSHIP_SCOPE_DUPLICATES_FOUND';
-  end if;
-end;
-$preflight$;
-
--- Make business-wide memberships idempotent when branch_id is NULL.
--- PostgreSQL UNIQUE indexes treat NULL values as distinct unless explicitly normalized.
--- Preflight against production found no duplicate (user_id, business_id, branch_id) keys.
-CREATE UNIQUE INDEX IF NOT EXISTS ux_user_memberships_user_business_branch_nullsafe
-  ON public.user_memberships (user_id, business_id, (COALESCE(branch_id, '')))
-  WHERE business_id IS NOT NULL;
-
+-- DEMO already has uk_user_biz_branch. The supplemental null-safe index is
+-- deferred; changing NULL uniqueness semantics requires a separate membership
+-- lifecycle compatibility review before it can be introduced.
 
 -- RC113: Super Admin Control Center foundation.
 -- Dynamic, auditable custom roles and scoped assignments. Platform authority remains
