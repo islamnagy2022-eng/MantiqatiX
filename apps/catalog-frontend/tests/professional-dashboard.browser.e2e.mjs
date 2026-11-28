@@ -1067,6 +1067,11 @@ try {
         contentType: 'image/svg+xml',
         body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>',
       }));
+      await page.route('https://cdn.example.test/**', async (route) => route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>',
+      }));
       await page.getByRole('heading', { name: 'نشاط رابطين خارجيين', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const logoLinks = page.locator('a[aria-label="فتح الرابط الخارجي للصورة التعريفية"]');
       const coverLinks = page.locator('a[aria-label="فتح الرابط الخارجي لصورة الغلاف"]');
