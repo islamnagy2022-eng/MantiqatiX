@@ -31,6 +31,31 @@ GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION auth.jwt() TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
 
+-- Model the post-RC484 platform-root authority contract.
+CREATE SCHEMA IF NOT EXISTS private;
+CREATE TABLE private.platform_admins (
+  user_id uuid PRIMARY KEY
+);
+ALTER TABLE private.platform_admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE private.platform_admins FORCE ROW LEVEL SECURITY;
+GRANT ALL ON TABLE private.platform_admins TO service_role;
+
+CREATE OR REPLACE FUNCTION public.is_platform_admin()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+  SELECT EXISTS (
+    SELECT 1
+    FROM private.platform_admins pa
+    WHERE pa.user_id=(SELECT auth.uid())
+  )
+$function$;
+REVOKE ALL ON FUNCTION public.is_platform_admin() FROM PUBLIC, anon, service_role;
+GRANT EXECUTE ON FUNCTION public.is_platform_admin() TO authenticated;
+
 CREATE TABLE public.businesses (
   id uuid PRIMARY KEY,
   tenant_id text NOT NULL,
@@ -142,10 +167,14 @@ INSERT INTO public.user_memberships(id,user_id,tenant_id,business_id,role,status
   ('tenant-admin-a','30000000-0000-4000-8000-000000000012','TENANT-A',NULL,'ADMIN','ACTIVE','{}'),
   ('manager-b','30000000-0000-4000-8000-000000000013','TENANT-B','30000000-0000-4000-8000-000000000003','MANAGER','ACTIVE','{}'),
   ('tenant-super-c','30000000-0000-4000-8000-000000000014','TENANT-C','30000000-0000-4000-8000-000000000004','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'),
-  ('platform-admin','30000000-0000-4000-8000-000000000015','MNTY-PLATFORM',NULL,'SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'),
+  ('platform-admin-registered','30000000-0000-4000-8000-000000000015','MNTY-PLATFORM',NULL,'SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'),
+  ('platform-admin-unregistered','30000000-0000-4000-8000-000000000020','MNTY-PLATFORM',NULL,'SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'),
   ('provider-a','30000000-0000-4000-8000-000000000016','TENANT-A','30000000-0000-4000-8000-000000000001','SERVICE_PROVIDER','ACTIVE','{}'),
   ('lead-owner','30000000-0000-4000-8000-000000000017','TENANT-B','30000000-0000-4000-8000-000000000003','CUSTOMER','ACTIVE','{}'),
   ('public-customer','30000000-0000-4000-8000-000000000099','TENANT-A','30000000-0000-4000-8000-000000000002','CUSTOMER','ACTIVE','{}');
+
+INSERT INTO private.platform_admins(user_id)
+VALUES ('30000000-0000-4000-8000-000000000015');
 
 INSERT INTO public.marketing_provider_profiles(id,business_id,owner_user_id,name_ar,status,settings) VALUES
   ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000016','Provider A','ACTIVE','{"private":"synthetic-A"}'),
