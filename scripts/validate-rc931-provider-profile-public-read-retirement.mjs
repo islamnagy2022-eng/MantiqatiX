@@ -73,7 +73,7 @@ assert.ok(migration.includes("position('um.tenant_id=b.tenant_id' in v_crm_qual_
   "RC931 preflight must retain exact tenant equality after normalizing pg_policies output");
 assert.match(migration, /do \$postflight\$\s+declare\s+v_crm_qual text;\s+v_crm_qual_normalized text;/,
   "RC931 postflight must declare independent variables for its deparsed policy verification");
-assert.ok(migration.includes("position('is_platform_admin()' in v_crm_qual_normalized) = 0"),
+assert.ok(migration.includes("position('is_platform_admin' in v_crm_qual_normalized) = 0"),
   "RC931 postflight must validate the registry-backed platform helper in normalized pg_policies output");
 assert.ok(migration.includes("$rc931_tenant$b.tenant_id<>'mnty-platform'$rc931_tenant$"),
   "RC931 postflight must validate protected platform-tenant exclusion after normalizing PostgreSQL casts");
