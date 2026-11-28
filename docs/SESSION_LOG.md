@@ -1,3 +1,17 @@
+## 2026-11-28 06:12 UTC — Center-aware homepage merge and deployed verification
+
+- PR #1209 merged to main as `2aaba935ea516806b2dfc8bd5b1ae045a5b6ce8b`: verified Markaz-level HOME_HERO targeting, visitor-area labels, a corrected global-ad identity check, and a six-service in-page platform-services dialog. No live ad rows or campaigns were changed.
+- Main Pages deployment run [46115127321](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46115127321) completed SUCCESS. The production root, legacy rollback and Preview alias, mixed-case catalog routes, dashboard/mobile/QR deployed-origin checks passed. The separate deployed-origin redirect-regression job was skipped and is not counted as a pass.
+- Exact-main Primary Catalog validation [46115127405](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46115127405) passed build and dashboard browser E2E; companion privacy/module/backend checks and the disposable PostgreSQL 17 migration replay passed on the same SHA.
+- PR #1208 image fallback work is deployed on its own main Pages run [46114404944](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46114404944); the deploy and route checks succeeded, while its standalone redirect-regression job was skipped.
+- PR #1199 RC932 merged as `160228ee40590c27992cee5952895d0ed90b3ff6`. It is source-only and has not been applied to Production.
+- PR #1202 remains DRAFT at head `8892c4ec14a4cbe242b315e698d3666300e5761c`; 28 executed exact-head checks passed, including the 92-version PostgreSQL 17 replay and RC931/RC479 focused suites. Its recorded base is still `85de189c9705a60520532826f5fc2ef047410ba7`, not current main `2aaba935...`. Rebase/refresh and rerun current-head CI before considering merge; no Production change is authorized by this CI.
+- Current main's source contract remains 89 required migration IDs. PR #1202's 92-version RC115/RC116/RC931 candidate must not be described as merged or deployed.
+- Last documented Production read-only gate snapshot: 310 migration-ledger rows through `20261110150618`, 0/89 exact-ID matches; platform-root authorization, Edge parity, physical-effect/alias reconciliation and backup/restore remain unresolved. This is not a fresh live database read.
+- No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/finance/customer-data mutation. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 ## 2026-11-27 — Preserve unspecified business-status provenance
 - The first exact-head dashboard browser run caught an important mapping detail: the shared business mapper keeps unknown operational states fail-closed as INACTIVE at runtime.
 - Added a separate `operationalStatusUnspecified` provenance flag for admin reporting, without weakening runtime access/order checks or changing the operational-state fallback.
