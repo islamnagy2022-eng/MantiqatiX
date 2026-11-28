@@ -36,6 +36,8 @@ import {
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
+import { supabase } from '../lib/production';
+import { isSafeHttpsUrl, loadTargetedAdvertisements, type TargetedAdvertisement } from '../utils/targetedAdvertisements';
 const DirectoryListingsView = lazy(() => import('./DirectoryListingsView').then((module) => ({ default: module.DirectoryListingsView })));
 const ActivityModuleView = lazy(() => import('../modules/activities/ActivityModuleView').then((module) => ({ default: module.ActivityModuleView })));
 
@@ -88,6 +90,9 @@ interface CoverSlide {
   subtitle: string;
   governorates: string[];
   businessId?: string;
+  advertisementId?: string;
+  targetUrl?: string;
+  matchLevel?: string;
 }
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
@@ -192,6 +197,8 @@ export const DirectoryView: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [coverAdvertisements, setCoverAdvertisements] = useState<TargetedAdvertisement[]>([]);
+  const [coverAdvertisementsLoading, setCoverAdvertisementsLoading] = useState(false);
   const [locationBusy, setLocationBusy] = useState(false);
   const [locationMessage, setLocationMessage] = useState('');
   const [unconfirmedListings, setUnconfirmedListings] = useState<PublicDirectoryListing[]>([]);
@@ -374,6 +381,29 @@ export const DirectoryView: React.FC = () => {
   const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>(initialRouteGovernorate ? 'all' : initialGeoPreference?.markaz || 'all');
   const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>(initialRouteGovernorate ? 'all' : initialGeoPreference?.village || 'all');
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>(initialRouteGovernorate ? 'all' : initialGeoPreference?.area || 'all');
+
+  useEffect(() => {
+    let active = true;
+    setCoverAdvertisements([]);
+    setCoverAdvertisementsLoading(true);
+    void loadTargetedAdvertisements(
+      (functionName, args) => supabase.rpc(functionName, args),
+      {
+        adSpaces: ['HOME_HERO'],
+        governorate: selectedGovFilter,
+        latitude: geoPreferenceMode === 'auto' ? userCoordinates?.latitude ?? null : null,
+        longitude: geoPreferenceMode === 'auto' ? userCoordinates?.longitude ?? null : null,
+        limit: 8,
+      },
+    ).then((rows) => {
+      if (active) setCoverAdvertisements(rows.filter((ad) => ad.ad_space_id === 'HOME_HERO'));
+    }).catch(() => {
+      if (active) setCoverAdvertisements([]);
+    }).finally(() => {
+      if (active) setCoverAdvertisementsLoading(false);
+    });
+    return () => { active = false; };
+  }, [selectedGovFilter, geoPreferenceMode, userCoordinates?.latitude, userCoordinates?.longitude]);
 
   const applyGovernorateScope = (requestedGovernorate: string) => {
     const governorate = requestedGovernorate === 'all'
@@ -685,7 +715,7 @@ export const DirectoryView: React.FC = () => {
   const liveFeaturedBusinesses = businesses
     .filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && Boolean(business.name.trim()))
     .slice(0, 30);
-  const coverSlides: CoverSlide[] = liveFeaturedBusinesses.map((business) => ({
+  const businessCoverSlides: CoverSlide[] = liveFeaturedBusinesses.map((business) => ({
       image: business.coverUrl || resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'cover' }),
       badge: business.category || 'نشاط محلي',
       title: business.name,
@@ -693,6 +723,19 @@ export const DirectoryView: React.FC = () => {
       governorates: [business.governorate || 'all'],
       businessId: business.id,
     }));
+  const targetedCoverSlides: CoverSlide[] = coverAdvertisements.map((ad) => ({
+      image: ad.creative_url,
+      badge: 'إعلان ممول',
+      title: ad.title || 'خدمات وعروض من منطقتك',
+      subtitle: selectedGovFilter === 'all'
+        ? 'إعلان معتمد لخدمات متاحة داخل مصر.'
+        : 'إعلان يظهر ضمن نطاق البحث: ' + selectedGovFilter,
+      governorates: selectedGovFilter === 'all' ? ['all'] : [selectedGovFilter],
+      advertisementId: ad.advertisement_id,
+      targetUrl: ad.target_url || undefined,
+      matchLevel: ad.match_level,
+    }));
+  const coverSlides: CoverSlide[] = [...targetedCoverSlides, ...businessCoverSlides];
 
   // Public classification starts at Activity; each activity opens its own Specialty view.
   const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity');
@@ -708,7 +751,8 @@ export const DirectoryView: React.FC = () => {
   // Filter slides based on selected governorate
   const activeCoverSlides = selectedGovFilter === 'all'
     ? coverSlides
-    : coverSlides.filter((slide) => normalizeGeoName(slide.governorates[0]) === normalizeGeoName(selectedGovFilter));
+    : coverSlides.filter((slide) => Boolean(slide.advertisementId) ||
+      normalizeGeoName(slide.governorates[0]) === normalizeGeoName(selectedGovFilter));
 
   useEffect(() => {
     setCurrentCoverIndex(0);
@@ -1008,13 +1052,13 @@ export const DirectoryView: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        {/* 2. One full-width cover carousel showing only currently available activities. */}
-        <section aria-label="الأنشطة المتاحة حاليًا" className="space-y-3">
+        {/* Paid HOME_HERO campaigns take priority; published businesses remain a fallback when no eligible campaign exists. */}
+        <section aria-label="إعلانات الخدمات والأنشطة حسب المنطقة" data-testid="directory-cover-advertisements" className="space-y-3">
           {activeCoverSlides.length > 0 ? (
             <div className="relative aspect-[4/3] sm:aspect-[650/228] w-full rounded-3xl overflow-hidden shadow-2xl bg-slate-900 group">
               {activeCoverSlides.map((slide, idx) => (
                 <div
-                  key={slide.businessId || `${slide.title}-${idx}`}
+                  key={slide.advertisementId || slide.businessId || `${slide.title}-${idx}`}
                   aria-hidden={idx !== currentCoverIndex}
                   className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
                     idx === currentCoverIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
@@ -1024,15 +1068,21 @@ export const DirectoryView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
+                      if (slide.advertisementId) {
+                        const safeTarget = isSafeHttpsUrl(slide.targetUrl);
+                        if (safeTarget) window.open(safeTarget, '_blank', 'noopener,noreferrer');
+                        return;
+                      }
                       if (!slide.businessId) return;
                       setSelectedBusinessId(slide.businessId);
                       setCurrentView('public_storefront');
                     }}
-                    aria-label={`افتح صفحة نشاط ${slide.title}`}
+                    aria-label={slide.advertisementId ? `افتح الإعلان الممول: ${slide.title}` : `افتح صفحة نشاط ${slide.title}`}
                     tabIndex={idx === currentCoverIndex ? 0 : -1}
                     className="absolute inset-0 block h-full w-full cursor-pointer text-left focus-visible:ring-4 focus-visible:ring-[#f6c04d]"
                   >
                     <img
+                      data-testid={slide.advertisementId ? 'directory-cover-paid-ad' : undefined}
                       src={slide.image || resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' })}
                       alt={slide.title}
                       className="h-full w-full object-contain sm:object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
@@ -1045,6 +1095,14 @@ export const DirectoryView: React.FC = () => {
                     />
 
                   </button>
+                  )}
+                  {slide.advertisementId && (
+                    <div className="pointer-events-none absolute right-3 top-3 z-20 flex items-center gap-2" aria-label="إعلان ممول">
+                      <span className="rounded-full border border-white/40 bg-[#7a0000]/95 px-3 py-1.5 text-[10px] font-black text-white shadow-lg">إعلان ممول</span>
+                      {selectedGovFilter !== 'all' && (
+                        <span className="rounded-full border border-white/35 bg-slate-950/75 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">{selectedGovFilter}</span>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
@@ -1059,7 +1117,7 @@ export const DirectoryView: React.FC = () => {
                       className={`h-2 rounded-full transition-all cursor-pointer ${
                         idx === currentCoverIndex ? 'w-5 bg-amber-400' : 'w-1.5 bg-white/50 hover:bg-white'
                       }`}
-                      aria-label={`اعرض نشاط ${slide.title}`}
+                      aria-label={slide.advertisementId ? `اعرض الإعلان الممول ${slide.title}` : `اعرض نشاط ${slide.title}`}
                       aria-pressed={idx === currentCoverIndex}
                     />
                   ))}
@@ -1070,8 +1128,8 @@ export const DirectoryView: React.FC = () => {
             <div className="flex min-h-64 sm:min-h-80 md:min-h-96 w-full items-center justify-center rounded-3xl border border-slate-200 bg-gradient-to-br from-[#3a0000] via-[#7a0000] to-[#3a0000] px-6 py-12 text-center text-white shadow-xl">
               <div className="max-w-xl space-y-3">
                 <Store className="mx-auto h-10 w-10 text-[#f6c04d]" />
-                <h2 className="text-xl sm:text-2xl font-black">لا توجد أنشطة متاحة حاليًا</h2>
-                <p className="text-sm leading-relaxed text-white/75">ستظهر هنا تلقائيًا صور الأنشطة المنشورة والمتاحة للزوار.</p>
+                <h2 className="text-xl sm:text-2xl font-black">{coverAdvertisementsLoading ? 'جارٍ تحميل إعلانات الخدمات لمنطقتك…' : 'لا توجد إعلانات أو أنشطة متاحة حاليًا'}</h2>
+                <p className="text-sm leading-relaxed text-white/75">{coverAdvertisementsLoading ? 'نعرض الحملات النشطة والمعتمدة فقط.' : 'ستظهر هنا الحملات المعتمدة والأنشطة المنشورة المتاحة داخل النطاق المحدد.'}</p>
               </div>
             </div>
           )}
