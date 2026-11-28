@@ -201,7 +201,7 @@ create policy "CRM managers view marketing providers"
               )
             )
             -- MNTY-PLATFORM is a protected platform namespace. A tenant
-            -- membership must never grant platform-wide CRM reads through it.
+            -- membership must never confer platform-wide CRM reads through it.
             and b.tenant_id <> 'MNTY-PLATFORM'
             and um.tenant_id = b.tenant_id
             and upper(coalesce(um.role, '')) in (
