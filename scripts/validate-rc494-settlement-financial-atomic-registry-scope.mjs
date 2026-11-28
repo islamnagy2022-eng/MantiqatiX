@@ -52,8 +52,8 @@ assert.match(integration, /ROLLBACK;/);
 
 assert.match(contract, /"20261120290000"/);
 assert.match(verify, /20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening\.sql/);
-assert.match(gate, /required.length, 89/);
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 89);
+assert.match(gate, /required.length, 92/);
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 92);
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261123221950"));
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261123221950"));
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261120290000"));

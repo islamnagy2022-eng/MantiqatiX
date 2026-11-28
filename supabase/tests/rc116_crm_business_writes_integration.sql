@@ -95,12 +95,31 @@ begin
   perform set_config('request.jwt.claims', jsonb_build_object('sub', provider_a::text, 'is_anonymous', false)::text, false);
   update public.marketing_provider_profiles
      set profile_image_path = 'users/provider-a/profile.webp',
-         settings = jsonb_build_object('branding', jsonb_build_object('logo_path', 'users/provider-a/logo.webp')),
+         settings = jsonb_set(
+           coalesce(settings, '{}'::jsonb),
+           '{branding}',
+           coalesce(settings->'branding', '{}'::jsonb)
+             || jsonb_build_object('logo_path', 'users/provider-a/logo.webp'),
+           true
+         ),
          updated_at = now()
    where id = '40000000-0000-4000-8000-000000000001';
   get diagnostics affected = row_count;
   if affected <> 1 then
     raise exception 'provider owner could not update own branding';
+  end if;
+
+  if not exists (
+    select 1
+    from public.marketing_provider_profiles
+    where id = '40000000-0000-4000-8000-000000000001'
+      and settings->>'official_showcase' = 'true'
+      and settings->>'managed_by' = 'SUPER_ADMIN'
+      and settings->>'activity_code' = 'HEALTH'
+      and settings->'branding'->>'logo_path' = 'users/provider-a/logo.webp'
+      and settings->'branding'->>'preserve_me' = 'platform-owned'
+  ) then
+    raise exception 'owner logo update changed non-brand profile settings';
   end if;
 
   -- An owner cannot move a profile to another business.
@@ -158,7 +177,13 @@ begin
   perform set_config('request.jwt.claim.sub', legacy_owner::text, false);
   perform set_config('request.jwt.claims', jsonb_build_object('sub', legacy_owner::text, 'is_anonymous', false)::text, false);
   update public.marketing_provider_profiles
-     set settings = jsonb_build_object('legacy_owner_branding', true),
+     set settings = jsonb_set(
+           coalesce(settings, '{}'::jsonb),
+           '{branding}',
+           coalesce(settings->'branding', '{}'::jsonb)
+             || jsonb_build_object('logo_path', 'users/legacy-owner/logo.webp'),
+           true
+         ),
          updated_at = now()
    where id = '40000000-0000-4000-8000-000000000004';
   get diagnostics affected = row_count;
@@ -171,7 +196,8 @@ begin
      where id = '40000000-0000-4000-8000-000000000004'
        and owner_user_id = legacy_owner
        and business_id is null
-       and settings @> '{"legacy_owner_branding":true}'::jsonb
+       and settings->>'managed_by' = 'PLATFORM'
+       and settings->'branding'->>'logo_path' = 'users/legacy-owner/logo.webp'
   ) then
     raise exception 'legacy owner profile branding update did not persist';
   end if;
