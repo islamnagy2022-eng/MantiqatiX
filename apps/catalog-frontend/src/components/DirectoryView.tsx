@@ -157,6 +157,7 @@ const writeStoredGeoPreference = (preference: StoredGeoPreference) => {
   try {
     // Deliberately persist administrative choices only. Precise GPS coordinates stay in memory.
     window.localStorage.setItem(GEO_DISCOVERY_STORAGE_KEY, JSON.stringify(preference));
+    window.dispatchEvent(new Event('mantiqatix:geo-preference-change'));
   } catch {
     // Storage may be disabled by browser privacy settings; the directory remains usable.
   }
