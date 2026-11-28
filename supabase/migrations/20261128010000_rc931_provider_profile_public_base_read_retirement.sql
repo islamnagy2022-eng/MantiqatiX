@@ -13,6 +13,7 @@ declare
   v_force_rls boolean;
   v_crm_qual text;
   v_confirmed_qual text;
+  v_owner_read_qual text;
   v_owner_qual text;
   v_owner_check text;
   v_registry_owner oid;
@@ -128,20 +129,35 @@ begin
   if v_crm_qual is null
      or v_crm_qual not ilike '%um.tenant_id = b.tenant_id%'
      or v_crm_qual not ilike '%b.id = marketing_provider_profiles.business_id%' then
-    raise exception 'RC931_RC115_TENANT_AND_BUSINESS_SCOPED_CRM_POLICY_REQUIRED: qual=%', coalesce(v_crm_qual, '<missing>');
+    raise exception 'RC931_RC115_TENANT_AND_BUSINESS_SCOPED_CRM_POLICY_REQUIRED';
   end if;
+
+  -- RC116 intentionally split the former ALL policy into owner-only SELECT and UPDATE policies.
+  -- Validate the current split contract rather than requiring the retired legacy policy name.
+  select p.qual
+    into v_owner_read_qual
+  from pg_catalog.pg_policies p
+  where p.schemaname = 'public'
+    and p.tablename = 'marketing_provider_profiles'
+    and p.policyname = 'Owners view own marketing provider profile'
+    and p.permissive = 'PERMISSIVE'
+    and p.cmd = 'SELECT'
+    and 'authenticated' = any (p.roles);
 
   select p.qual, p.with_check
     into v_owner_qual, v_owner_check
   from pg_catalog.pg_policies p
   where p.schemaname = 'public'
     and p.tablename = 'marketing_provider_profiles'
-    and p.policyname = 'Owners manage their marketing provider profile'
+    and p.policyname = 'Owners update own provider profile branding'
     and p.permissive = 'PERMISSIVE'
-    and p.cmd = 'ALL'
+    and p.cmd = 'UPDATE'
     and 'authenticated' = any (p.roles);
 
-  if v_owner_qual is null
+  if v_owner_read_qual is null
+     or v_owner_read_qual not ilike '%auth.uid()%'
+     or v_owner_read_qual not ilike '%owner_user_id%'
+     or v_owner_qual is null
      or v_owner_check is null
      or v_owner_qual not ilike '%auth.uid()%'
      or v_owner_qual not ilike '%owner_user_id%'
