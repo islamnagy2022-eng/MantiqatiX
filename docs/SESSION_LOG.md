@@ -1,3 +1,17 @@
+## 2026-11-28 — RC931 provider-profile read retirement and current-main port
+
+- Rechecked the actual Production project MANTIQATIX FINAL (moyhiluyhjsujhwlyeuu) read-only: ACTIVE_HEALTHY, PostgreSQL 17.6.1.155, 310 migration rows through 20261110150618. The provider-profile table still exposes direct anon SELECT and a global ACTIVE-row policy; RC479/RC926/RC115/RC484 are not installed live.
+- Found and fixed an RC931 validator use-before-declaration bug and over-escaped path assertions on the stale PR branch. The stale PR #1197 remains non-mergeable due its old base/history; it is not being merged.
+- Ported the RC931 source/test workflow into fresh branch fix/rc931-provider-profile-read-retirement-mainline-20261128 based on main c32bdb47. Added RC115 and RC931 to the required migration list (90 total), verifier, strict gate, manifest, replay workflow and backup validator.
+- Tightened RC931 preflight to require RC484's registry-only is_platform_admin() definition, matching BYPASSRLS owner, empty search_path, registry source and authenticated-only EXECUTE. Rebuilt the CRM provider read policy with explicit platform registry or exact tenant/business scope.
+- Expanded the synthetic PG17 fixture/integration: registered vs unregistered MNTY-PLATFORM SUPER_ADMIN, tenant-local SUPER_ADMIN zero-row scope, exact six-profile fixture cardinality, owner access, anonymous/missing claims, manager/tenant/business isolation and service-role reads.
+- **Validation:** source files and manifest were read back after writes; dedicated RC931 PG17 and full 90-version replay have not run yet on this new branch. Treat tests as PENDING, not PASS.
+- **Production:** read-only; no migration, DDL/DML, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet or settlement mutation.
+- **Next:** open PR from the fresh branch, inspect exact-head checks, fix test failures, and retain the production gate until backup/restore and coordinated DB/Edge release evidence exist.
+- **Decision:** FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED.
+
+---
+
 ## 2026-11-27 — Preserve unspecified business-status provenance
 - The first exact-head dashboard browser run caught an important mapping detail: the shared business mapper keeps unknown operational states fail-closed as INACTIVE at runtime.
 - Added a separate `operationalStatusUnspecified` provenance flag for admin reporting, without weakening runtime access/order checks or changing the operational-state fallback.
