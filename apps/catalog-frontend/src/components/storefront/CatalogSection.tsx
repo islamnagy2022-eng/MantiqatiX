@@ -257,6 +257,12 @@ export const CatalogSection: React.FC = () => {
           {filteredItems.map((product) => {
             const inCartQty = getItemCartQuantity(product.id);
             const isRecentlyAdded = addedItemEffect === product.id;
+            const defaultProductImage = resolveDefaultImage({
+              name: product.name,
+              description: product.description,
+              category: product.category,
+              kind: product.type === 'service' ? 'service' : 'product',
+            });
             const hasDiscount = product.comparePrice && product.comparePrice > product.price;
             const discountPercent = hasDiscount
               ? Math.round(((product.comparePrice! - product.price) / product.comparePrice!) * 100)
@@ -271,19 +277,17 @@ export const CatalogSection: React.FC = () => {
                 {/* Product Image & Badges */}
                 <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden">
                   <img
-                    src={product.imageUrl}
+                    src={product.imageUrl || defaultProductImage}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
                       const image = e.currentTarget;
-                      if (image.dataset.defaultFallbackApplied !== 'true') {
+                      if (product.imageUrl && image.dataset.defaultFallbackApplied !== 'true') {
                         image.dataset.defaultFallbackApplied = 'true';
-                        image.src = resolveDefaultImage({
-                          name: product.name,
-                          description: product.description,
-                          category: product.category,
-                          kind: product.type === 'service' ? 'service' : 'product',
-                        });
+                        image.src = defaultProductImage;
+                      } else {
+                        image.onerror = null;
+                        image.style.visibility = 'hidden';
                       }
                     }}
                   />
