@@ -49,6 +49,7 @@ expect('danger semantic color remains red', css.includes('--mx-danger: #d90000;'
 expect('storefront hover uses warm token, not legacy blue', css.includes('.mx-v4-storefront-secondary:hover { background: var(--mx-blue-50); }') && !css.includes('#d5edff'));
 const admin = read('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx');
 expect('payment confirmation remains a success action', admin.includes('تأكيد سداد المستحقات') && admin.includes('bg-emerald-600'));
+expect('admin taxonomy header uses the brand palette', admin.includes('bg-gradient-to-r from-[#3a0000] via-[#7a0000] to-[#3a0000]') && admin.includes('bg-[#f6c04d] text-[#3a0000]'));
 expect('publication approval remains a success action', admin.includes("handlePublicationReview(business, 'APPROVE')") && admin.includes('bg-emerald-600'));
 const directory = read('apps/catalog-frontend/src/components/DirectoryView.tsx');
 expect('verified and unverified listing states remain distinct', directory.includes('bg-emerald-500') && directory.includes('bg-red-600'));
