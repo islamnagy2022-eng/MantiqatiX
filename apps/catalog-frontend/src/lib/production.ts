@@ -129,15 +129,24 @@ export async function listCatalogImages(input: {
     throw new Error(String(payload?.message || payload?.error || error?.message || 'تعذر تحميل مكتبة الصور السابقة.'));
   }
 
+  const businessMediaPrefix = `businesses/${input.businessId}/owner-uploads/`;
   return (Array.isArray(data?.images) ? data.images : [])
-    .filter((item: any) =>
-      typeof item?.imageUrl === 'string' &&
-      item.imageUrl.startsWith('https://') &&
-      typeof item?.objectPath === 'string' &&
-      /^businesses\\/[0-9a-f-]{36}\\/owner-uploads\\/(activity|cover|product|service)\\/[A-Za-z0-9._-]+$/.test(item.objectPath) &&
-      item.objectPath.startsWith(`businesses/${input.businessId}/owner-uploads/`) &&
-      (input.kind === undefined || input.kind === 'all' || item.objectPath.startsWith(`businesses/${input.businessId}/owner-uploads/${input.kind}/`))
-    )
+    .filter((item: any) => {
+      if (
+        typeof item?.imageUrl !== 'string' ||
+        !item.imageUrl.startsWith('https://') ||
+        typeof item?.objectPath !== 'string' ||
+        !item.objectPath.startsWith(businessMediaPrefix)
+      ) return false;
+
+      const [sourceKind, fileName, ...extraSegments] = item.objectPath
+        .slice(businessMediaPrefix.length)
+        .split('/');
+      return ['activity', 'cover', 'product', 'service'].includes(sourceKind) &&
+        /^[A-Za-z0-9._-]+$/.test(fileName || '') &&
+        extraSegments.length === 0 &&
+        (input.kind === undefined || input.kind === 'all' || input.kind === sourceKind);
+    })
     .map((item: any): CatalogMediaLibraryItem => ({
       imageUrl: item.imageUrl,
       objectPath: item.objectPath,
