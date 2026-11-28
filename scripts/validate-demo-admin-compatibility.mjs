@@ -20,6 +20,10 @@ const permissionRepairSource = readFileSync(
   'supabase/migrations/20261128112119_demo_admin_control_center_compatibility.sql',
   'utf8',
 );
+const permissionHelperPathMigration = readFileSync(
+  'supabase/migrations/20261128112653_demo_mnty_permission_helper_empty_search_path.sql',
+  'utf8',
+).toLowerCase();
 const demoPlatformRootMigration = readFileSync(
   'supabase/migrations/20261128112058_demo_platform_root_authority_convergence.sql',
   'utf8',
@@ -43,6 +47,8 @@ const externalRpcSignatures = [
 ];
 
 const serviceOnlyRpcSignature = 'mnty_platform_admin_delete_business';
+assert.ok(permissionHelperPathMigration.includes('alter function public.mnty_active_membership(character varying,uuid,character varying)') && permissionHelperPathMigration.includes('alter function public.mnty_can(text,character varying,uuid,character varying)'), 'Legacy membership helpers must be hardened.');
+assert.ok(permissionHelperPathMigration.includes('set search_path = \'\';'), 'Legacy membership helper search paths must be empty.');
 
 const catalogRpcSignatures = [
   'adjust_catalog_stock_backend(character varying,uuid,character varying,character varying,uuid,numeric,numeric,character varying,text)',
@@ -185,7 +191,7 @@ assert.ok(platformAdminEdge.includes('const activity_module_settings_write_enabl
   'Activity-module platform settings must remain server-side disabled until atomic audit is proven.');
 assert.ok(migration.includes('revoke all on table public.bizcatalog_platform_settings from public, anon, authenticated;'), 'BizCatalog settings must remain closed to browser roles.');
 assert.ok(migration.includes('revoke all on function public.' + serviceOnlyRpcSignature) && migration.includes('to service_role;'), 'Business delete RPC must be service-role-only.');
-for (const marker of ['demo_admin_bizcatalog_settings_client_privilege_granted','demo_admin_delete_rpc_must_be_invoker','demo_admin_delete_rpc_acl_failed','demo_admin_delete_rpc_history_or_audit_guard_missing','demo_admin_delete_rpc_service_select_missing','demo_admin_delete_rpc_service_delete_missing','demo_admin_delete_rpc_service_lock_or_audit_privilege_missing','demo_admin_bizcatalog_and_delete_behavior','demo_platform_root_authorization_behavior']) {
+for (const marker of ['demo_admin_bizcatalog_settings_client_privilege_granted','demo_admin_delete_rpc_must_be_invoker','demo_admin_delete_rpc_acl_failed','demo_admin_delete_rpc_history_or_audit_guard_missing','demo_admin_delete_rpc_service_select_missing','demo_admin_delete_rpc_service_delete_missing','demo_admin_delete_rpc_service_lock_or_audit_privilege_missing','demo_admin_bizcatalog_and_delete_behavior','demo_platform_root_authorization_behavior','demo_mnty_active_membership_search_path_not_empty','demo_mnty_can_search_path_not_empty','demo_permission_helper_execute_acl_changed']) {
   assert.ok(postgresTest.includes(marker), 'PostgreSQL integration contract missing assertion marker: ' + marker);
 }
 
