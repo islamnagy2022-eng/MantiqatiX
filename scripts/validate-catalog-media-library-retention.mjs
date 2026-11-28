@@ -20,12 +20,15 @@ assert.ok(proxy.includes('businessMemberships') && proxy.includes('catalogWriteA
 assert.ok(library.includes('export async function listCatalogImages'), 'the production client must expose the image-library helper');
 assert.ok(library.includes("action: 'list_catalog_images'") &&
   library.includes("imageKind: input.kind || 'all'") &&
-  library.includes('sourceKind: item.sourceKind as CatalogAiImageKind'),
-  'the client helper must request the unified business library and retain each image source kind');
+  library.includes("sourceKind: item.objectPath.slice(businessMediaPrefix.length).split('/')[0] as CatalogAiImageKind"),
+  'the client helper must request the unified business library and derive each image source kind from its validated path');
 assert.ok(dashboard.includes('openMediaLibrary(\'logo\')') && dashboard.includes('openMediaLibrary(\'cover\')') && dashboard.includes('openMediaLibrary(\'catalog\')'),
   'logo, cover, and catalogue item editors must offer previous-image selection');
-assert.ok(dashboard.includes('aria-modal="true"') && dashboard.includes('مكتبة الصور المرفوعة سابقًا'),
-  'the image picker must be an accessible gallery dialog');
+assert.ok(dashboard.includes("kind: 'all'") &&
+  dashboard.includes('item.sourceKind === \'activity\'') &&
+  dashboard.includes('aria-modal="true"') &&
+  dashboard.includes('مكتبة الصور المرفوعة سابقًا'),
+  'the accessible gallery must offer all media kinds and label the original upload kind');
 
 assert.ok(migration.includes("now() - interval '5 days'"), 'retention must use a five-day unused age threshold');
 assert.ok(migration.includes("c.relname <> 'audit_logs'"), 'upload audit records must not count as live media references');
