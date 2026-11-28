@@ -4,6 +4,7 @@
 - [x] Rebased RC931 work on a fresh branch from post-RC932 main instead of carrying a 59-ahead / 52-behind stale branch.
 - [x] Added RC115 (`20261125130000`), RC116 (`20261125140000`) and RC931 (`20261128010000`) to the release source list alongside RC932. The unified contract contains 92 unique, timestamp-ordered migration versions.
 - [x] Added the RC931 forward migration, RC116-compatible owner read/update preflight, synthetic PostgreSQL 17 fixtures, tenant-isolation integration and dedicated workflow.
+- [x] Restored the historical RC116 migration byte-for-byte to `main`; placed the authenticated owner `settings` JSONB guard in new RC931, restricting updates to `branding.logo_path`. The RC931 PG17 integration now checks that official showcase, activity classification and other branding metadata cannot be changed by provider owners; exact-head CI is pending.
 - [ ] Unified exact-head RC931 PostgreSQL 17 workflow, full 92-version chronological replay and companion checks are pending; queued CI is not counted as passing.
 - **Production:** read-only. RC115, RC116, RC931 and RC932 are unapplied source versions; live ledger remains 310 rows through `20261110150618`, exact source-ID match 0/92. This is an identity gap, not proof that every physical effect is absent.
 - **Release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Backup/restore, platform-root authorization, Edge parity, payment/finance sandbox and coordinated release remain blockers.
