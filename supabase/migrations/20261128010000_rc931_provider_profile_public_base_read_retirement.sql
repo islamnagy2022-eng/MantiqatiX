@@ -13,6 +13,8 @@ declare
   v_force_rls boolean;
   v_crm_qual text;
   v_confirmed_qual text;
+  v_owner_qual text;
+  v_owner_check text;
   v_registry_owner oid;
   v_registry_rls boolean;
   v_registry_force_rls boolean;
@@ -87,13 +89,13 @@ begin
      or pg_catalog.has_function_privilege('service_role', 'public.is_platform_admin()', 'EXECUTE') then
     raise exception 'RC931_PLATFORM_ADMIN_HELPER_ACL_MISMATCH';
   end if;
-  if has_table_privilege('anon', 'public.marketing_provider_profiles', 'SELECT') then
+  if pg_catalog.has_table_privilege('anon', 'public.marketing_provider_profiles', 'SELECT') then
     raise exception 'RC931_RC479_RAW_ANON_REVOKE_REQUIRED';
   end if;
-  if not has_table_privilege('authenticated', 'public.marketing_provider_profiles', 'SELECT') then
+  if not pg_catalog.has_table_privilege('authenticated', 'public.marketing_provider_profiles', 'SELECT') then
     raise exception 'RC931_AUTHENTICATED_SELECT_REQUIRED_FOR_OWNER_AND_CRM';
   end if;
-  if not has_table_privilege('service_role', 'public.marketing_provider_profiles', 'SELECT') then
+  if not pg_catalog.has_table_privilege('service_role', 'public.marketing_provider_profiles', 'SELECT') then
     raise exception 'RC931_SERVICE_ROLE_SELECT_REQUIRED_FOR_CURATED_DIRECTORY';
   end if;
 
@@ -127,17 +129,23 @@ begin
     raise exception 'RC931_RC115_TENANT_AND_BUSINESS_SCOPED_CRM_POLICY_REQUIRED';
   end if;
 
-  if not exists (
-    select 1
-    from pg_catalog.pg_policies p
-    where p.schemaname = 'public'
-      and p.tablename = 'marketing_provider_profiles'
-      and p.policyname = 'Owners manage their marketing provider profile'
-      and p.permissive = 'PERMISSIVE'
-      and p.cmd = 'ALL'
-      and 'authenticated' = any (p.roles)
-  ) then
-    raise exception 'RC931_OWNER_PROFILE_ACCESS_POLICY_REQUIRED';
+  select p.qual, p.with_check
+    into v_owner_qual, v_owner_check
+  from pg_catalog.pg_policies p
+  where p.schemaname = 'public'
+    and p.tablename = 'marketing_provider_profiles'
+    and p.policyname = 'Owners manage their marketing provider profile'
+    and p.permissive = 'PERMISSIVE'
+    and p.cmd = 'ALL'
+    and 'authenticated' = any (p.roles);
+
+  if v_owner_qual is null
+     or v_owner_check is null
+     or v_owner_qual not ilike '%auth.uid()%'
+     or v_owner_qual not ilike '%owner_user_id%'
+     or v_owner_check not ilike '%auth.uid()%'
+     or v_owner_check not ilike '%owner_user_id%' then
+    raise exception 'RC931_OWNER_PROFILE_SCOPE_POLICY_REQUIRED';
   end if;
 end;
 $preflight$;
@@ -200,13 +208,13 @@ begin
   ) then
     raise exception 'RC931_GLOBAL_PROVIDER_PROFILE_READ_POLICY_REMAINS';
   end if;
-  if not has_table_privilege('service_role', 'public.marketing_provider_profiles', 'SELECT') then
+  if not pg_catalog.has_table_privilege('service_role', 'public.marketing_provider_profiles', 'SELECT') then
     raise exception 'RC931_SERVICE_ROLE_DIRECTORY_READ_REGRESSED';
   end if;
-  if not has_table_privilege('authenticated', 'public.marketing_provider_profiles', 'SELECT') then
+  if not pg_catalog.has_table_privilege('authenticated', 'public.marketing_provider_profiles', 'SELECT') then
     raise exception 'RC931_AUTHENTICATED_OWNER_AND_CRM_READ_REGRESSED';
   end if;
-  if has_table_privilege('anon', 'public.marketing_provider_profiles', 'SELECT') then
+  if pg_catalog.has_table_privilege('anon', 'public.marketing_provider_profiles', 'SELECT') then
     raise exception 'RC931_RAW_ANON_READ_REAPPEARED';
   end if;
   if not exists (
