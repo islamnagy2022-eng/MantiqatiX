@@ -463,6 +463,7 @@ $demo_platform_root_authorization_behavior$;
 ROLLBACK;
 SELECT 'DEMO_PLATFORM_ROOT_AUTHORIZATION_BEHAVIOR=PASS' AS result;
 
+-- The clean-checkpoint replay applies the 112652 ACL preflight before the 112653 search_path hardening.
 DO $demo_mnty_permission_helpers_empty_path$
 DECLARE
   v_active oid := pg_catalog.to_regprocedure('public.mnty_active_membership(character varying,uuid,character varying)');
