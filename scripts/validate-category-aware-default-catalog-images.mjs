@@ -86,6 +86,10 @@ assert.ok(production.includes('coverUrl: doctorFallbackCover || pharmacyFallback
 assert.ok(profileHeader.includes("kind: 'activity'"), 'storefront header must render a category-aware logo default');
 assert.ok(profileHeader.includes("kind: 'cover'"), 'storefront header must render a category-aware cover default');
 assert.ok(profileHeader.includes('image.src = defaultCover'), 'broken merchant covers must fall back to the category artwork');
+assert.ok(profileHeader.includes('failedPromotionalImages') &&
+  profileHeader.includes('الصورة الأصلية غير متاحة') &&
+  profileHeader.includes('image.style.visibility = \'hidden\''),
+  'promotional gallery thumbnails and full-size viewer must handle broken image URLs without showing broken images');
 assert.ok(profileHeader.includes('image.src = defaultLogo'), 'broken merchant logos must fall back to the category artwork');
 
 assert.ok(marketplace.includes('const defaultCover = resolveDefaultImage'), 'marketplace cards must have a wide category-aware cover');
@@ -139,10 +143,12 @@ assert.ok(directoryListings.includes('listing.metadata?.logoUrl') && directoryLi
   'valid owner-provided profile/logo imagery must retain precedence over defaults');
 assert.ok(directoryListings.includes('listing.metadata?.coverUrl') && directoryListings.includes('listing.metadata?.cover_url'),
   'valid owner-provided cover imagery must retain precedence over defaults');
-assert.ok(directoryListings.includes('image.dataset.defaultApplied === "true"') &&
+assert.ok(directoryListings.includes('image.dataset.defaultApplied !== "true"') &&
+  directoryListings.includes('image.onerror = null') &&
+  directoryListings.includes('image.style.visibility = "hidden"') &&
   directoryListings.includes('image.src = listingCategoryCoverImage(detail)') &&
   directoryListings.includes('image.src = listingCategoryProfileImage(detail)'),
-  'broken uploaded profile and cover URLs must fall back once to the local category artwork');
+  'broken uploaded profile and cover URLs must fall back once to local category artwork and hide only if that fallback also fails');
 assert.ok(directoryListings.includes('image.src = listingCategoryProfileImage(listing)'),
   'directory result cards must recover from broken owner images using the same category-aware fallback');
 assert.ok(directoryListings.includes('function listingCategoryProfileImage') &&
