@@ -6,6 +6,7 @@ const runtime = fs.readFileSync(`${frontendRoot}/src/lib/production.ts`, 'utf8')
 const envExample = fs.readFileSync(`${frontendRoot}/.env.example`, 'utf8');
 const gitignore = fs.readFileSync(`${frontendRoot}/.gitignore`, 'utf8');
 const productionConfig = fs.readFileSync(`${frontendRoot}/public/config.js`, 'utf8');
+const packageJson = JSON.parse(fs.readFileSync(`${frontendRoot}/package.json`, 'utf8'));
 
 const demoUrl = 'https://lkijdgqanbqjudiducjt.supabase.co';
 const productionUrl = 'https://moyhiluyhjsujhwlyeuu.supabase.co';
@@ -33,5 +34,6 @@ assert.ok(gitignore.split(/\r?\n/).includes('.env.*'), 'Local environment files 
 assert.ok(gitignore.split(/\r?\n/).includes('!.env.example'), 'Only the safe example environment file may be committed');
 assert.ok(productionConfig.includes(productionUrl), 'Published static config must continue targeting Production');
 assert.ok(!productionConfig.includes(demoUrl), 'Published static config must never target DEMO');
+assert.equal(packageJson.scripts?.['dev:demo'], 'vite --port=8080 --host=0.0.0.0', 'DEMO local server must use the CORS-allowlisted port 8080');
 
 console.log('Free DEMO Supabase runtime isolation: PASS (local Vite only, fail-closed, separate auth storage, production config unchanged).');
