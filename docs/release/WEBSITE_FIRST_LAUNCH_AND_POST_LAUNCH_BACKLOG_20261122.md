@@ -1,3 +1,16 @@
+# CURRENT RELEASE GATE — 2026-11-28 — RC932
+
+This overlay supersedes older migration-count and Production-state summaries below; historical entries remain unchanged.
+
+- Current canonical source contract: **89 required migration IDs**, chronologically ordered.
+- Latest direct read-only Production ledger: 310 rows through `20261110150618`; **0/89 exact required identifiers** are recorded. This is an identity gap, not proof every physical effect is absent.
+- RC930 remains source-only; new RC932 (`20261127235334`) is the 89th candidate and requires `is_anonymous=false` explicitly for MantiGO open-ride location disclosure.
+- RC932 regression cases: missing claim, JSON null and true denied; explicit false preserves verified/available captain access. The timestamped file was generated using pinned Supabase CLI 2.122.0 and is pending exact-head/full replay CI.
+- RC932 is not applied to Production. Do not apply or deploy any migration/function separately. Backup/restore, global authorization, full DB/Edge parity, payment/finance sandbox and release approvals remain blocked.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 # Website First Launch and Post-Launch Backlog — 2026-11-22
 
 ## Release result
