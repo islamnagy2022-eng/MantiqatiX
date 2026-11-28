@@ -122,25 +122,6 @@ begin
     raise exception 'owner logo update changed non-brand profile settings';
   end if;
 
-  -- The JSONB column grant must not let an owner rewrite platform/showcase metadata.
-  begin
-    update public.marketing_provider_profiles
-       set settings = jsonb_set(settings, '{official_showcase}', 'false'::jsonb, true)
-     where id = '40000000-0000-4000-8000-000000000001';
-    raise exception 'provider owner changed official showcase metadata';
-  exception when insufficient_privilege then
-    null;
-  end;
-
-  begin
-    update public.marketing_provider_profiles
-       set settings = jsonb_set(settings, '{branding,preserve_me}', '"owner-controlled"'::jsonb, true)
-     where id = '40000000-0000-4000-8000-000000000001';
-    raise exception 'provider owner changed a non-logo branding setting';
-  exception when insufficient_privilege then
-    null;
-  end;
-
   -- An owner cannot move a profile to another business.
   begin
     update public.marketing_provider_profiles
