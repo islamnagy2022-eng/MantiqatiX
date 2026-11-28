@@ -243,9 +243,11 @@ assert.match(context, /if \(result\?\.success !== true\)/, 'local settings state
 assert.match(context, /const toggleBusinessFreeze = async/, 'manual freeze changes must persist before local state changes');
 assert.match(context, /Freeze is an independent operational flag[\s\S]{0,180}await updateBillingSetting\(businessId, \{ isFrozen: frozen \}\)/, 'Freeze/unfreeze must not overwrite the underlying payment status');
 assert.ok(directory.includes("if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.operationalStatus !== 'ACTIVE' || biz.isFrozen) return false;"), 'The public directory must hide unpublished, inactive, and frozen businesses except official showcases');
-assert.match(directory, /const coverSlides: CoverSlide\[\] = liveFeaturedBusinesses\.map\(\(business\) =>/ , 'The home cover must be built from available business records only');
+assert.match(directory, /const businessCoverSlides: CoverSlide\\[\\] = liveFeaturedBusinesses\\.map\\(\\(business\\) =>/, 'Published business records remain the non-sponsored fallback for the home cover');
+assert.match(directory, /const targetedCoverSlides: CoverSlide\\[\\] = coverAdvertisements\\.map\\(\\(ad\\) =>[\\s\\S]*badge: 'إعلان ممول'[\\s\\S]*advertisementId: ad\\.advertisement_id/, 'The home cover must render real targeted HOME_HERO advertisement records');
+assert.match(directory, /const coverSlides: CoverSlide\\[\\] = \\[\\.\\.\\.targetedCoverSlides, \\.\\.\\.businessCoverSlides\\]/, 'Targeted paid cover campaigns must appear before the live-business fallback');
 assert.match(directory, /publicEnabled \|\| business\.isOfficialShowcase[\s\S]{0,120}!business\.isFrozen/, 'The cover must exclude frozen and unavailable business records');
-assert.match(directory, /section aria-label="الأنشطة المتاحة حاليًا"[\s\S]*activeCoverSlides\.length > 0/, 'The home cover must be one activity-focused carousel with an empty state');
+assert.match(directory, /section aria-label="إعلانات الخدمات والأنشطة حسب المنطقة"[\\s\\S]*activeCoverSlides\\.length > 0/, 'The home cover must be one region-aware ad carousel with a live-business fallback and empty state');
 assert.match(directory, /setSelectedBusinessId\(slide\.businessId\)[\s\S]{0,100}setCurrentView\('public_storefront'\)/, 'Clicking a cover image must open that activity public page');
 assert.doesNotMatch(directory, /currentSlide\.badge|currentSlide\.title|currentSlide\.subtitle|اضغط على الصورة لفتح صفحة النشاط/, 'The cover must not render text or badges over activity cover images');
 assert.match(directory, /activeCoverSlides\.length <= 1/, 'The cover autoplay must not start when zero or one activities are available');
