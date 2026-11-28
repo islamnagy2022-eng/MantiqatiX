@@ -58,3 +58,10 @@ assert.ok(platformAdminEndpointSource.includes('typeof body.catalogEnabled === "
 assert.ok(platformAdminEndpointSource.includes('typeof body.catalogWrite === "boolean" ? body.catalogWrite : previousPermissions.catalog_write !== false'), 'Omitted catalog write settings must retain the existing write permissions.');
 assert.ok(platformAdminEndpointSource.includes('typeof body.accountRestricted === "boolean"'), 'Omitted account restriction settings must retain the current restriction state.');
 console.log('BUSINESS_SUBSCRIBER_ROLE_UPDATE_PRESERVES_MEMBERSHIP_PERMISSIONS=PASS');
+
+
+// Legacy platform-owner memberships must be marked protected in the management view.
+assert.ok(platformAdminEndpointSource.includes('branch_id,role,status,permissions'), 'Business memberships must include permission metadata for protected-account detection.');
+assert.ok(platformAdminEndpointSource.includes('is_platform_account: String(m.role || "").toUpperCase() === "SUPER_ADMIN" || isProtectedPlatformMembership(m)'), 'Protected platform memberships must be explicitly marked in the read model.');
+assert.ok(businessSubscriberSource.includes('حساب منصة محمي · غير قابل للتعديل هنا'), 'The UI must not present ordinary membership controls for protected platform accounts.');
+console.log('BUSINESS_SUBSCRIBER_PROTECTED_PLATFORM_MEMBERSHIPS=PASS');
