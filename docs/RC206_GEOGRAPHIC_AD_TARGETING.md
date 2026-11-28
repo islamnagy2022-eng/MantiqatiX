@@ -39,3 +39,15 @@ Implemented in Production and source. Full behavioral verification remains parti
 - Current Production aggregate counts for the public cover placement: **0 normal ad rows, 0 advertisement target-location rows, 0 active approved normal `HOME_HERO` rows, and 0 active approved global `HOME_HERO` rows**. No campaign or target-location row was created.
 - Until a real campaign is created and approved, the cover uses the three first-party platform service promos and published business fallback. The platform promo subtitle and WhatsApp request link now reflect the visitor's selected governorate and, where available, center.
 - No Production SQL writes, migrations, ad creation, Storage changes, grants, Edge deployment, payment or customer-data mutation were performed. This refresh consisted of read-only aggregate/sample queries and source changes on the frontend/test branch.
+
+## Additional RPC fallback finding — 2026-11-28
+
+A read-only inspection of the Production definition of `public.get_mnty_targeted_advertisements(...)` found that the `raw` CTE includes every active target-location row in Egypt. If a normal `advertisements` row matches neither the selected center, selected governorate, nor country, its `match_rank=5` is returned as `match_level='GLOBAL'`. This can mislabel a center-specific or governorate-specific campaign as Egypt-wide. The actual global table uses IDs prefixed with `GLOBAL-`.
+
+Frontend mitigation in this branch:
+- Accept `match_level='GLOBAL'` only when `advertisement_id` begins with the RPC's `GLOBAL-` identity prefix.
+- Reject a `GLOBAL-` identity if the RPC reports a non-global match level.
+- Keep other verified levels (`CENTER`, `GOVERNORATE`, `COUNTRY`, `NEAREST`) for the corresponding geographic presentation.
+- Add a regression test proving a normal region-targeted row mislabeled as global is dropped, while an actual platform-global row remains visible.
+
+This is a **client-side fail-closed mitigation**, not a repair to the Production SQL function. The server function still needs a separate forward migration that filters normal target-location rows to actual center/governorate/country matches or consented-coordinate nearest results before assigning rank. Do not treat this documentation or frontend guard as evidence that the Production function has been repaired. No live ads currently exist in `HOME_HERO`; no SQL write, migration, ad creation, or deployment was performed.
