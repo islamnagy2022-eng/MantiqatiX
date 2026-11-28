@@ -59,6 +59,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
   const [roleEditorSupported,setRoleEditorSupported]=useState(false);
   const load=useCallback(async(preserveNotice=false)=>{
     setLoading(true);
+    setRoleEditorSupported(false);
     if(!preserveNotice)setNotice(null);
     const {data,error}=await supabase.functions.invoke('catalog-platform-admin',{body:{action:'LIST_BUSINESSES',search:search.trim()}});
     setLoading(false);
