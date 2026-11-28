@@ -37,7 +37,7 @@ import {
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { supabase } from '../lib/production';
-import { getTargetedAdvertisementAudienceLabel, isSafeHttpsUrl, loadTargetedAdvertisements, type TargetedAdvertisement } from '../utils/targetedAdvertisements';
+import { getPublicCenterAdCode, getTargetedAdvertisementAudienceLabel, isSafeHttpsUrl, loadTargetedAdvertisements, type TargetedAdvertisement } from '../utils/targetedAdvertisements';
 const DirectoryListingsView = lazy(() => import('./DirectoryListingsView').then((module) => ({ default: module.DirectoryListingsView })));
 const ActivityModuleView = lazy(() => import('../modules/activities/ActivityModuleView').then((module) => ({ default: module.ActivityModuleView })));
 
@@ -393,11 +393,17 @@ export const DirectoryView: React.FC = () => {
     let active = true;
     setCoverAdvertisements([]);
     setCoverAdvertisementsLoading(true);
+    const centerCode = getPublicCenterAdCode(
+      selectedMarkazFilter,
+      selectedGovFilter,
+      EGYPT_GEO_DISTRICTS,
+    );
     void loadTargetedAdvertisements(
       (functionName, args) => supabase.rpc(functionName, args),
       {
         adSpaces: ['HOME_HERO'],
         governorate: selectedGovFilter,
+        centerCode,
         latitude: geoPreferenceMode === 'auto' ? userCoordinates?.latitude ?? null : null,
         longitude: geoPreferenceMode === 'auto' ? userCoordinates?.longitude ?? null : null,
         limit: 8,
@@ -410,7 +416,7 @@ export const DirectoryView: React.FC = () => {
       if (active) setCoverAdvertisementsLoading(false);
     });
     return () => { active = false; };
-  }, [selectedGovFilter, geoPreferenceMode, userCoordinates?.latitude, userCoordinates?.longitude]);
+  }, [selectedGovFilter, selectedMarkazFilter, geoPreferenceMode, userCoordinates?.latitude, userCoordinates?.longitude]);
 
   const applyGovernorateScope = (requestedGovernorate: string) => {
     const governorate = requestedGovernorate === 'all'
