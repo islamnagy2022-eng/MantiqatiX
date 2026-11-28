@@ -26,6 +26,11 @@ const activityModuleView = fs.readFileSync('apps/catalog-frontend/src/modules/ac
 const directoryListingsFunction = fs.readFileSync('supabase/functions/directory-listings/index.ts', 'utf8');
 const directoryPaginationHelper = fs.readFileSync('supabase/functions/directory-listings/pagination-filter.mjs', 'utf8');
 const placeholder = fs.readFileSync('apps/catalog-frontend/public/business-placeholder.svg', 'utf8');
+const directoryCoverPromoAssets = [
+  'apps/catalog-frontend/public/assets/mnty-cover-ad-1.svg',
+  'apps/catalog-frontend/public/assets/mnty-cover-ad-2.svg',
+  'apps/catalog-frontend/public/assets/mnty-cover-ad-3.svg',
+].map((file) => fs.readFileSync(file, 'utf8'));
 const itemPlaceholder = fs.readFileSync('apps/catalog-frontend/public/catalog-item-placeholder.svg', 'utf8');
 const coverPlaceholder = fs.readFileSync('apps/catalog-frontend/public/business-cover-placeholder.svg', 'utf8');
 const defaultImages = fs.readFileSync('apps/catalog-frontend/src/utils/defaultImages.ts', 'utf8');
@@ -245,7 +250,8 @@ assert.match(context, /Freeze is an independent operational flag[\s\S]{0,180}awa
 assert.ok(directory.includes("if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.operationalStatus !== 'ACTIVE' || biz.isFrozen) return false;"), 'The public directory must hide unpublished, inactive, and frozen businesses except official showcases');
 assert.ok(directory.includes('const businessCoverSlides: CoverSlide[] = liveFeaturedBusinesses.map((business) =>'), 'Published business records remain the non-sponsored fallback for the home cover');
 assert.ok(directory.includes('const targetedCoverSlides: CoverSlide[] = coverAdvertisements.map((ad) => ({') && directory.includes("badge: 'إعلان ممول'") && directory.includes('advertisementId: ad.advertisement_id'), 'The home cover must render real targeted HOME_HERO advertisement records');
-assert.ok(directory.includes('const platformPromoCoverSlides: CoverSlide[] = DIRECTORY_PLATFORM_PROMOS.map((promo) => ({') && directory.includes('assets/mnty-cover-ad-1.svg') && directory.includes("badge: 'خدمات المنصة'"), 'Official platform service promos must fill the cover when no regional paid campaign exists'); 
+assert.ok(directory.includes('const platformPromoCoverSlides: CoverSlide[] = DIRECTORY_PLATFORM_PROMOS.map((promo) => ({') && directory.includes('assets/mnty-cover-ad-1.svg') && directory.includes("badge: 'خدمات المنصة'"), 'Official platform service promos must fill the cover when no regional paid campaign exists');
+assert.ok(directoryCoverPromoAssets.length === 3 && directoryCoverPromoAssets.every((asset) => asset.startsWith('<svg') && asset.includes('MantiqatiX')), 'All three official platform promo creatives must ship inside the catalog app public assets'); 
 assert.ok(directory.includes('const coverSlides: CoverSlide[] = [...targetedCoverSlides, ...platformPromoCoverSlides, ...businessCoverSlides]'), 'Targeted paid cover campaigns must appear first, followed by official platform promos and local business fallback');
 assert.match(directory, /publicEnabled \|\| business\.isOfficialShowcase[\s\S]{0,120}!business\.isFrozen/, 'The cover must exclude frozen and unavailable business records');
 assert.ok(directory.includes('section aria-label="إعلانات الخدمات والأنشطة حسب المنطقة"') && directory.includes('data-testid="directory-cover-advertisements"') && directory.includes('activeCoverSlides.length > 0'), 'The home cover must be one region-aware ad carousel with a live-business fallback and empty state');
