@@ -61,6 +61,46 @@ export const getPublicGovernorateAdCode = (governorate: string | null | undefine
  * The label intentionally follows match_level rather than assuming every ad
  * belongs to the visitor's selected governorate.
  */
+export interface PublicCenterDirectoryEntry {
+  id: string;
+  name: string;
+  governorateName: string;
+}
+
+const normalizeAdGeographyName = (value: unknown): string => String(value || '')
+  .toLocaleLowerCase('ar-EG')
+  .normalize('NFKC')
+  .replace(/[أإآ]/g, 'ا')
+  .replace(/[ىي]/g, 'ي')
+  .replace(/ة/g, 'ه')
+  .replace(/[\u064B-\u065F\u0670]/g, '')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+/**
+ * Resolve only known Egyptian Markaz rows whose displayed name and governorate
+ * exactly match the bundled administrative directory. Non-center units (qism,
+ * city, village, etc.) intentionally fall back to governorate-level targeting.
+ */
+export const getPublicCenterAdCode = (
+  center: string | null | undefined,
+  governorate: string | null | undefined,
+  directory: readonly PublicCenterDirectoryEntry[],
+): string | null => {
+  const selectedCenter = normalizeAdGeographyName(center);
+  const selectedGovernorate = normalizeAdGeographyName(governorate);
+  if (!selectedCenter || selectedCenter === 'all' ||
+      !selectedGovernorate || selectedGovernorate === 'all') return null;
+
+  const match = directory.find((entry) =>
+    /^مركز\s/.test(String(entry.name || '').trim()) &&
+    normalizeAdGeographyName(entry.name) === selectedCenter &&
+    normalizeAdGeographyName(entry.governorateName) === selectedGovernorate &&
+    /^EG\d{4}$/.test(String(entry.id || ''))
+  );
+  return match?.id || null;
+};
+
 export const getTargetedAdvertisementAudienceLabel = (
   matchLevel: unknown,
   governorate?: string | null,
