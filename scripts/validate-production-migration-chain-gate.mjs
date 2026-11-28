@@ -7,6 +7,7 @@ const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8
 const rc117ImageRepairValidator = fs.readFileSync("scripts/validate-rc117-image-provenance-forward-repair.mjs", "utf8");
 const rc932Validator = fs.readFileSync("scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs", "utf8");
 const mediaCleanupVaultFixture = fs.readFileSync("supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql", "utf8");
+const mediaRetentionIntegration = fs.readFileSync("supabase/tests/catalog_media_unreferenced_five_day_window_integration.sql", "utf8");
 
 const dependentReleaseCountValidators = [
   "scripts/validate-rc117-image-provenance-forward-repair.mjs",
@@ -152,6 +153,12 @@ assert.ok(mediaCleanupVaultFixture.includes("repeat('c', 64)") &&
   mediaCleanupVaultFixture.includes("'ci-placeholder-public-api-key'") &&
   mediaCleanupVaultFixture.includes("mnty_catalog_media_cleanup_token"),
   "the replay Vault fixture must use unmistakable dummy values and never Production secrets");
+assert.ok(forwardReplayWorkflow.includes("CATALOG_MEDIA_CONTINUOUS_FIVE_DAY_RETENTION") &&
+  forwardReplayWorkflow.includes("supabase/tests/catalog_media_unreferenced_five_day_window_integration.sql"),
+  "forward replay must test the continuous five-day unused-media timer and reference-reset behavior");
+assert.ok(mediaRetentionIntegration.includes("MEDIA_RETENTION_LIVE_REFERENCE_DID_NOT_RESET_CLOCK") &&
+  mediaRetentionIntegration.includes("MEDIA_RETENTION_DID_NOT_RELEASE_IMAGE_AFTER_FIVE_UNUSED_DAYS"),
+  "media retention integration must prove a live reference resets the timer and five unused days releases the file");
 assert.match(source, /migrationTimestampOrderViolations/, "migration timestamp/order conflicts must be checked");
 assert.match(source, /const reconciliationPath="docs\/release\/production-migration-reconciliation\.json"/, "live reconciliation manifest must be read");
 assert.match(liveContract, /source_ledger_identity_reconciled\s*===\s*true/, "source/ledger identity must be reconciled");
@@ -260,7 +267,8 @@ for (const contractPath of [
   "docs/release/production-migration-reconciliation.json",
   "supabase/tests/rc482_legal_platform_admin_registry_integration.sql",
   "supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql",
-  "supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql"
+  "supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql",
+  "supabase/tests/catalog_media_unreferenced_five_day_window_integration.sql"
 ]) {
   assert.ok(forwardReplay.includes(contractPath), `forward replay trigger paths must include ${contractPath}`);
 }
