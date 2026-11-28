@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getPublicCenterAdCode, getPublicGovernorateAdCode, getTargetedAdvertisementAudienceLabel, loadTargetedAdvertisements } from '../src/utils/targetedAdvertisements';
+import { getPublicAreaDisplayLabel, getPublicCenterAdCode, getPublicGovernorateAdCode, getTargetedAdvertisementAudienceLabel, loadTargetedAdvertisements } from '../src/utils/targetedAdvertisements';
 import { EGYPT_GEO_DISTRICTS } from '../src/data/egyptGeoDiscovery';
 
 const validAd = (id: string, overrides: Record<string, unknown> = {}) => ({
@@ -249,4 +249,11 @@ test('sends the selected, verified center code to HOME_HERO ad discovery', async
 
   assert.equal(seenArgs[0]?.p_governorate_code, '17');
   assert.equal(seenArgs[0]?.p_center_code, 'EG1706');
+});
+
+
+test('builds area-specific platform promo copy without claiming a paid campaign exists', () => {
+  assert.equal(getPublicAreaDisplayLabel('المنوفية', 'مركز بركة السبع'), 'مركز بركة السبع، المنوفية');
+  assert.equal(getPublicAreaDisplayLabel('المنوفية', 'all'), 'المنوفية');
+  assert.equal(getPublicAreaDisplayLabel('all', 'all'), 'جميع محافظات مصر');
 });
