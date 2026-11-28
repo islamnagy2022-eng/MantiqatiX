@@ -112,7 +112,10 @@ export const getTargetedAdvertisementAudienceLabel = (
   const selectedCenter = String(center || '').trim();
   const hasCenter = Boolean(selectedCenter && selectedCenter.toLowerCase() !== 'all');
 
-  if (level === 'CENTER') return hasCenter ? `موجه لمركز ${selectedCenter}` : 'موجه لمركز محدد';
+  if (level === 'CENTER') {
+    const centerName = selectedCenter.replace(/^مركز\\s*/u, '').trim();
+    return hasCenter && centerName ? `موجه لمركز ${centerName}` : 'موجه لمركز محدد';
+  }
   if (level === 'GOVERNORATE') return hasGovernorate ? `موجه لمحافظة ${selectedGovernorate}` : 'موجه لمحافظة محددة';
   if (level === 'COUNTRY') return 'حملة عامة على مستوى مصر';
   if (level === 'NEAREST') return 'أقرب نطاق إعلاني متاح';
