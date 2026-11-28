@@ -64,8 +64,17 @@ BEGIN
   END;
   IF NOT v_rejected THEN RAISE EXCEPTION 'RC932 anonymous Auth identity was allowed'; END IF;
 
-  -- Only explicit is_anonymous=false preserves the verified captain's existing access.
+  -- An explicitly confirmed token still cannot pass another user's identifier.
   PERFORM pg_catalog.set_config('request.jwt.claims','{"is_anonymous":false}',true);
+  v_rejected:=false;
+  BEGIN
+    PERFORM * FROM public.list_open_mantigo_rides_backend(v_customer);
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM='USER_CONTEXT_MISMATCH' THEN v_rejected:=true; ELSE RAISE; END IF;
+  END;
+  IF NOT v_rejected THEN RAISE EXCEPTION 'RC932 caller identity mismatch was allowed'; END IF;
+
+  -- Only explicit is_anonymous=false preserves the verified captain's existing access.
   SELECT count(*) INTO v_count
     FROM public.list_open_mantigo_rides_backend(v_captain)
    WHERE id='RC932-STRICT-AUTH-OPEN';
