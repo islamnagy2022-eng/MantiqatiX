@@ -93,8 +93,14 @@ interface CoverSlide {
   advertisementId?: string;
   targetUrl?: string;
   matchLevel?: string;
+  platformPromoId?: string;
 }
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
+const DIRECTORY_PLATFORM_PROMOS = [
+  { id: 'platform-growth', image: (import.meta.env.BASE_URL || '/') + 'assets/mnty-cover-ad-1.svg', title: 'حوّل نشاطك إلى عملاء جدد' },
+  { id: 'platform-registration', image: (import.meta.env.BASE_URL || '/') + 'assets/mnty-cover-ad-2.svg', title: 'سجّل نشاطك على MantiqatiX' },
+  { id: 'platform-provider', image: (import.meta.env.BASE_URL || '/') + 'assets/mnty-cover-ad-3.svg', title: 'فرصتك تبدأ هنا' },
+] as const;
 
 // Resolve category-aware covers locally when an activity has no uploaded cover.
 // Do not depend on third-party thumbnail URLs: they can expire, hotlink-block, or change.
@@ -735,7 +741,20 @@ export const DirectoryView: React.FC = () => {
       targetUrl: ad.target_url || undefined,
       matchLevel: ad.match_level,
     }));
-  const coverSlides: CoverSlide[] = [...targetedCoverSlides, ...businessCoverSlides];
+  const platformPromoCoverSlides: CoverSlide[] = DIRECTORY_PLATFORM_PROMOS.map((promo) => ({
+      image: promo.image,
+      badge: 'خدمات المنصة',
+      title: promo.title,
+      subtitle: selectedGovFilter === 'all'
+        ? 'خدمات لأصحاب الأنشطة في جميع محافظات مصر.'
+        : 'اعرض نشاطك واستقبل عملاء من ' + selectedGovFilter + '.',
+      governorates: selectedGovFilter === 'all' ? ['all'] : [selectedGovFilter],
+      platformPromoId: promo.id,
+      targetUrl: catalogRequestPhone
+        ? 'https://wa.me/' + catalogRequestPhone + '?text=' + encodeURIComponent('مرحبًا، أريد معرفة خدمات منصة MantiqatiX لأصحاب الأنشطة في ' + (selectedGovFilter === 'all' ? 'مصر' : selectedGovFilter) + '.')
+        : undefined,
+    }));
+  const coverSlides: CoverSlide[] = [...targetedCoverSlides, ...platformPromoCoverSlides, ...businessCoverSlides];
 
   // Public classification starts at Activity; each activity opens its own Specialty view.
   const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity');
@@ -1058,7 +1077,7 @@ export const DirectoryView: React.FC = () => {
             <div className="relative aspect-[4/3] sm:aspect-[650/228] w-full rounded-3xl overflow-hidden shadow-2xl bg-slate-900 group">
               {activeCoverSlides.map((slide, idx) => (
                 <div
-                  key={slide.advertisementId || slide.businessId || `${slide.title}-${idx}`}
+                  key={slide.advertisementId || slide.platformPromoId || slide.businessId || `${slide.title}-${idx}`}
                   aria-hidden={idx !== currentCoverIndex}
                   className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
                     idx === currentCoverIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
@@ -1068,7 +1087,7 @@ export const DirectoryView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      if (slide.advertisementId) {
+                      if (slide.advertisementId || slide.platformPromoId) {
                         const safeTarget = isSafeHttpsUrl(slide.targetUrl);
                         if (safeTarget) window.open(safeTarget, '_blank', 'noopener,noreferrer');
                         return;
@@ -1077,12 +1096,12 @@ export const DirectoryView: React.FC = () => {
                       setSelectedBusinessId(slide.businessId);
                       setCurrentView('public_storefront');
                     }}
-                    aria-label={slide.advertisementId ? `افتح الإعلان الممول: ${slide.title}` : `افتح صفحة نشاط ${slide.title}`}
+                    aria-label={slide.advertisementId ? `افتح الإعلان الممول: ${slide.title}` : slide.platformPromoId ? `تعرّف على خدمات المنصة: ${slide.title}` : `افتح صفحة نشاط ${slide.title}`}
                     tabIndex={idx === currentCoverIndex ? 0 : -1}
                     className="absolute inset-0 block h-full w-full cursor-pointer text-left focus-visible:ring-4 focus-visible:ring-[#f6c04d]"
                   >
                     <img
-                      data-testid={slide.advertisementId ? 'directory-cover-paid-ad' : undefined}
+                      data-testid={slide.advertisementId ? 'directory-cover-paid-ad' : slide.platformPromoId ? 'directory-cover-platform-promo' : undefined}
                       src={slide.image || resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' })}
                       alt={slide.title}
                       className="h-full w-full object-contain sm:object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
@@ -1096,11 +1115,11 @@ export const DirectoryView: React.FC = () => {
 
                   </button>
                   )}
-                  {slide.advertisementId && (
-                    <div className="pointer-events-none absolute right-3 top-3 z-20 flex items-center gap-2" aria-label="إعلان ممول">
-                      <span className="rounded-full border border-white/40 bg-[#7a0000]/95 px-3 py-1.5 text-[10px] font-black text-white shadow-lg">إعلان ممول</span>
+                  {(slide.advertisementId || slide.platformPromoId) && (
+                    <div className="pointer-events-none absolute right-3 top-3 z-20 flex items-center gap-2" aria-label={slide.advertisementId ? 'إعلان ممول' : 'إعلان من المنصة'}>
+                      <span className="rounded-full border border-white/40 bg-[#7a0000]/95 px-3 py-1.5 text-[10px] font-black text-white shadow-lg">{slide.advertisementId ? 'إعلان ممول' : 'خدمات المنصة'}</span>
                       {selectedGovFilter !== 'all' && (
-                        <span className="rounded-full border border-white/35 bg-slate-950/75 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">{selectedGovFilter}</span>
+                        <span className="rounded-full border border-white/35 bg-slate-950/75 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">لمنطقة {selectedGovFilter}</span>
                       )}
                     </div>
                   )}
@@ -1117,7 +1136,7 @@ export const DirectoryView: React.FC = () => {
                       className={`h-2 rounded-full transition-all cursor-pointer ${
                         idx === currentCoverIndex ? 'w-5 bg-amber-400' : 'w-1.5 bg-white/50 hover:bg-white'
                       }`}
-                      aria-label={slide.advertisementId ? `اعرض الإعلان الممول ${slide.title}` : `اعرض نشاط ${slide.title}`}
+                      aria-label={slide.advertisementId ? `اعرض الإعلان الممول ${slide.title}` : slide.platformPromoId ? `اعرض خدمة المنصة ${slide.title}` : `اعرض نشاط ${slide.title}`}
                       aria-pressed={idx === currentCoverIndex}
                     />
                   ))}
