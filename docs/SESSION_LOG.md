@@ -4559,3 +4559,15 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [ ] Direct HTTP smoke tests for Pages and DEMO Edge remain incomplete: attempts failed before HTTP because this execution environment could not resolve the hostnames. Retry only from an environment with DNS/network access.
 - [ ] DEMO platform-admin bootstrap remains intentionally pending operator selection of a separate confirmed DEMO Auth account; registry count stays zero.
 - [ ] Production remains untouched. Full platform release stays `BLOCKED / NOT CERTIFIED`; do not merge or mark PR ready based only on isolated DEMO/CI checks.
+
+
+## 2026-11-28 — PR #1216 DEMO admin compatibility follow-on
+
+- [x] Revalidated application-code head `1dfcef0cab2725f70d19e5d1d2df35bec14e0e2b`: all 15 PR workflow runs passed, including chronological PostgreSQL 17 forward replay, frontend build/RBAC and the Professional Dashboard browser E2E.
+- [x] DEMO Edge HTTP smoke passed in Pages workflow run [46145201046](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46145201046): approved Pages-origin preflight, anonymous POST rejected with `401 AUTH_REQUIRED`, and unapproved origin rejected with `403 ORIGIN_NOT_ALLOWED`. No authenticated platform-admin action was attempted.
+- [x] PR Pages validation and the existing live-origin redirect regression passed. The Pages `deploy` job was skipped because this is a Draft pull request; no new GitHub Pages publication occurred.
+- [x] Updated the DEMO admin audit and bootstrap runbook with the actual HTTP result, the distinction between Professional Dashboard E2E and Super Admin Control Center acceptance, and Supabase migration-repair commands for repository-pinned CLI 2.122.0 and CLI v3+.
+- [ ] DEMO history still lacks version `20261128112652` although its SQL ACL effect is already present and the ordered source replay passes. An authorized operator must run the documented, interactive, DEMO-only `supabase migration repair` and verify the four migration versions. Do not edit the internal ledger manually.
+- [ ] No approved DEMO Auth identity has been selected; `private.platform_admins` remains at 0 rows. Authenticated Super Admin acceptance must wait for explicit operator approval of the exact DEMO Auth UUID.
+- [ ] The latest follow-up commits after application-code head `1dfcef0...` are documentation-only; GitHub Actions reruns were started on the documentation-updated branch head and must finish before treating the newest branch commit as fully green.
+- **Production boundary:** no Production database, Auth, RLS/GRANT, Storage, Edge, deployment, payment, wallet, settlement, or customer/business data was changed. PR #1216 remains Draft and unmerged. Full platform release remains **BLOCKED / NOT CERTIFIED**.

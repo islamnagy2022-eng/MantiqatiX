@@ -251,3 +251,15 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [ ] Direct Pages/Edge HTTP checks are blocked before HTTP by DNS resolution failure in this execution environment.
 - [ ] Authorized operator must select a separate confirmed DEMO Auth identity before platform-root UI access can be validated.
 - **Boundary:** PR remains Draft, Pages deploy job skipped, Production unchanged; full platform remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-11-28 — PR #1216 DEMO admin compatibility follow-on
+
+- [x] Revalidated application-code head `1dfcef0cab2725f70d19e5d1d2df35bec14e0e2b`: all 15 PR workflow runs passed, including chronological PostgreSQL 17 forward replay, frontend build/RBAC and the Professional Dashboard browser E2E.
+- [x] DEMO Edge HTTP smoke passed in Pages workflow run [46145201046](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46145201046): approved Pages-origin preflight, anonymous POST rejected with `401 AUTH_REQUIRED`, and unapproved origin rejected with `403 ORIGIN_NOT_ALLOWED`. No authenticated platform-admin action was attempted.
+- [x] PR Pages validation and the existing live-origin redirect regression passed. The Pages `deploy` job was skipped because this is a Draft pull request; no new GitHub Pages publication occurred.
+- [x] Updated the DEMO admin audit and bootstrap runbook with the actual HTTP result, the distinction between Professional Dashboard E2E and Super Admin Control Center acceptance, and Supabase migration-repair commands for repository-pinned CLI 2.122.0 and CLI v3+.
+- [ ] DEMO history still lacks version `20261128112652` although its SQL ACL effect is already present and the ordered source replay passes. An authorized operator must run the documented, interactive, DEMO-only `supabase migration repair` and verify the four migration versions. Do not edit the internal ledger manually.
+- [ ] No approved DEMO Auth identity has been selected; `private.platform_admins` remains at 0 rows. Authenticated Super Admin acceptance must wait for explicit operator approval of the exact DEMO Auth UUID.
+- [ ] The latest follow-up commits after application-code head `1dfcef0...` are documentation-only; GitHub Actions reruns were started on the documentation-updated branch head and must finish before treating the newest branch commit as fully green.
+- **Production boundary:** no Production database, Auth, RLS/GRANT, Storage, Edge, deployment, payment, wallet, settlement, or customer/business data was changed. PR #1216 remains Draft and unmerged. Full platform release remains **BLOCKED / NOT CERTIFIED**.
