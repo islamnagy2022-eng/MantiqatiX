@@ -4,8 +4,8 @@
 - [x] Rebased RC931 work on a fresh branch from post-RC932 main instead of carrying a 59-ahead / 52-behind stale branch.
 - [x] Added RC115 (`20261125130000`), RC116 (`20261125140000`) and RC931 (`20261128010000`) to the release source list alongside RC932. The unified contract contains 92 unique, timestamp-ordered migration versions.
 - [x] Added the RC931 forward migration, RC116-compatible owner read/update preflight, synthetic PostgreSQL 17 fixtures, tenant-isolation integration and dedicated workflow.
-- [ ] Unified exact-head RC931 PostgreSQL 17 workflow, full 91-version chronological replay and companion checks are pending; queued CI is not counted as passing.
-- **Production:** read-only. RC115, RC931 and RC932 are unapplied source versions; live ledger remains 310 rows through `20261110150618`, exact source-ID match 0/92. This is an identity gap, not proof that every physical effect is absent.
+- [ ] Unified exact-head RC931 PostgreSQL 17 workflow, full 92-version chronological replay and companion checks are pending; queued CI is not counted as passing.
+- **Production:** read-only. RC115, RC116, RC931 and RC932 are unapplied source versions; live ledger remains 310 rows through `20261110150618`, exact source-ID match 0/92. This is an identity gap, not proof that every physical effect is absent.
 - **Release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Backup/restore, platform-root authorization, Edge parity, payment/finance sandbox and coordinated release remain blockers.
 
 ---
@@ -21,7 +21,7 @@
 - [x] Confirmed live MantiGO customer bid list discloses captain phone/vehicle plate before acceptance; RC477 masks until ACCEPTED. Issue #913 updated.
 - [x] Confirmed live MantiGO open ride list lacks ACTIVE/VERIFIED/AVAILABLE captain and vehicle-category gate; RC478 supplies the forward repair. Issue #911 updated.
 - [x] Found the additional RC478 missing/null `is_anonymous` JWT claim gap: its `coalesce(...,false)` predicate treats missing/null claim as confirmed, and the existing integration did not cover those cases. Added a forward-only RC932 repair requiring explicit `is_anonymous=false`; generated the timestamped migration through pinned Supabase CLI 2.122.0 as `20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql` and added PG17 missing/null/true/false tests.
-- [ ] PR #1199 is draft and now targets `main` after PR #1196 merged. The focused RC932 PostgreSQL 17 migration/integration workflow passed; the exact-head full 89-version replay and remaining PR checks are still running. Do not merge or apply RC932 to Production before every required check passes.
+- [ ] PR #1199 is draft and now targets `main` after PR #1196 merged. PR #1199 merged to main at 160228ee40590c27992cee5952895d0ed90b3ff6 after its focused RC932 PostgreSQL 17 suite and full chronological replay passed.
 - [x] Confirmed `preview_commission_backend` uses tenant finance membership without exact business/branch binding; RC467 source fixes after RC464. Issue #884 updated.
 - [x] Compared nine selected critical live Edge entrypoints with current main; all nine differ. This is a selected-file comparison, not a full 42-function bundle audit.
 - [x] Updated the backup/restore runbook, exact object map, SECDEF inventory and a source validator on current-main branch `docs/backup-restore-current-main-rebase-20261128`. Local-equivalent consistency checks pass: 19 base runbook requirements, 70 current overlay requirements, 32 SECDEF/delegation requirements, 16 object mapping requirements, 14 backlog requirements; no missing strings; 149 unique routine rows; 42 group entries/36 unique objects; 92 migration IDs; both push/PR path triggers.
