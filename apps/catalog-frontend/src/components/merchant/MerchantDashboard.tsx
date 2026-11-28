@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { supabase } from '../../lib/production';
+import { supabase, uploadCatalogImage } from '../../lib/production';
 import { Product } from '../../types';
 import { generateStorePublicUrl, getCurrentAppBasePath, MAX_PRODUCTS_PER_BUSINESS } from '../../utils/rules';
 import { resolveDefaultImage } from '../../utils/defaultImages';
@@ -257,6 +257,8 @@ export const MerchantDashboard: React.FC = () => {
   const [formImageSource, setFormImageSource] = useState<'auto' | 'owner' | 'ai'>('auto');
   const [formUnit, setFormUnit] = useState('قطعة');
   const [formError, setFormError] = useState('');
+  const [mediaUploadBusy, setMediaUploadBusy] = useState('');
+  const [mediaUploadNotice, setMediaUploadNotice] = useState('');
 
   useEffect(() => {
     if (formImageSource !== 'auto') return;
@@ -434,6 +436,10 @@ export const MerchantDashboard: React.FC = () => {
 
   const handleSaveBusiness = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
+    if (mediaUploadBusy) {
+      setProfileSaveError('انتظر انتهاء رفع الصورة قبل حفظ بيانات النشاط.');
+      return;
+    }
     setSaveSuccess(false);
     setProfileSaveError('');
 
@@ -497,7 +503,66 @@ export const MerchantDashboard: React.FC = () => {
     }
   };
 
+  const handleBusinessImageUpload = async (kind: 'activity' | 'cover', file?: File): Promise<void> => {
+    if (!file) return;
+    if (!currentBusiness?.id || !currentBusiness.branchId) {
+      setProfileSaveError('تعذر تحديد النشاط والفرع المسموح لهما برفع الصورة.');
+      return;
+    }
+    setMediaUploadBusy(kind);
+    setMediaUploadNotice('');
+    setProfileSaveError('');
+    try {
+      const imageUrl = await uploadCatalogImage({
+        businessId: currentBusiness.id,
+        branchId: currentBusiness.branchId,
+        kind,
+        name: bizName.trim() || currentBusiness.name,
+        category: currentBusiness.category,
+        description: bizBio,
+        file,
+      });
+      if (kind === 'activity') setBizLogoUrl(imageUrl);
+      else setBizCoverUrl(imageUrl);
+      setMediaUploadNotice('تم رفع الصورة. اضغط «حفظ التغييرات» لاعتمادها في صفحة النشاط.');
+    } catch (error) {
+      setProfileSaveError(error instanceof Error ? error.message : 'تعذر رفع الصورة.');
+    } finally {
+      setMediaUploadBusy('');
+    }
+  };
+
+  const handleProductImageUpload = async (file?: File): Promise<void> => {
+    if (!file) return;
+    if (!currentBusiness?.id || !currentBusiness.branchId) {
+      setFormError('تعذر تحديد النشاط والفرع المسموح لهما برفع الصورة.');
+      return;
+    }
+    setMediaUploadBusy('product');
+    setMediaUploadNotice('');
+    setFormError('');
+    try {
+      const imageUrl = await uploadCatalogImage({
+        businessId: currentBusiness.id,
+        branchId: currentBusiness.branchId,
+        kind: formType,
+        name: formName.trim() || 'صورة منتج',
+        category: formCategory,
+        description: formDescription,
+        file,
+      });
+      setFormImageUrl(imageUrl);
+      setFormImageSource('owner');
+      setMediaUploadNotice('تم رفع الصورة. ستُحفظ مع المنتج عند الضغط على حفظ العنصر.');
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'تعذر رفع صورة المنتج.');
+    } finally {
+      setMediaUploadBusy('');
+    }
+  };
+
   const openAddModal = () => {
+    setMediaUploadNotice('');
     setEditingProduct(null);
     setFormName('');
     setFormCategory(businessProducts[0]?.category || 'عام');
@@ -513,6 +578,7 @@ export const MerchantDashboard: React.FC = () => {
   };
 
   const openEditModal = (p: Product) => {
+    setMediaUploadNotice('');
     setEditingProduct(p);
     setFormName(p.name);
     setFormCategory(p.category);
@@ -529,6 +595,10 @@ export const MerchantDashboard: React.FC = () => {
 
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mediaUploadBusy) {
+      setFormError('انتظر انتهاء رفع الصورة قبل حفظ العنصر.');
+      return;
+    }
     setFormError('');
 
     if (!formName.trim()) {
@@ -1127,12 +1197,19 @@ export const MerchantDashboard: React.FC = () => {
                 </label>
                 <input
                   type="url"
-                  required
                   value={bizCoverUrl}
                   onChange={(e) => setBizCoverUrl(e.target.value)}
-                  placeholder="https://..."
+                  placeholder="يمكنك رفع صورة أو إدخال رابط مباشر"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden"
                 />
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <label htmlFor="business-cover-file" className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100">
+                    <Upload className="h-4 w-4" />
+                    {mediaUploadBusy === 'cover' ? 'جارٍ رفع الغلاف...' : 'تحميل الغلاف من الجهاز'}
+                  </label>
+                  <input id="business-cover-file" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={Boolean(mediaUploadBusy)} onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; void handleBusinessImageUpload('cover', file); }} />
+                  <span className="text-[11px] text-slate-500">JPG أو PNG أو WebP · بحد أقصى 5 ميجابايت</span>
+                </div>
               </div>
 
               <div>
@@ -1141,15 +1218,22 @@ export const MerchantDashboard: React.FC = () => {
                 </label>
                 <input
                   type="url"
-                  required
                   value={bizLogoUrl}
                   onChange={(e) => setBizLogoUrl(e.target.value)}
-                  placeholder="https://..."
+                  placeholder="يمكنك رفع صورة أو إدخال رابط مباشر"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden"
                 />
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <label htmlFor="business-logo-file" className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100">
+                    <Upload className="h-4 w-4" />
+                    {mediaUploadBusy === 'activity' ? 'جارٍ رفع الشعار...' : 'تحميل الشعار من الجهاز'}
+                  </label>
+                  <input id="business-logo-file" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={Boolean(mediaUploadBusy)} onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; void handleBusinessImageUpload('activity', file); }} />
+                  <span className="text-[11px] text-slate-500">JPG أو PNG أو WebP · بحد أقصى 5 ميجابايت</span>
+                </div>
               </div>
             </div>
-
+            {mediaUploadNotice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">{mediaUploadNotice}</p>}
 
             <section className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 sm:p-5 space-y-3" aria-labelledby="promotional-images-heading">
               <div>
@@ -1712,6 +1796,15 @@ export const MerchantDashboard: React.FC = () => {
                   placeholder="الصورة الافتراضية ستتغير تلقائياً حسب الاسم والوصف"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-hidden"
                 />
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <label htmlFor="catalog-item-image-file" className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100">
+                    <Upload className="h-4 w-4" />
+                    {mediaUploadBusy === 'product' ? 'جارٍ رفع الصورة...' : 'تحميل صورة من الجهاز'}
+                  </label>
+                  <input id="catalog-item-image-file" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={Boolean(mediaUploadBusy)} onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; void handleProductImageUpload(file); }} />
+                  <span className="text-[11px] text-slate-500">JPG أو PNG أو WebP · بحد أقصى 5 ميجابايت</span>
+                </div>
+                {mediaUploadNotice && <p role="status" className="mt-2 text-xs font-bold text-emerald-700">{mediaUploadNotice}</p>}
                 <div className="mt-2 flex flex-wrap items-center gap-3">
                   <img
                     src={formImageUrl || resolveDefaultImage({ name: formName, description: formDescription, category: formCategory, kind: formType === 'service' ? 'service' : 'product' })}
@@ -1751,7 +1844,8 @@ export const MerchantDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-md shadow-[#7a0000]/20 cursor-pointer"
+                  disabled={Boolean(mediaUploadBusy)}
+                  className="bg-[#7a0000] disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#5a0000] text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-md shadow-[#7a0000]/20 cursor-pointer"
                 >
                   {editingProduct ? 'حفظ التعديلات' : 'إضافة للكتالوج'}
                 </button>
