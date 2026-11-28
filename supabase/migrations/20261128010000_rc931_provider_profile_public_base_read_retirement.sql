@@ -128,7 +128,7 @@ begin
   if v_crm_qual is null
      or v_crm_qual not ilike '%um.tenant_id = b.tenant_id%'
      or v_crm_qual not ilike '%b.id = marketing_provider_profiles.business_id%' then
-    raise exception 'RC931_RC115_TENANT_AND_BUSINESS_SCOPED_CRM_POLICY_REQUIRED';
+    raise exception 'RC931_RC115_TENANT_AND_BUSINESS_SCOPED_CRM_POLICY_REQUIRED: qual=%', coalesce(v_crm_qual, '<missing>');
   end if;
 
   select p.qual, p.with_check
