@@ -127,7 +127,7 @@ VALUES
    'Tenant A Employee Manager',
    'RBAC fixture: create/manage employee roles inside tenant A only',
    'TENANT',
-   '{"modules":{"EMPLOYEES":["create","manage"]}}'::jsonb,
+   '{"modules":{"HOME":["view"],"EMPLOYEES":["create","manage"]}}'::jsonb,
    false,true,
    '00000000-0000-0000-0000-000000000009',
    '00000000-0000-0000-0000-000000000009')
