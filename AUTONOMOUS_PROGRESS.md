@@ -240,3 +240,26 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [x] Updated Issue #98 with the full aggregate and the requirement for function-by-function caller/body/tenant/ACL review; no blanket revoke or function change was made.
 - **Safety:** read-only inspection only. No production database, function, policy, grants, Auth, Edge, Storage or business/customer data changed.
 - **Status:** the 65-function exposure surface remains IN PROGRESS / NOT VERIFIED for intended caller and behavior classification; do not equate an Advisor warning or non-empty search_path with a confirmed exploit.
+
+
+## 2026-11-28 12:45 UTC — DEMO admin PR #1216 verification
+
+- [x] Exact PR head `12a55ce05d3f6cbf358a95021f1360a2b30f8d1c`: all 15 workflow runs completed successfully, including clean chronological PostgreSQL 17 replay and primary catalog build/RBAC/dashboard browser E2E.
+- [x] `catalog-platform-admin` on DEMO is ACTIVE v1; deployed entrypoint matches branch source byte-for-byte and both shared modules are deployed.
+- [x] DEMO registry remains at 0 platform administrators with RLS + FORCE RLS; helper EXECUTE ACL and empty search_path match the intended contract.
+- [ ] DEMO migration history still needs CLI repair for `20261128112652`; live ACL effect is already present. Use the explicit DEMO-targeted command from the audit and verify remote history; do not hand-edit the ledger.
+- [ ] Direct Pages/Edge HTTP checks are blocked before HTTP by DNS resolution failure in this execution environment.
+- [ ] Authorized operator must select a separate confirmed DEMO Auth identity before platform-root UI access can be validated.
+- **Boundary:** PR remains Draft, Pages deploy job skipped, Production unchanged; full platform remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-11-28 — PR #1216 DEMO admin compatibility follow-on
+
+- [x] Revalidated application-code head `1dfcef0cab2725f70d19e5d1d2df35bec14e0e2b`: all 15 PR workflow runs passed, including chronological PostgreSQL 17 forward replay, frontend build/RBAC and the browser E2E, which includes Professional Dashboard and mocked Super Admin Control Center scenarios.
+- [x] DEMO Edge HTTP smoke passed in Pages workflow run [46145201046](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46145201046): approved Pages-origin preflight, anonymous POST rejected with `401 AUTH_REQUIRED`, and unapproved origin rejected with `403 ORIGIN_NOT_ALLOWED`. No authenticated platform-admin action was attempted.
+- [x] PR Pages validation and the existing live-origin redirect regression passed. The Pages `deploy` job was skipped because this is a Draft pull request; no new GitHub Pages publication occurred.
+- [x] Updated the DEMO admin audit and bootstrap runbook with the actual HTTP result, the distinction between mocked Super Admin browser coverage and live DEMO identity-backed authorization, and Supabase migration-repair commands for repository-pinned CLI 2.122.0 and CLI v3+.
+- [ ] DEMO history still lacks version `20261128112652` although its SQL ACL effect is already present and the ordered source replay passes. An authorized operator must run the documented, interactive, DEMO-only `supabase migration repair` and verify the four migration versions. Do not edit the internal ledger manually.
+- [ ] No approved DEMO Auth identity has been selected; `private.platform_admins` remains at 0 rows. Mocked Super Admin UI scenarios passed; live DEMO identity-backed acceptance must wait for explicit operator approval of the exact DEMO Auth UUID.
+- [ ] The latest follow-up commits after application-code head `1dfcef0...` are documentation-only; GitHub Actions reruns were started on the documentation-updated branch head and must finish before treating the newest branch commit as fully green.
+- **Production boundary:** no Production database, Auth, RLS/GRANT, Storage, Edge, deployment, payment, wallet, settlement, or customer/business data was changed. PR #1216 remains Draft and unmerged. Full platform release remains **BLOCKED / NOT CERTIFIED**.

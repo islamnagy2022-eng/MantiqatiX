@@ -1,3 +1,18 @@
+# Latest verified continuation — 2026-11-28 12:45 UTC
+
+- [x] Active continuation is PR #1216, branch `dev/demo-admin-compat-20261128`, exact checked head `12a55ce05d3f6cbf358a95021f1360a2b30f8d1c`. The PR is open, Draft and mergeable; do not merge or mark ready based on isolated DEMO checks alone.
+- [x] All 15 exact-head GitHub Actions workflows completed SUCCESS. Chronological PostgreSQL 17 forward replay passed (run `46143565888`); Primary Catalog build, employee RBAC PostgreSQL and dashboard browser E2E passed (run `46143565752`); Pages validation and deployed-origin redirect regression passed (run `46143565759`).
+- [x] The PR Pages workflow skipped `validate_public_only` and `deploy`; no GitHub Pages publication came from this branch. Production Pages remain unchanged.
+- [x] DEMO `catalog-platform-admin` is ACTIVE v1; deployed entrypoint matches branch source byte-for-byte and both shared modules are present.
+- [x] DEMO direct DB read-back: private platform-admin registry has 0 rows, RLS + FORCE RLS true; anon EXECUTE denied and authenticated EXECUTE retained for both `mnty_active_membership` and `mnty_can`; both helpers have empty search_path.
+- [x] DEMO migration ledger has 11 entries. Versions `20261128112058`, `20261128112119`, `20261128112653` are applied. Source migration `20261128112652` is absent from history, but its ACL effect is already present. The exact-head chronological replay passes with the new migration ordered before `20261128112653`.
+- [ ] Record `20261128112652` as applied in DEMO history only, using Supabase CLI migration repair after verifying the target. Current CLI v3 needs explicit `--remote=lkijdgqanbqjudiducjt --yes`; the updated audit has the v3 and pinned v2.122.0 syntax. Do not execute the SQL a second time or edit the migration ledger manually.
+- [ ] Direct Pages/Edge HTTP verification has not completed: the execution environment could not resolve either host (curl DNS error 6), so requests never reached the services. Retry from a network-enabled terminal.
+- [ ] No platform-admin identity is seeded. An authorized operator must select a separate confirmed DEMO Auth account and follow the bootstrap runbook before testing admin UI authorization.
+- **Production boundary:** no Production schema/data/Auth/Edge/Storage mutation and no Pages production deployment. Existing full Production gate remains `BLOCKED / NOT CERTIFIED`; backup/restore, physical migration/alias reconciliation, critical Edge/payment parity and live authorization evidence remain separate blockers.
+
+---
+
 # Latest verified continuation — 2026-11-28 06:12 UTC
 
 - [x] Current application main is `2aaba935ea516806b2dfc8bd5b1ae045a5b6ce8b` (PR #1209). Center-aware homepage promotions are merged: verified Markaz targeting, corrected regional/global ad labels, and area-aware platform-service details.
@@ -3861,3 +3876,15 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - **Menoufia:** PR #1182's existing-section/unverified change remains active and its current-main validator passed. PRs #1179/#1180 remain paused and untouched. New rows stay hidden DRAFT / UNVERIFIED; public unclaimed listing publication remains disabled.
 - **Next:** continue read-only coordinated release preparation; do not deploy individual admin/payment Edge functions or apply migrations alone. Keep issue #96 open until a real authenticated multi-business E2E passes.
 
+
+
+## 2026-11-28 — PR #1216 DEMO admin compatibility follow-on
+
+- [x] Revalidated application-code head `1dfcef0cab2725f70d19e5d1d2df35bec14e0e2b`: all 15 PR workflow runs passed, including chronological PostgreSQL 17 forward replay, frontend build/RBAC and the browser E2E, which includes Professional Dashboard and mocked Super Admin Control Center scenarios.
+- [x] DEMO Edge HTTP smoke passed in Pages workflow run [46145201046](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46145201046): approved Pages-origin preflight, anonymous POST rejected with `401 AUTH_REQUIRED`, and unapproved origin rejected with `403 ORIGIN_NOT_ALLOWED`. No authenticated platform-admin action was attempted.
+- [x] PR Pages validation and the existing live-origin redirect regression passed. The Pages `deploy` job was skipped because this is a Draft pull request; no new GitHub Pages publication occurred.
+- [x] Updated the DEMO admin audit and bootstrap runbook with the actual HTTP result, the distinction between mocked Super Admin browser coverage and live DEMO identity-backed authorization, and Supabase migration-repair commands for repository-pinned CLI 2.122.0 and CLI v3+.
+- [ ] DEMO history still lacks version `20261128112652` although its SQL ACL effect is already present and the ordered source replay passes. An authorized operator must run the documented, interactive, DEMO-only `supabase migration repair` and verify the four migration versions. Do not edit the internal ledger manually.
+- [ ] No approved DEMO Auth identity has been selected; `private.platform_admins` remains at 0 rows. Mocked Super Admin UI scenarios passed; live DEMO identity-backed acceptance must wait for explicit operator approval of the exact DEMO Auth UUID.
+- [ ] The latest follow-up commits after application-code head `1dfcef0...` are documentation-only; GitHub Actions reruns were started on the documentation-updated branch head and must finish before treating the newest branch commit as fully green.
+- **Production boundary:** no Production database, Auth, RLS/GRANT, Storage, Edge, deployment, payment, wallet, settlement, or customer/business data was changed. PR #1216 remains Draft and unmerged. Full platform release remains **BLOCKED / NOT CERTIFIED**.

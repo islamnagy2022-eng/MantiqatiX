@@ -32,6 +32,9 @@ const isProtectedPlatformMembership = (m: any) => String(m?.role || "").toUpperC
   && m?.permissions?.scope === "PLATFORM" && m?.permissions?.full_control === true;
 const slugify = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
+// Activity-module settings remain disabled at the server boundary until an atomic settings+audit RPC is verified.
+const ACTIVITY_MODULE_SETTINGS_WRITE_ENABLED = false;
+
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("Origin");
   if (origin && !allowedOrigins.has(origin)) return response(origin, { error: "ORIGIN_NOT_ALLOWED" }, 403);
@@ -142,6 +145,9 @@ Deno.serve(async (req: Request) => {
 
     if (action === "SAVE_SETTINGS") {
       const input = body.settings && typeof body.settings === "object" ? body.settings : {};
+      if (Object.prototype.hasOwnProperty.call(input, "activityModuleOverrides") && !ACTIVITY_MODULE_SETTINGS_WRITE_ENABLED) {
+        return response(origin, { error: "ACTIVITY_MODULE_SETTINGS_NOT_READY", message: "تعديلات وحدات الأنشطة متوقفة حتى تفعيل الحفظ الذري مع سجل التدقيق." }, 409);
+      }
       const safe: Record<string, unknown> = {};
       const keys = ["adminWhatsApp", "defaultCategories", "categories", "functionalGroups", "currency", "platformName", "platformEmail", "maxAllowedProductsPerBusiness", "defaultCommissionPerOrder", "overdueGracePeriodDays", "defaultPaymobFeePercentage", "defaultPaymobFeeFixed", "activityModuleOverrides"];
       for (const k of keys) if (Object.prototype.hasOwnProperty.call(input, k)) safe[k] = input[k];

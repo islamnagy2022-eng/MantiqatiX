@@ -2,7 +2,22 @@
 -- Runs only against a disposable PostgreSQL 16 database seeded by the companion fixture.
 \set ON_ERROR_STOP on
 
-INSERT INTO public.tenants(id) VALUES ('tenant-a'), ('tenant-b');
+DO $dashboard_seed_tenants$
+BEGIN
+  -- The minimal RBAC fixture has only tenants.id. The full production-checkpoint
+  -- schema also requires tenant name and code; seed valid synthetic values there.
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='tenants' AND column_name='name'
+  ) THEN
+    INSERT INTO public.tenants(id,name,code,status,settings) VALUES
+      ('tenant-a','RBAC Test Tenant A','RBAC-TEST-A','ACTIVE','{}'::jsonb),
+      ('tenant-b','RBAC Test Tenant B','RBAC-TEST-B','ACTIVE','{}'::jsonb);
+  ELSE
+    INSERT INTO public.tenants(id) VALUES ('tenant-a'), ('tenant-b');
+  END IF;
+END
+$dashboard_seed_tenants$;
 
 INSERT INTO auth.users(id,email,email_confirmed_at,raw_user_meta_data) VALUES
 ('00000000-0000-0000-0000-000000000001','owner-a@example.test',now(),'{}'),
@@ -17,12 +32,78 @@ INSERT INTO auth.users(id,email,email_confirmed_at,raw_user_meta_data) VALUES
 ('00000000-0000-0000-0000-000000000010','employee-update@example.test',now(),'{}'),
 ('00000000-0000-0000-0000-000000000011','finance-override-target@example.test',now(),'{}');
 
-INSERT INTO public.businesses(id,tenant_id,organization_id,name) VALUES
-('10000000-0000-0000-0000-000000000001','tenant-a','org-a','Business A'),
-('10000000-0000-0000-0000-000000000002','tenant-b','org-b','Business B');
+DO $dashboard_seed_organizations$
+BEGIN
+  -- The full checkpoint has an organizations FK; the compact historical RBAC
+  -- fixture does not. Insert deterministic synthetic parents only when present.
+  IF pg_catalog.to_regclass('public.organizations') IS NOT NULL THEN
+    INSERT INTO public.organizations(id,tenant_id,name,code)
+    VALUES
+      ('org-a','tenant-a','RBAC Test Organization A','RBAC-ORG-A'),
+      ('org-b','tenant-b','RBAC Test Organization B','RBAC-ORG-B')
+    ON CONFLICT (id) DO NOTHING;
+  END IF;
+END
+$dashboard_seed_organizations$;
 
-INSERT INTO public.branches(id,tenant_id,business_id) VALUES
-('branch-a-1','tenant-a','10000000-0000-0000-0000-000000000001');
+DO $dashboard_seed_businesses$
+BEGIN
+  -- The CI fixture exposes the compact businesses shape. The captured full schema
+  -- requires code and settings/status values as well; keep both layouts supported.
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='businesses' AND column_name='code'
+  ) THEN
+    INSERT INTO public.businesses(id,tenant_id,organization_id,name,code,status,settings) VALUES
+    ('10000000-0000-0000-0000-000000000001','tenant-a','org-a','Business A','RBAC-BIZ-A','INACTIVE','{}'::jsonb),
+    ('10000000-0000-0000-0000-000000000002','tenant-b','org-b','Business B','RBAC-BIZ-B','INACTIVE','{}'::jsonb);
+  ELSE
+    INSERT INTO public.businesses(id,tenant_id,organization_id,name) VALUES
+    ('10000000-0000-0000-0000-000000000001','tenant-a','org-a','Business A'),
+    ('10000000-0000-0000-0000-000000000002','tenant-b','org-b','Business B');
+  END IF;
+END
+$dashboard_seed_businesses$;
+
+-- The full schema enforces LEGAL_BUSINESS_OWNER_REQUIRED on activation.
+-- Create the tenant/business owner memberships first, then activate both fixtures.
+INSERT INTO public.user_memberships
+  (id,user_id,tenant_id,organization_id,business_id,branch_id,role,permissions,status)
+VALUES
+  ('owner-a','00000000-0000-0000-0000-000000000001','tenant-a','org-a','10000000-0000-0000-0000-000000000001',null,'OWNER','{}','ACTIVE'),
+  ('owner-b','00000000-0000-0000-0000-000000000001','tenant-b','org-b','10000000-0000-0000-0000-000000000002',null,'OWNER','{}','ACTIVE')
+ON CONFLICT (id) DO NOTHING;
+
+DO $dashboard_activate_businesses$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='businesses' AND column_name='status'
+  ) THEN
+    UPDATE public.businesses
+    SET status='ACTIVE'
+    WHERE id IN ('10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002')
+      AND status <> 'ACTIVE';
+  END IF;
+END
+$dashboard_activate_businesses$;
+
+DO $dashboard_seed_branches$
+BEGIN
+  -- Branch names/codes are mandatory in the full schema but absent from the
+  -- compact historical RBAC fixture.
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='branches' AND column_name='name'
+  ) THEN
+    INSERT INTO public.branches(id,tenant_id,business_id,name,code,status) VALUES
+      ('branch-a-1','tenant-a','10000000-0000-0000-0000-000000000001','RBAC Test Branch','RBAC-BRANCH-A1','ACTIVE');
+  ELSE
+    INSERT INTO public.branches(id,tenant_id,business_id) VALUES
+      ('branch-a-1','tenant-a','10000000-0000-0000-0000-000000000001');
+  END IF;
+END
+$dashboard_seed_branches$;
 
 INSERT INTO public.user_memberships(id,user_id,tenant_id,organization_id,business_id,branch_id,role,permissions,status) VALUES
 ('owner-a','00000000-0000-0000-0000-000000000001','tenant-a','org-a','10000000-0000-0000-0000-000000000001',null,'OWNER','{}','ACTIVE'),
@@ -32,7 +113,36 @@ INSERT INTO public.user_memberships(id,user_id,tenant_id,organization_id,busines
 ('employee-view-branch-a','00000000-0000-0000-0000-000000000005','tenant-a','org-a','10000000-0000-0000-0000-000000000001','branch-a-1','EMPLOYEE','{"modules":{"EMPLOYEES":["view"]}}','ACTIVE'),
 ('branch-owner-a','00000000-0000-0000-0000-000000000008','tenant-a','org-a','10000000-0000-0000-0000-000000000001','branch-a-1','OWNER','{}','ACTIVE'),
 ('tenant-owner-a','00000000-0000-0000-0000-000000000009','tenant-a','org-a',null,null,'OWNER','{}','ACTIVE'),
-('employee-update-a','00000000-0000-0000-0000-000000000010','tenant-a','org-a','10000000-0000-0000-0000-000000000001',null,'EMPLOYEE','{"modules":{"EMPLOYEES":["update"]}}','ACTIVE');
+('employee-update-a','00000000-0000-0000-0000-000000000010','tenant-a','org-a','10000000-0000-0000-0000-000000000001',null,'EMPLOYEE','{"modules":{"EMPLOYEES":["update"]}}','ACTIVE')
+ON CONFLICT (id) DO NOTHING;
+
+-- The tenant-wide OWNER's access is explicit and permission-backed, not implicit.
+-- This matches the second forward definition of the HR RPCs and keeps cross-tenant
+-- calls denied by the assignment's tenant scope.
+INSERT INTO public.platform_custom_roles
+  (id,role_key,display_name,description,scope,permissions,is_system,is_active,created_by,updated_by)
+VALUES
+  ('40000000-0000-4000-8000-000000000001',
+   'TENANT_A_EMPLOYEE_MANAGER',
+   'Tenant A Employee Manager',
+   'RBAC fixture: create/manage employee roles inside tenant A only',
+   'TENANT',
+   '{"modules":{"HOME":["view"],"EMPLOYEES":["create","manage"]}}'::jsonb,
+   false,true,
+   '00000000-0000-0000-0000-000000000009',
+   '00000000-0000-0000-0000-000000000009')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.platform_role_assignments
+  (id,user_id,role_id,tenant_id,business_id,branch_id,is_active,created_by,updated_by)
+VALUES
+  ('50000000-0000-4000-8000-000000000001',
+   '00000000-0000-0000-0000-000000000009',
+   '40000000-0000-4000-8000-000000000001',
+   'tenant-a',NULL,NULL,true,
+   '00000000-0000-0000-0000-000000000009',
+   '00000000-0000-0000-0000-000000000009')
+ON CONFLICT (id) DO NOTHING;
 
 -- Owner-owned seed rows: no browser role has direct table access.
 INSERT INTO public.business_job_positions

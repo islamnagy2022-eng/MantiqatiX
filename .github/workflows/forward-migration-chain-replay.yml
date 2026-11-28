@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/**"
+      - "supabase/tests/demo_admin_control_center_compatibility.sql"
+      - "supabase/tests/professional_dashboard_permission_integration.sql"
       - "supabase/tests/rc924_agreement_participant_read_scope_fixture.sql"
       - "supabase/tests/rc924_agreement_participant_read_scope_integration.sql"
       - "scripts/validate-rc924-agreement-participant-read-scope.mjs"
@@ -150,6 +152,7 @@ on:
     branches: ["main"]
     paths:
       - "supabase/migrations/**"
+      - "supabase/tests/demo_admin_control_center_compatibility.sql"
       - "supabase/tests/rc924_agreement_participant_read_scope_fixture.sql"
       - "supabase/tests/rc924_agreement_participant_read_scope_integration.sql"
       - "scripts/validate-rc924-agreement-participant-read-scope.mjs"
@@ -486,6 +489,12 @@ jobs:
 
           test "$migration_count" -gt 0
           echo "FORWARD_MIGRATIONS_APPLIED=$migration_count"
+
+          echo "DEMO_ADMIN_CONTROL_CENTER_COMPATIBILITY_ACL_AND_RLS"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/demo_admin_control_center_compatibility.sql
+
+          echo "DEMO_ADMIN_CONTROL_CENTER_EMPLOYEE_BEHAVIOR"
+          psql "$db_url" -v ON_ERROR_STOP=1 -c "BEGIN" -f supabase/tests/professional_dashboard_permission_integration.sql -c "ROLLBACK"
 
           echo "PERSONAL_REFERRAL_SELF_SERVICE_RPC_ACL"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/referral_self_service_rpc_grants.sql
