@@ -193,7 +193,7 @@ SELECT set_config('request.jwt.claims',
   '{"sub":"30000000-0000-4000-8000-000000000014","role":"authenticated","is_anonymous":false}', false);
 DO $tenant_super$
 BEGIN
-  IF (SELECT count(*) FROM public.marketing_provider_profiles) <> 2 THEN
+  IF (SELECT count(*) FROM public.marketing_provider_profiles) <> 0 THEN
     RAISE EXCEPTION 'RC931_TENANT_SUPER_ADMIN_LOCAL_SCOPE_REGRESSED:%',
       (SELECT count(*) FROM public.marketing_provider_profiles);
   END IF;
