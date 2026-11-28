@@ -43,7 +43,7 @@ for (const token of [
 assert.ok(contract.includes('"20261126020000"'), "live release contract must include the repair version");
 assert.ok(productionVerifier.includes("20261126020000_preserve_marketing_service_image_provenance.sql"));
 assert.ok(migrationGate.includes("20261126020000_preserve_marketing_service_image_provenance.sql"));
-assert.match(migrationGate, /required\.length,\s*89/);
+assert.match(migrationGate, /required\.length,\s*92/);
 assert.equal(ledger.expected_migration_versions, 92);
 assert.ok(ledger.required_versions.includes("20261126020000"));
 assert.ok(ledger.missing_versions.includes("20261126020000"));
