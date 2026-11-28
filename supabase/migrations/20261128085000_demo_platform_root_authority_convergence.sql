@@ -1,3 +1,5 @@
+BEGIN;
+
 -- DEMO-only coordinated platform-root convergence.
 
 -- Replays the reviewed RC464/RC469/RC471/RC484/RC485 contracts against the DEMO schema.
@@ -6,14 +8,12 @@
 
 -- Source files remain unchanged; this forward migration is scoped to MantiqatiX-DEMO.
 
-BEGIN;
 
 -- RC464: one forward-only correction for the live platform-root authorization drift.
 -- The protected private.platform_admins registry is canonical (RC113/RC115).
 -- Replaces the current weak null-scope helper and the four live MantiGO global RPCs.
 -- This migration is intentionally additive/forward-only; historical RC441/RC449/RC462 files remain unchanged.
 
-BEGIN;
 
 DO $preflight$
 DECLARE
@@ -404,7 +404,6 @@ GRANT EXECUTE ON FUNCTION public.set_mantigo_financial_config_backend(uuid,numer
 -- the canonical platform-admin guard to an empty search_path.
 -- Function bodies, execution grants and authorization behavior remain unchanged.
 -- Requires RC464's canonical public.mnty_can_platform_admin() helper.
-BEGIN;
 
 DO $preflight$
 DECLARE
@@ -485,7 +484,6 @@ $postcondition$;
 -- Canonical platform-root authority: private.platform_admins (RC113/RC115/RC462).
 -- Replaces five function definitions and protects four additional helper-dependent RPCs.
 
-BEGIN;
 
 DO $preflight$
 DECLARE v_guarded_rpc_count integer;
@@ -759,7 +757,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_user_memberships_user_business_branch_nulls
 -- RC484: replace the generic tenant-role global bypass with the protected platform-root registry.
 -- All dependent RLS policies and SECURITY DEFINER callers inherit this stricter root predicate.
 -- Tenant-local ownership/membership predicates remain unchanged.
-BEGIN;
 
 DO $preflight$
 DECLARE
@@ -877,7 +874,6 @@ COMMENT ON FUNCTION public.is_platform_admin() IS
 -- RC485: remove tenant-membership metadata as a platform-root credential in catalog RPCs.
 -- Preserve tenant-local OWNER/ADMIN/MANAGER/BUSINESS_OWNER scope checks.
 -- Registry-backed is_platform_admin() is supplied by RC484.
-BEGIN;
 
 DO $preflight$
 DECLARE
@@ -1827,4 +1823,3 @@ END
 $function$;
 
 COMMIT;
-
