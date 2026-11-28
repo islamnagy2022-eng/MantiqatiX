@@ -61,6 +61,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261126020000", // RC117 forward repair — preserve existing marketing-service image URLs and provenance
   "20261126030000", // RC929 — require explicit confirmed Auth identity for orders and order history
   "20261127010000", // RC930 — serialize job applications against concurrent deactivation
+  "20261127235334", // RC932 — require explicit confirmed Auth claim for MantiGO open-ride locations
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [

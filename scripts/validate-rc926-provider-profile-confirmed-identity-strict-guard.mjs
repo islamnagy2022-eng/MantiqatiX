@@ -48,14 +48,14 @@ assert.ok(productionVerifier.includes("20261125110000_rc926_provider_profile_con
   "Production verifier must require RC926");
 assert.ok(migrationGate.includes("20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql"),
   "strict migration gate must require RC926");
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 88,
-  "manifest must use the 88-version contract");
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 89,
+  "manifest must use the 89-version contract");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261125110000"),
   "manifest must list RC926 as required");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261125110000"),
   "RC926 must remain unapplied in Production until coordinated release");
-assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=88"),
-  "backup runbook validator must use the 88-version contract");
+assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=89"),
+  "backup runbook validator must use the 89-version contract");
 
 console.log("RC926 strict provider-profile confirmed-identity source contract: PASS");
 

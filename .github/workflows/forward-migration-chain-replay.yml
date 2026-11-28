@@ -22,6 +22,9 @@ on:
       - "supabase/tests/rc929_orders_missing_claim_baseline.sql"
       - "supabase/tests/rc929_orders_confirmed_auth_claim_integration.sql"
       - "scripts/validate-rc929-orders-confirmed-auth-guard.mjs"
+      - "supabase/tests/rc932_mantigo_open_ride_explicit_confirmed_auth_integration.sql"
+      - "scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs"
+      - ".github/workflows/generate-rc932-mantigo-open-ride-confirmed-auth.yml"
       - "scripts/validate-rc117-image-provenance-forward-repair.mjs"
       - "supabase/tests/rc117_marketing_service_image_provenance_forward_repair.sql"
       - "scripts/test-rc928-profile-metadata-concurrency.sh"
@@ -272,7 +275,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 88-version contract
+      - name: Validate strict Production release gate and exact 89-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate current backup runbook and release migration scope
@@ -292,7 +295,7 @@ jobs:
       - name: Validate RC485/RC923 catalog RPC registry-root and anonymous-auth contract
         run: node scripts/validate-rc485-catalog-rpc-registry-root.mjs
 
-      - name: Validate RC924 agreement participant and unified 88-version release contract
+      - name: Validate RC924 agreement participant and unified 89-version release contract
         run: node scripts/validate-rc924-agreement-participant-read-scope.mjs
 
       - name: Validate RC925 explicit confirmed-identity catalog RPC guard
@@ -305,6 +308,8 @@ jobs:
         run: node scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs
       - name: Validate RC929 explicit confirmed-Auth claim for order resources
         run: node scripts/validate-rc929-orders-confirmed-auth-guard.mjs
+      - name: Validate RC932 strict confirmed-Auth claim for MantiGO open rides
+        run: node scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs
 
       - name: Validate RC117 marketing-service image provenance forward repair
         run: node scripts/validate-rc117-image-provenance-forward-repair.mjs
@@ -479,6 +484,9 @@ jobs:
 
           echo "RC925_CATALOG_RPC_MISSING_ANONYMOUS_CLAIM_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc925_catalog_rpc_missing_anonymous_claim_integration.sql
+
+          echo "RC932_MANTIGO_OPEN_RIDE_EXPLICIT_CONFIRMED_AUTH_INTEGRATION"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc932_mantigo_open_ride_explicit_confirmed_auth_integration.sql
 
           echo "RC926_PROVIDER_PROFILE_CONFIRMED_IDENTITY_STRICT_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql

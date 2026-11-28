@@ -1,3 +1,22 @@
+## 2026-11-28 — RC932 MantiGO confirmed-identity repair and current release gate
+
+- [x] Reconfirmed connected Production is `MANTIQATIX FINAL` ACTIVE_HEALTHY on PostgreSQL 17.6.1.155; live migration ledger remains 310 rows through `20261110150618`.
+- [x] Current canonical source release set is now 89 strictly ordered migration versions. Direct read-only exact-ID comparison is 0/89; this is an identity gap, not proof that every physical effect is absent. Three known alias target versions remain separate; do not fabricate ledger rows or replay aliases.
+- [x] Direct read-only helper definitions still show platform-root authorization drift: private registry RLS ON / FORCE RLS OFF; `is_platform_admin()` is membership-derived and `mnty_can_platform_admin()` delegates to the unscoped membership admin helper. Known policy surface is 62 references / 27 tables.
+- [x] Selected nine critical deployed Edge entrypoints differ byte-for-byte from current-main entrypoint files. Do not deploy any of those admin/payment bundles independently.
+- [x] RC478 test gap identified: `coalesce((auth.jwt()->>'is_anonymous')::boolean,false)` permits missing/null JWT claims. RC932 adds a forward-only strict guard requiring `is_anonymous=false`, while retaining the existing captain ACTIVE/VERIFIED/AVAILABLE and vehicle-category scopes.
+- [x] Generated RC932 migration using pinned Supabase CLI 2.122.0: `20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql`. Added disposable PostgreSQL 17 integration cases for missing, JSON null, true and explicit false. This is source/test work only.
+- [x] PR #1196 merged to `main` as `c32bdb47ff3db2cebf19e38fd3e97f880b8e1f74` after its exact-head workflows passed, including the strict 88-version chronological PostgreSQL 17 replay; no Production writes were made.
+- [x] Supabase CLI 2.122.0 generation and focused PostgreSQL 17 RC446 → RC477 → RC478 → RC932 integration passed, including missing/null/true/false claims and mismatched caller-ID rejection.
+- [ ] PR #1199 remains DRAFT on `main`; strict 89-version release/static checks and the full chronological PostgreSQL 17 replay must pass on the latest exact head before merge.
+- [ ] Owner-controlled encrypted database + Storage export, Auth/Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO remain NOT VERIFIED.
+- [ ] Full physical-effect/alias and Edge DB/RPC/ACL/RLS reconciliation, platform-root correction, payment/finance sandbox evidence and post-deploy negative/positive E2E remain release blockers.
+- **Production safety:** no Production migration/SQL write, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, payout, settlement, or customer/business/ride/financial-row mutation was performed.
+- **Directory scope:** Menoufia-specific catalog/OSM work remains cancelled; existing Activity → Specialty sections only. New unverified entries remain hidden DRAFT / UNVERIFIED.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 ## 2026-11-26 — Current execution checkpoint after PR #1148
 
 - [x] Confirmed current `main` is `111db15e30182e6f21ef9d91630a187d73601c36`; PR #1148 merged the direct RC117 image-provenance prerequisite read-back and refreshed the 87-source source-to-live disposition.
