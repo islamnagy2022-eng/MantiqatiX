@@ -65,3 +65,12 @@ assert.ok(platformAdminEndpointSource.includes('branch_id,role,status,permission
 assert.ok(platformAdminEndpointSource.includes('is_platform_account: String(m.role || "").toUpperCase() === "SUPER_ADMIN" || isProtectedPlatformMembership(m)'), 'Protected platform memberships must be explicitly marked in the read model.');
 assert.ok(businessSubscriberSource.includes('حساب منصة محمي · غير قابل للتعديل هنا'), 'The UI must not present ordinary membership controls for protected platform accounts.');
 console.log('BUSINESS_SUBSCRIBER_PROTECTED_PLATFORM_MEMBERSHIPS=PASS');
+
+
+// Unknown legacy roles must never silently default to CUSTOMER in the role editor.
+assert.ok(businessSubscriberSource.includes('const openRoleEditor=(membership:Membership)=>{'), 'Role editor must validate the current role before opening.');
+assert.ok(businessSubscriberSource.includes('if(!membershipRoleOptions.some((option)=>option.value===currentRole))'), 'Unsupported legacy roles must be rejected from the editor.');
+assert.ok(businessSubscriberSource.includes('الدور الحالي غير موجود في قائمة الأدوار الآمنة'), 'The UI must explain why an unsupported role cannot be edited.');
+assert.ok(businessSubscriberSource.includes('onClick={()=>openRoleEditor(m)}'), 'Membership role controls must use the guarded editor opener.');
+assert.ok(!businessSubscriberSource.includes("?String(m.role).toUpperCase():'CUSTOMER'"), 'No unknown membership role may be silently downgraded to CUSTOMER.');
+console.log('BUSINESS_SUBSCRIBER_UNKNOWN_ROLE_FAILS_CLOSED=PASS');
