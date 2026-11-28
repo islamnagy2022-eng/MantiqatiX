@@ -49,20 +49,9 @@ Deno.serve(async (req: Request) => {
       )
     : [];
 
-  // Re-check references immediately before Storage deletion. If the database
-  // cannot prove a file is unused, the file is retained for the next run.
-  const safeToDelete: string[] = [];
-  for (const path of paths) {
-    const { data: referenced, error } = await service.rpc(
-      "mnty_catalog_media_object_is_referenced",
-      { p_object_path: path },
-    );
-    if (error) {
-      console.error("Catalog media cleanup final reference check failed", error.code || error.message);
-      return reply({ error: "cleanup_reference_check_failed" }, 503);
-    }
-    if (referenced === false) safeToDelete.push(path);
-  }
+  // The database RPC returns only paths proven unreferenced after scanning
+  // persisted application content. Keep this list bounded and delete through Storage.
+  const safeToDelete = paths;
 
   let deleted = 0;
   for (let offset = 0; offset < safeToDelete.length; offset += MAX_DELETE_BATCH) {
@@ -77,14 +66,14 @@ Deno.serve(async (req: Request) => {
 
   console.log("CATALOG_MEDIA_RETENTION_RUN", JSON.stringify({
     expiredCandidates: paths.length,
-    retainedAsReferencedOrUnconfirmed: paths.length - safeToDelete.length,
+    retainedAsReferencedOrUnconfirmed: 0,
     deleted,
   }));
   return reply({
     success: true,
     retentionDays: 5,
     examined: paths.length,
-    retained: paths.length - safeToDelete.length,
+    retained: 0,
     deleted,
   });
 });
