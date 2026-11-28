@@ -11,6 +11,9 @@ DECLARE
   v_force_rls boolean;
   v_root_body text;
   v_root_config text[];
+  v_root_is_definer boolean;
+  v_function_config text[];
+  v_function_is_definer boolean;
   v_registry_rls boolean;
   v_registry_force_rls boolean;
 
@@ -57,6 +60,15 @@ BEGIN
     IF NOT pg_catalog.has_function_privilege('authenticated', v_oid, 'EXECUTE') THEN
       RAISE EXCEPTION 'DEMO_ADMIN_AUTHENTICATED_EXECUTE_MISSING: %', v_signature;
     END IF;
+    SELECT p.prosecdef, p.proconfig
+      INTO v_function_is_definer, v_function_config
+    FROM pg_catalog.pg_proc p WHERE p.oid = v_oid;
+    IF NOT v_function_is_definer THEN
+      RAISE EXCEPTION 'DEMO_ADMIN_RPC_NOT_SECURITY_DEFINER: %', v_signature;
+    END IF;
+    IF NOT coalesce(v_function_config, ARRAY[]::text[]) @> ARRAY['search_path=""']::text[] THEN
+      RAISE EXCEPTION 'DEMO_ADMIN_DEFINER_SEARCH_PATH_NOT_EMPTY: % (%).', v_signature, v_function_config;
+    END IF;
   END LOOP;
 
   -- Internal permission helpers must not be directly callable by client roles.
@@ -68,6 +80,14 @@ BEGIN
     IF pg_catalog.has_function_privilege('anon', v_oid, 'EXECUTE')
        OR pg_catalog.has_function_privilege('authenticated', v_oid, 'EXECUTE') THEN
       RAISE EXCEPTION 'DEMO_ADMIN_INTERNAL_HELPER_CLIENT_EXECUTE_GRANTED: %', v_signature;
+    END IF;
+    IF v_signature = 'public.mnty_business_employee_permission_ceiling_allows(jsonb,varchar,uuid,varchar)' THEN
+      SELECT p.prosecdef, p.proconfig
+        INTO v_function_is_definer, v_function_config
+      FROM pg_catalog.pg_proc p WHERE p.oid = v_oid;
+      IF NOT v_function_is_definer OR NOT coalesce(v_function_config, ARRAY[]::text[]) @> ARRAY['search_path=""']::text[] THEN
+        RAISE EXCEPTION 'DEMO_ADMIN_INTERNAL_DEFINER_PATH_FAILED: % (%)', v_signature, v_function_config;
+      END IF;
     END IF;
   END LOOP;
 
@@ -98,8 +118,8 @@ BEGIN
 
   -- The full replay must include the canonical registry-backed root helper,
   -- with its execution path pinned. A standalone helper hot patch is not enough.
-  SELECT p.prosrc, p.proconfig
-    INTO v_root_body, v_root_config
+  SELECT p.prosrc, p.proconfig, p.prosecdef
+    INTO v_root_body, v_root_config, v_root_is_definer
   FROM pg_catalog.pg_proc p
   JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
   WHERE n.nspname = 'public'
@@ -108,6 +128,16 @@ BEGIN
 
   IF NOT FOUND OR position('private.platform_admins' IN coalesce(v_root_body,'')) = 0 THEN
     RAISE EXCEPTION 'DEMO_ADMIN_ROOT_HELPER_NOT_REGISTRY_BACKED';
+  END IF;
+  v_oid := pg_catalog.to_regprocedure('public.mnty_can_platform_admin()');
+  IF v_oid IS NULL OR NOT v_root_is_definer THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_ROOT_HELPER_NOT_SECURITY_DEFINER';
+  END IF;
+  IF pg_catalog.has_function_privilege('anon', v_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_ROOT_HELPER_ANON_EXECUTE_GRANTED';
+  END IF;
+  IF NOT pg_catalog.has_function_privilege('authenticated', v_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_ROOT_HELPER_AUTHENTICATED_EXECUTE_MISSING';
   END IF;
   IF NOT coalesce(v_root_config, ARRAY[]::text[]) @> ARRAY['search_path=""']::text[] THEN
     RAISE EXCEPTION 'DEMO_ADMIN_ROOT_HELPER_SEARCH_PATH_NOT_EMPTY: %', v_root_config;
@@ -125,4 +155,4 @@ BEGIN
 END;
 $demo_admin_compatibility$;
 
-SELECT 'DEMO_ADMIN_COMPATIBILITY_ACL_RLS=PASS' AS result;
+SELECT 'DEMO_ADMIN_COMPATIBILITY_ACL_RLS_AND_DEFINER_PATH=PASS' AS result;
