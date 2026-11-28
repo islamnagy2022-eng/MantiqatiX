@@ -98,6 +98,51 @@ export async function uploadCatalogImage(input: {
   return data.imageUrl;
 }
 
+
+export type CatalogMediaLibraryItem = {
+  imageUrl: string;
+  objectPath: string;
+  createdAt: string | null;
+  fileSize: number;
+};
+
+export async function listCatalogImages(input: {
+  businessId: string;
+  branchId?: string;
+  kind: CatalogAiImageKind;
+}): Promise<CatalogMediaLibraryItem[]> {
+  if (!input.businessId) throw new Error('تعذر تحديد النشاط لفتح مكتبة الصور.');
+
+  const { data, error } = await supabase.functions.invoke('ai-gemini-proxy', {
+    body: {
+      action: 'list_catalog_images',
+      businessId: input.businessId,
+      branchId: input.branchId || '',
+      imageKind: input.kind,
+    },
+  });
+
+  if (error || data?.error) {
+    let payload: any = data;
+    try { payload = payload || await (error as any)?.context?.json?.(); } catch { /* The request may fail before an HTTP response exists. */ }
+    throw new Error(String(payload?.message || payload?.error || error?.message || 'تعذر تحميل مكتبة الصور السابقة.'));
+  }
+
+  return (Array.isArray(data?.images) ? data.images : [])
+    .filter((item: any) =>
+      typeof item?.imageUrl === 'string' &&
+      item.imageUrl.startsWith('https://') &&
+      typeof item?.objectPath === 'string' &&
+      item.objectPath.startsWith(`businesses/${input.businessId}/owner-uploads/${input.kind}/`)
+    )
+    .map((item: any): CatalogMediaLibraryItem => ({
+      imageUrl: item.imageUrl,
+      objectPath: item.objectPath,
+      createdAt: typeof item.createdAt === 'string' ? item.createdAt : null,
+      fileSize: Number.isFinite(Number(item.fileSize)) ? Number(item.fileSize) : 0,
+    }));
+}
+
 async function invokeAdminFunction<T = any>(name: string, body: Record<string, unknown>, fallback: string): Promise<T> {
   const { data, error } = await supabase.functions.invoke(name, { body });
   if (error) {
