@@ -107,6 +107,8 @@ for (const marker of [
   'demo_admin_definer_search_path_not_empty',
   'demo_admin_internal_definer_path_failed',
   'demo_admin_membership_scope_index_missing_or_invalid',
+  'demo_admin_rc117_activity_name_sync_missing',
+  'demo_admin_rc117_activity_list_truncated',
   'demo_admin_root_helper_not_registry_backed',
   'demo_admin_root_helper_anon_execute_granted',
   'demo_admin_root_helper_search_path_not_empty',
