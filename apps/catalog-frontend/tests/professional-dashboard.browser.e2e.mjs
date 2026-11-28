@@ -1105,6 +1105,7 @@ try {
       assert.equal(await coverHero.getByRole('group', { name: 'التنقل بين صور الغلاف' }).count(), 0, 'the cover must not render legacy multi-cover navigation');
       const promotionalGallery = page.getByTestId('storefront-promotional-gallery');
       await promotionalGallery.waitFor({ state: 'visible' });
+      await promotionalGallery.scrollIntoViewIfNeeded();
       assert.equal(await promotionalGallery.locator('img').count(), 2, 'promotional images must render in a separate gallery');
       assert.equal(await promotionalGallery.locator('img').nth(0).getAttribute('src'), 'https://cdn.example.test/promo-1.webp');
       await page.waitForFunction(() => {
