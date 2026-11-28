@@ -231,6 +231,13 @@ SELECT set_config('request.jwt.claims',
   '{"sub":"30000000-0000-4000-8000-000000000020","role":"authenticated","is_anonymous":false}', false);
 DO $unregistered_platform$
 BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM public.marketing_provider_profiles
+    WHERE id='40000000-0000-4000-8000-000000000007'
+  ) THEN
+    RAISE EXCEPTION 'RC931_UNREGISTERED_MNTY_PLATFORM_TENANT_BUSINESS_READ_SUCCEEDED';
+  END IF;
   IF EXISTS (SELECT 1 FROM public.marketing_provider_profiles) THEN
     RAISE EXCEPTION 'RC931_UNREGISTERED_MNTY_PLATFORM_MEMBERSHIP_GAINED_GLOBAL_READ';
   END IF;
@@ -242,11 +249,11 @@ SET ROLE authenticated;
 SELECT set_config('request.jwt.claims',
   '{"sub":"30000000-0000-4000-8000-000000000015","role":"authenticated","is_anonymous":false}', false);
 -- RC926's confirmed-owner integration inserts one additional synthetic ACTIVE
--- profile into this same disposable database. Require the six RC931 fixture rows
--- plus that known RC926 row, and reject any seventh unexpected profile.
+-- profile into this same disposable database. The seven RC931 fixture rows include
+-- an MNTY-PLATFORM business row; only the registered platform-root can see it.
 DO $platform_admin$
 BEGIN
-  IF (SELECT count(*) FROM public.marketing_provider_profiles) <> 7 THEN
+  IF (SELECT count(*) FROM public.marketing_provider_profiles) <> 8 THEN
     RAISE EXCEPTION 'RC931_PLATFORM_ADMIN_GLOBAL_READ_REGRESSED:%',
       (SELECT count(*) FROM public.marketing_provider_profiles);
   END IF;
@@ -256,8 +263,9 @@ BEGIN
     '40000000-0000-4000-8000-000000000003',
     '40000000-0000-4000-8000-000000000004',
     '40000000-0000-4000-8000-000000000005',
-    '40000000-0000-4000-8000-000000000006'
-  )) <> 6 OR NOT EXISTS (
+    '40000000-0000-4000-8000-000000000006',
+    '40000000-0000-4000-8000-000000000007'
+  )) <> 7 OR NOT EXISTS (
     SELECT 1 FROM public.marketing_provider_profiles
      WHERE id='10000000-0000-4000-8000-000000000001'
        AND status='ACTIVE'
@@ -301,8 +309,8 @@ DO $service_role$
 DECLARE visible integer; active_public integer;
 BEGIN
   SELECT count(*) INTO visible FROM public.marketing_provider_profiles;
-  -- The same disposable DB includes the additional RC926 synthetic profile.
-  IF visible <> 7 THEN
+  -- The seven RC931 fixture rows plus the additional RC926 synthetic profile.
+  IF visible <> 8 THEN
     RAISE EXCEPTION 'RC931_SERVICE_ROLE_READ_REGRESSED:%', visible;
   END IF;
   SELECT count(*) INTO active_public FROM (
