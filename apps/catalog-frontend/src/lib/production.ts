@@ -150,7 +150,7 @@ export async function listCatalogImages(input: {
     .map((item: any): CatalogMediaLibraryItem => ({
       imageUrl: item.imageUrl,
       objectPath: item.objectPath,
-      sourceKind: item.sourceKind as CatalogAiImageKind,
+      sourceKind: item.objectPath.slice(businessMediaPrefix.length).split('/')[0] as CatalogAiImageKind,
       createdAt: typeof item.createdAt === 'string' ? item.createdAt : null,
       fileSize: Number.isFinite(Number(item.fileSize)) ? Number(item.fileSize) : 0,
     }));
