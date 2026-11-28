@@ -1067,11 +1067,16 @@ try {
         contentType: 'image/svg+xml',
         body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>',
       }));
-      await page.route('https://cdn.example.test/**', async (route) => route.fulfill({
-        status: 200,
-        contentType: 'image/svg+xml',
-        body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>',
-      }));
+      await page.route('https://cdn.example.test/**', async (route) => {
+        if (route.request().url().endsWith('/promo-2.webp')) {
+          return route.fulfill({ status: 404, contentType: 'text/plain', body: 'fixture image missing' });
+        }
+        return route.fulfill({
+          status: 200,
+          contentType: 'image/svg+xml',
+          body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>',
+        });
+      });
       await page.getByRole('heading', { name: 'نشاط رابطين خارجيين', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const logoLinks = page.locator('a[aria-label="فتح الرابط الخارجي للصورة التعريفية"]');
       const coverLinks = page.locator('a[aria-label="فتح الرابط الخارجي لصورة الغلاف"]');
@@ -1102,7 +1107,12 @@ try {
       await promotionalGallery.waitFor({ state: 'visible' });
       assert.equal(await promotionalGallery.locator('img').count(), 2, 'promotional images must render in a separate gallery');
       assert.equal(await promotionalGallery.locator('img').nth(0).getAttribute('src'), 'https://cdn.example.test/promo-1.webp');
-      assert.equal(await promotionalGallery.locator('img').nth(1).getAttribute('src'), 'https://cdn.example.test/promo-2.webp');
+      await page.waitForFunction(() => {
+        const gallery = document.querySelector('[data-testid="storefront-promotional-gallery"]');
+        return gallery?.querySelectorAll('img')[1]?.getAttribute('src')?.endsWith('/business-cover-placeholder.svg');
+      }, null, { timeout: 5000 });
+      assert.equal(await promotionalGallery.locator('img').nth(1).getAttribute('src'), '/MantiqatiX/business-cover-placeholder.svg',
+        'a broken promotional thumbnail must be replaced by the local business cover artwork');
 
       const firstGalleryImage = promotionalGallery.getByRole('button', { name: 'عرض الصورة الترويجية رقم 1' });
       await firstGalleryImage.click();
@@ -1123,11 +1133,15 @@ try {
         'Tab from the last control must wrap to the first dialog control');
 
       await page.keyboard.press('ArrowLeft');
-      assert.equal(await galleryDialog.locator('img').getAttribute('src'), 'https://cdn.example.test/promo-2.webp',
-        'left arrow must advance the gallery in right-to-left layout');
+      assert.equal(await galleryDialog.locator('img').getAttribute('src'), '/MantiqatiX/business-cover-placeholder.svg',
+        'a broken full-size promotional image must use the same local fallback');
+      assert.equal(await galleryDialog.getByText('الصورة الأصلية غير متاحة — تظهر صورة بديلة').count(), 1,
+        'the viewer must not offer an unavailable original-image link');
       await page.keyboard.press('ArrowRight');
       assert.equal(await galleryDialog.locator('img').getAttribute('src'), 'https://cdn.example.test/promo-1.webp',
         'right arrow must return to the previous gallery image');
+      assert.equal(await galleryDialog.getByRole('link', { name: 'فتح الصورة الأصلية' }).count(), 1,
+        'the viewer must retain the original-image link for a working image');
       await page.keyboard.press('Escape');
       await galleryDialog.waitFor({ state: 'hidden', timeout: 5000 });
       assert.equal(await firstGalleryImage.evaluate((button) => document.activeElement === button), true,
