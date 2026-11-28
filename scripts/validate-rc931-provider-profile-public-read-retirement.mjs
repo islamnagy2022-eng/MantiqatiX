@@ -34,6 +34,10 @@ assert.match(rc479Forward, /AS RESTRICTIVE[\s\S]*?FOR SELECT[\s\S]*?TO authentic
 assert.match(rc926, /IS NOT DISTINCT FROM\s*'false'/i);
 assert.match(rc115, /um\.tenant_id = b\.tenant_id/);
 assert.match(rc115, /b\.id = public\.marketing_provider_profiles\.business_id/);
+assert.match(rc116, /Owners view own marketing provider profile/);
+assert.match(rc116, /Owners update own provider profile branding/);
+assert.match(migration, /Owners view own marketing provider profile/);
+assert.match(migration, /Owners update own provider profile branding/);
 assert.match(migration, /public\.is_platform_admin\(\)/);
 assert.match(migration, /FROM private\.platform_admins/);
 assert.match(migration, /RC931_REGISTRY_ONLY_PLATFORM_ADMIN_HELPER_REQUIRED/);
@@ -95,6 +99,7 @@ assert.match(workflow, /20261118190000_rc479_revoke_anon_provider_profile_base_r
 assert.match(workflow, /20261120193000_rc479_restrict_anonymous_auth_provider_profile_select\.sql/);
 assert.match(workflow, /20261125110000_rc926_provider_profile_confirmed_identity_strict_guard\.sql/);
 assert.match(workflow, /20261125130000_rc115_crm_business_scoped_reads\.sql/);
+assert.match(workflow, /20261125140000_rc116_crm_business_scoped_writes\.sql/);
 assert.match(workflow, /20261128010000_rc931_provider_profile_public_base_read_retirement\.sql/);
 assert.match(workflow, /rc926_provider_profile_confirmed_identity_strict_integration\.sql/);
 assert.match(workflow, /rc931_provider_profile_public_read_integration\.sql/);
