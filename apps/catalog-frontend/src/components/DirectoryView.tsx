@@ -980,15 +980,15 @@ export const DirectoryView: React.FC = () => {
       {/* 1. Full-Width Horizontal Title Bar right under header */}
       {locationWelcomeDialog}
 
-      <div className="w-full bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white py-6 px-4 sm:px-8 shadow-md border-y border-emerald-500/20">
+      <div className="w-full bg-gradient-to-r from-[#3a0000] via-[#7a0000] to-[#3a0000] text-white py-6 px-4 sm:px-8 shadow-md border-y border-[#f6c04d]/25">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-right">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-black px-3 py-0.5 rounded-full mb-1">
+            <div className="inline-flex items-center gap-1.5 bg-[#f6c04d]/15 text-[#ffe1a3] border border-[#f6c04d]/30 text-[11px] font-black px-3 py-0.5 rounded-full mb-1">
               <Sparkles className="w-3.5 h-3.5" />
               <span>الدليل الشامل للأنشطة والخدمات في مصر • MantiqatiX</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
-              اكتشف كافة المشاريع والخدمات في <span className="text-emerald-400">منطقتي X</span>
+              اكتشف كافة المشاريع والخدمات في <span className="text-amber-300">منطقتي X</span>
               {selectedGovFilter !== 'all' && <span className="text-amber-300 text-lg mr-2 font-bold">({selectedGovFilter})</span>}
             </h1>
           </div>
@@ -998,7 +998,7 @@ export const DirectoryView: React.FC = () => {
               href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد طلب كتالوج لنشاطي على MantiqatiX.')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs py-3 px-6 rounded-2xl shadow-lg flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+              className="bg-[#f6c04d] hover:bg-[#e9ad31] text-[#3a0000] font-black text-xs py-3 px-6 rounded-2xl shadow-lg flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
             >
               <MessageCircle className="w-4 h-4" />
               <span>اطلب كتالوج لنشاطك</span>
@@ -1030,7 +1030,7 @@ export const DirectoryView: React.FC = () => {
                     }}
                     aria-label={`افتح صفحة نشاط ${slide.title}`}
                     tabIndex={idx === currentCoverIndex ? 0 : -1}
-                    className="absolute inset-0 block h-full w-full cursor-pointer text-left focus-visible:ring-4 focus-visible:ring-emerald-400"
+                    className="absolute inset-0 block h-full w-full cursor-pointer text-left focus-visible:ring-4 focus-visible:ring-[#f6c04d]"
                   >
                     <img
                       src={slide.image || resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' })}
@@ -1067,9 +1067,9 @@ export const DirectoryView: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className="flex min-h-64 sm:min-h-80 md:min-h-96 w-full items-center justify-center rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 px-6 py-12 text-center text-white shadow-xl">
+            <div className="flex min-h-64 sm:min-h-80 md:min-h-96 w-full items-center justify-center rounded-3xl border border-slate-200 bg-gradient-to-br from-[#3a0000] via-[#7a0000] to-[#3a0000] px-6 py-12 text-center text-white shadow-xl">
               <div className="max-w-xl space-y-3">
-                <Store className="mx-auto h-10 w-10 text-emerald-300" />
+                <Store className="mx-auto h-10 w-10 text-[#f6c04d]" />
                 <h2 className="text-xl sm:text-2xl font-black">لا توجد أنشطة متاحة حاليًا</h2>
                 <p className="text-sm leading-relaxed text-white/75">ستظهر هنا تلقائيًا صور الأنشطة المنشورة والمتاحة للزوار.</p>
               </div>
@@ -1080,7 +1080,7 @@ export const DirectoryView: React.FC = () => {
         <section aria-label="الأنشطة والتخصصات" className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="flex items-center gap-2 text-lg font-black text-slate-900"><Store className="h-5 w-5 text-emerald-600" />الأنشطة</h2>
+              <h2 className="flex items-center gap-2 text-lg font-black text-slate-900"><Store className="h-5 w-5 text-[#a00000]" />الأنشطة</h2>
               <p className="mt-1 text-xs text-slate-500">اختر النشاط لعرض التخصصات التابعة له والجهات المنشورة ضمن النطاق الجغرافي.</p>
               <p data-testid="directory-geography-scope" className="mt-2 text-xs leading-5 text-slate-600">
                 النطاق الحالي: {selectedGovFilter === 'all' ? 'جميع المحافظات' : selectedGovFilter} — تُعرض الأنشطة داخل أقسامها وتصنيفاتها المعتادة، وتظهر السجلات غير الموثقة بعلامة واضحة.
@@ -1098,24 +1098,24 @@ export const DirectoryView: React.FC = () => {
               const unconfirmedCount = eligibleCategoryBusinesses.filter((business) => !business.isVerified).length + filteredUnconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id).length;
               const totalCount = confirmedCount + unconfirmedCount;
               return (
-                <div key={category.id} className="flex min-w-0 flex-col rounded-2xl border border-slate-200 bg-white p-2 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md sm:p-3">
+                <div key={category.id} className="flex min-w-0 flex-col rounded-2xl border border-slate-200 bg-white p-2 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-[#d9a5a5] hover:shadow-md sm:p-3">
                   <button
                     type="button"
                     onClick={() => openActivityModule(category.id)}
                     aria-label={`فتح نشاط ${category.name} — إجمالي ${totalCount}، موثق ${confirmedCount}، غير موثق ${unconfirmedCount}`}
                     data-testid="activity-category-card"
-                    className="group relative flex min-h-24 w-full min-w-0 flex-1 flex-col items-center justify-center gap-2 rounded-xl p-1 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 sm:min-h-24 sm:flex-row sm:justify-start sm:gap-3 sm:p-2 sm:text-right"
+                    className="group relative flex min-h-24 w-full min-w-0 flex-1 flex-col items-center justify-center gap-2 rounded-xl p-1 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] sm:min-h-24 sm:flex-row sm:justify-start sm:gap-3 sm:p-2 sm:text-right"
                   >
                     <span className="absolute left-1 top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-1 text-[9px] font-black text-emerald-800 sm:h-6 sm:min-w-6 sm:text-[10px]">{totalCount.toLocaleString('ar-EG')}</span>
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 group-hover:bg-emerald-100 group-hover:text-emerald-800 sm:h-11 sm:w-11">{ICONS_MAP[category.functionalGroupId] || <Store className="h-6 w-6" />}</span>
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff8f0] text-[#7a625c] group-hover:bg-[#fff3e0] group-hover:text-[#7a0000] sm:h-11 sm:w-11">{ICONS_MAP[category.functionalGroupId] || <Store className="h-6 w-6" />}</span>
                     <span className="min-w-0 flex-1"><span className="block text-xs font-black leading-snug text-slate-900 sm:text-base">{category.name}</span><span className="mt-1 flex flex-wrap justify-center gap-1 text-[9px] font-bold sm:mt-2 sm:justify-start sm:text-[10px]"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثق {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير موثق {unconfirmedCount}</span></span></span>
-                    <ChevronLeft className="hidden h-4 w-4 shrink-0 text-slate-400 transition group-hover:text-emerald-700 sm:block" />
+                    <ChevronLeft className="hidden h-4 w-4 shrink-0 text-slate-400 transition group-hover:text-[#a00000] sm:block" />
                   </button>
                   <button
                     type="button"
                     onClick={() => setShareActivity({ id: category.id, name: category.name })}
                     aria-label={`مشاركة نشاط ${category.name} وإنشاء رمز QR`}
-                    className="mt-2 inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-2 text-[10px] font-black text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 sm:text-xs"
+                    className="mt-2 inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-[#ead5c5] bg-[#fff8f0] px-2 py-2 text-[10px] font-black text-[#7a0000] transition hover:border-[#d9a5a5] hover:bg-[#fff3e0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] sm:text-xs"
                   >
                     <Share2 className="h-3.5 w-3.5" />
                     <QrCode className="h-3.5 w-3.5" />
@@ -1218,7 +1218,7 @@ export const DirectoryView: React.FC = () => {
         <div className="space-y-6">
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-black text-lg text-slate-900 flex items-center gap-2">
-              <Store className="w-5 h-5 text-emerald-600" />
+              <Store className="w-5 h-5 text-[#a00000]" />
               <span>نتائج البحث الموحدة ({filteredBusinesses.length + filteredUnconfirmedListings.length}{directoryHasMoreForView || directoryListingsHasMore ? '+' : ''})</span>
             </h2>
             <div
@@ -1255,7 +1255,7 @@ export const DirectoryView: React.FC = () => {
                   href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد تفعيل كتالوج لنشاطي على MantiqatiX')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-xs font-bold text-white hover:bg-emerald-700 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#7a0000] px-5 py-3 text-xs font-bold text-white hover:bg-[#5a0000] transition-colors"
                 >
                   <MessageCircle className="w-4 h-4" />
                   تواصل مع إدارة المنصة
@@ -1339,7 +1339,7 @@ export const DirectoryView: React.FC = () => {
 
                         <div className="pt-4 sm:pt-4 space-y-1 sm:space-y-2">
                           <div className="flex items-center justify-between">
-                            <h3 className="w-full break-words font-black text-xs sm:text-base text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-2">
+                            <h3 className="w-full break-words font-black text-xs sm:text-base text-slate-900 group-hover:text-[#a00000] transition-colors line-clamp-2">
                               {biz.name}
                             </h3>
                             <span className="hidden sm:inline-block text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
@@ -1352,7 +1352,7 @@ export const DirectoryView: React.FC = () => {
                           </p>
 
                           <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 font-medium pt-1">
-                            <MapPin className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                            <MapPin className="w-3.5 h-3.5 text-[#a00000] flex-shrink-0" />
                             <span>{formatEgyptianLocation(biz.governorate, biz.markaz, biz.village)}</span>
                           </div>
                           {userCoordinates && distanceKm(userCoordinates, getCoordinates(biz)) !== null && (
@@ -1388,7 +1388,7 @@ export const DirectoryView: React.FC = () => {
                             setSelectedBusinessId(biz.id);
                             setCurrentView('public_storefront');
                           }}
-                          className="flex-1 bg-slate-900 hover:bg-emerald-600 text-white font-black text-[10px] sm:text-xs py-2 sm:py-2.5 px-1 sm:px-3 rounded-lg sm:rounded-xl flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-xs"
+                          className="flex-1 bg-[#7a0000] hover:bg-[#a00000] text-white font-black text-[10px] sm:text-xs py-2 sm:py-2.5 px-1 sm:px-3 rounded-lg sm:rounded-xl flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-xs"
                         >
                           <span>الكتالوج</span>
                           <ArrowRight className="w-3.5 h-3.5 rotate-180" />
