@@ -61,9 +61,6 @@ Deno.serve(async (req: Request) => {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return reply({ error: "unauthorized" }, 401);
 
-  const apiKey = Deno.env.get("GEMINI_API_KEY") ?? "";
-  if (!apiKey) return reply({ error: "ai_provider_not_configured" }, 503);
-
   let body: {
     action?: string;
     query?: string;
@@ -77,19 +74,33 @@ Deno.serve(async (req: Request) => {
     name?: string;
     category?: string;
     description?: string;
+    file?: File;
   };
   try {
-    body = await req.json();
+    const contentType = (req.headers.get("content-type") || "").toLowerCase();
+    if (contentType.includes("multipart/form-data")) {
+      const declaredLength = Number(req.headers.get("content-length") || "0");
+      if (Number.isFinite(declaredLength) && declaredLength > 5 * 1024 * 1024 + 128 * 1024) {
+        return reply({ error: "image_upload_request_too_large", message: "حجم طلب رفع الصورة أكبر من الحد المسموح." }, 413);
+      }
+      const formData = await req.formData();
+      body = Object.fromEntries(formData.entries()) as typeof body;
+    } else {
+      body = await req.json();
+    }
   } catch {
     return reply({ error: "invalid_json" }, 400);
   }
 
   const action = String(body.action ?? "assistant").trim();
-  if (action === "generate_catalog_image" && user.is_anonymous) {
+  const apiKey = Deno.env.get("GEMINI_API_KEY") ?? "";
+  if (action !== "upload_catalog_image" && !apiKey) return reply({ error: "ai_provider_not_configured" }, 503);
+
+  if ((action === "generate_catalog_image" || action === "upload_catalog_image") && user.is_anonymous) {
     return reply({ error: "confirmed_auth_required" }, 401);
   }
 
-  if (action === "generate_catalog_image") {
+  if (action === "generate_catalog_image" || action === "upload_catalog_image") {
     const businessId = String(body.businessId || "").trim();
     const imageKind = String(body.imageKind || "").trim().toLowerCase();
     const itemName = String(body.name || "").trim();
@@ -155,24 +166,38 @@ Deno.serve(async (req: Request) => {
       }
       if (!authorized) return reply({ error: "catalog_image_permission_denied" }, 403);
 
+      const auditAction = action === "upload_catalog_image" ? "CATALOG_IMAGE_UPLOAD_REQUESTED" : "CATALOG_AI_IMAGE_REQUESTED";
+      const requestLimit = action === "upload_catalog_image" ? 60 : 20;
       const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString();
       const { data: recentRequests, error: rateLookupError } = await service.from("audit_logs")
-        .select("id").eq("actor_user_id", user.id).eq("action", "CATALOG_AI_IMAGE_REQUESTED")
-        .gte("created_at", cutoff).limit(20);
+        .select("id").eq("actor_user_id", user.id).eq("action", auditAction)
+        .gte("created_at", cutoff).limit(requestLimit);
       if (rateLookupError) throw rateLookupError;
-      if ((recentRequests || []).length >= 20) return reply({ error: "image_generation_rate_limited", message: "تم بلوغ الحد المؤقت لإنشاء الصور. حاول لاحقًا." }, 429);
+      if ((recentRequests || []).length >= requestLimit) {
+        return reply({
+          error: action === "upload_catalog_image" ? "image_upload_rate_limited" : "image_generation_rate_limited",
+          message: action === "upload_catalog_image" ? "تم بلوغ الحد المؤقت لرفع الصور. حاول لاحقًا." : "تم بلوغ الحد المؤقت لإنشاء الصور. حاول لاحقًا.",
+        }, 429);
+      }
 
+      const uploadedFile = body.file;
+      const uploadMimeType = uploadedFile instanceof File ? String(uploadedFile.type || "").toLowerCase() : "";
+      const uploadSize = uploadedFile instanceof File ? uploadedFile.size : 0;
       const { data: auditEntry, error: auditInsertError } = await service.from("audit_logs").insert({
         id: crypto.randomUUID(),
         tenant_id: String(business.tenant_id),
         organization_id: business.organization_id || null,
         business_id: businessId,
         actor_user_id: user.id,
-        action: "CATALOG_AI_IMAGE_REQUESTED",
+        action: auditAction,
         entity_type: imageKind === "activity" || imageKind === "cover" ? "business" : "catalog_image",
         entity_id: businessId,
         old_values: {},
-        new_values: { imageKind, requestState: "REQUESTED" },
+        new_values: {
+          imageKind,
+          requestState: "REQUESTED",
+          ...(action === "upload_catalog_image" ? { mimeType: uploadMimeType, fileSize: uploadSize } : {}),
+        },
         result: "REQUESTED",
       }).select("id").single();
       if (auditInsertError || !auditEntry?.id) throw new Error("image_audit_write_failed");
@@ -183,6 +208,56 @@ Deno.serve(async (req: Request) => {
         }).eq("id", auditEntry.id);
         if (error) console.error("catalog AI image audit update failed", error.code || error.message);
       };
+
+      if (action === "upload_catalog_image") {
+        if (!(uploadedFile instanceof File) || uploadSize <= 0 || uploadSize > 5 * 1024 * 1024) {
+          await finishAudit("FAILED", { failure: "invalid_image_file", fileSize: uploadSize });
+          return reply({ error: "invalid_image_file", message: "اختر صورة JPG أو PNG أو WebP لا يتجاوز حجمها 5 ميجابايت." }, 400);
+        }
+
+        let imageBytes: Uint8Array;
+        try {
+          imageBytes = new Uint8Array(await uploadedFile.arrayBuffer());
+        } catch {
+          await finishAudit("FAILED", { failure: "image_read_failed" });
+          return reply({ error: "image_read_failed" }, 400);
+        }
+
+        const isJpeg = imageBytes.length >= 3 && imageBytes[0] === 0xff && imageBytes[1] === 0xd8 && imageBytes[2] === 0xff;
+        const isPng = imageBytes.length >= 8 &&
+          imageBytes[0] === 0x89 && imageBytes[1] === 0x50 && imageBytes[2] === 0x4e && imageBytes[3] === 0x47 &&
+          imageBytes[4] === 0x0d && imageBytes[5] === 0x0a && imageBytes[6] === 0x1a && imageBytes[7] === 0x0a;
+        const isWebp = imageBytes.length >= 12 &&
+          String.fromCharCode(...imageBytes.subarray(0, 4)) === "RIFF" &&
+          String.fromCharCode(...imageBytes.subarray(8, 12)) === "WEBP";
+        const validImage = (uploadMimeType === "image/jpeg" && isJpeg) ||
+          (uploadMimeType === "image/png" && isPng) ||
+          (uploadMimeType === "image/webp" && isWebp);
+        if (!validImage) {
+          await finishAudit("FAILED", { failure: "image_signature_mismatch", mimeType: uploadMimeType });
+          return reply({ error: "invalid_image_file", message: "محتوى الملف لا يطابق صيغة صورة JPG أو PNG أو WebP." }, 415);
+        }
+
+        const extension = uploadMimeType === "image/jpeg" ? "jpg" : uploadMimeType === "image/png" ? "png" : "webp";
+        const objectPath = "businesses/" + businessId + "/owner-uploads/" + imageKind + "/" + crypto.randomUUID() + "." + extension;
+        const { error: uploadError } = await service.storage.from(IMAGE_BUCKET).upload(objectPath, imageBytes, {
+          contentType: uploadMimeType,
+          cacheControl: "31536000",
+          upsert: false,
+        });
+        if (uploadError) {
+          await finishAudit("FAILED", { failure: "image_storage_error", code: uploadError.name || "storage_error" });
+          console.error("Catalog owner image upload failed", uploadError.name || "storage_error");
+          return reply({ error: "image_storage_error", message: "تعذر حفظ الصورة في مساحة التخزين." }, 502);
+        }
+        const { data: publicUrlData } = service.storage.from(IMAGE_BUCKET).getPublicUrl(objectPath);
+        if (!publicUrlData?.publicUrl?.startsWith("https://")) {
+          await finishAudit("FAILED", { failure: "image_public_url_unavailable" });
+          return reply({ error: "image_public_url_unavailable" }, 502);
+        }
+        await finishAudit("SUCCESS", { objectPath, mimeType: uploadMimeType, fileSize: imageBytes.byteLength });
+        return reply({ imageUrl: publicUrlData.publicUrl, imageSource: "owner", objectPath });
+      }
 
       const prompt = [
         "Generate one polished, commercial catalogue image for an Egyptian local business.",

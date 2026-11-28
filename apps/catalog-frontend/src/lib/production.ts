@@ -54,6 +54,50 @@ export const supabase = createClient(runtime.supabaseUrl, runtime.supabaseKey, {
   },
 });
 
+const MAX_CATALOG_IMAGE_UPLOAD_BYTES = 5 * 1024 * 1024;
+const CATALOG_IMAGE_MIME_EXTENSIONS: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
+export async function uploadCatalogImage(input: {
+  businessId: string;
+  branchId?: string;
+  kind: CatalogAiImageKind;
+  name: string;
+  category?: string;
+  description?: string;
+  file: File;
+}): Promise<string> {
+  if (!input.file || input.file.size <= 0 || input.file.size > MAX_CATALOG_IMAGE_UPLOAD_BYTES) {
+    throw new Error('حجم الصورة يجب ألا يتجاوز 5 ميجابايت.');
+  }
+
+  const suppliedMime = String(input.file.type || '').toLowerCase();
+  const mimeType = suppliedMime === 'image/jpg' ? 'image/jpeg' : suppliedMime;
+  const extension = CATALOG_IMAGE_MIME_EXTENSIONS[mimeType];
+  if (!extension) {
+    throw new Error('الصيغ المدعومة هي JPG وPNG وWebP فقط.');
+  }
+
+  const formData = new FormData();
+  formData.set('action', 'upload_catalog_image');
+  formData.set('businessId', input.businessId);
+  formData.set('branchId', input.branchId || '');
+  formData.set('imageKind', input.kind);
+  formData.set('name', input.name.slice(0, 160));
+  formData.set('category', (input.category || '').slice(0, 120));
+  formData.set('description', (input.description || '').slice(0, 800));
+  formData.set('file', new Blob([input.file], { type: mimeType }), `upload.${extension}`);
+
+  const { data, error } = await supabase.functions.invoke('ai-gemini-proxy', { body: formData });
+  if (error || typeof data?.imageUrl !== 'string' || !data.imageUrl.startsWith('https://')) {
+    throw new Error(String(data?.message || data?.error || error?.message || 'تعذر رفع الصورة.'));
+  }
+  return data.imageUrl;
+}
+
 async function invokeAdminFunction<T = any>(name: string, body: Record<string, unknown>, fallback: string): Promise<T> {
   const { data, error } = await supabase.functions.invoke(name, { body });
   if (error) {
