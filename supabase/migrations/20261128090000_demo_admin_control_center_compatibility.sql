@@ -867,10 +867,16 @@ language plpgsql
 security definer
 set search_path = ''
 as $function$
-declare v_actor uuid := auth.uid(); v_search text := lower(trim(coalesce(p_search,'')));
+declare
+  v_actor uuid := auth.uid();
+  v_search text := lower(trim(coalesce(p_search,'')));
 begin
-  if v_actor is null or coalesce((auth.jwt()->>'is_anonymous')::boolean,false) then raise exception 'AUTH_REQUIRED'; end if;
-  if not exists(select 1 from private.platform_admins pa where pa.user_id=v_actor) then raise exception 'PLATFORM_ADMIN_REQUIRED'; end if;
+  if v_actor is null or coalesce((auth.jwt()->>'is_anonymous')::boolean,false) then
+    raise exception 'AUTH_REQUIRED';
+  end if;
+  if not exists(select 1 from private.platform_admins pa where pa.user_id=v_actor) then
+    raise exception 'PLATFORM_ADMIN_REQUIRED';
+  end if;
   return coalesce((
     select jsonb_agg(jsonb_build_object(
       'id',b.id,'tenant_id',b.tenant_id,'name',b.name,'code',b.code,'status',b.status,
@@ -880,14 +886,14 @@ begin
           'id',m.id,'user_id',m.user_id,'role',m.role,'status',m.status,
           'email',coalesce(u.email,''),'full_name',coalesce(u.raw_user_meta_data->>'full_name',u.raw_user_meta_data->>'name','')
         ) order by m.created_at desc)
-        from public.user_memberships m left join auth.users u on u.id=m.user_id
+        from public.user_memberships m
+        left join auth.users u on u.id=m.user_id
         where m.tenant_id=b.tenant_id and m.business_id=b.id
       ),'[]'::jsonb)
     ) order by b.created_at desc)
     from public.businesses b
     where v_search='' or lower(coalesce(b.name,'')) like '%'||v_search||'%'
       or lower(coalesce(b.code,'')) like '%'||v_search||'%'
-    limit 300
   ),'[]'::jsonb);
 end;
 $function$;
@@ -914,23 +920,38 @@ begin
   if v_action not in ('UPDATE','DEACTIVATE','RESTORE') then raise exception 'INVALID_BUSINESS_ACTION'; end if;
   select * into v_business from public.businesses where id=p_business_id for update;
   if not found then raise exception 'BUSINESS_NOT_FOUND'; end if;
+
   v_old:=jsonb_build_object('name',v_business.name,'status',v_business.status,'settings',v_business.settings);
   if v_action='UPDATE' then
     if nullif(trim(p_name),'') is null then raise exception 'BUSINESS_NAME_REQUIRED'; end if;
-    update public.businesses set name=trim(p_name),
-      settings=case when p_settings is null then settings else p_settings end
-    where id=p_business_id returning * into v_business;
+    update public.businesses
+      set name=trim(p_name),
+          settings=case when p_settings is null then v_business.settings else coalesce(v_business.settings,'{}'::jsonb) || p_settings end,
+          updated_at=now()
+      where id=p_business_id returning * into v_business;
+
+    -- The official activity card uses this provider name first. Keep it aligned
+    -- with the owner-controlled activity record when the platform edits it.
+    update public.marketing_provider_profiles p
+      set name_ar=trim(p_name),
+          name_en=case when nullif(trim(coalesce(p_settings->'catalog_profile'->>'name_en','')),'') is not null
+            then trim(p_settings->'catalog_profile'->>'name_en') else p.name_en end,
+          description=coalesce(nullif(trim(coalesce(v_business.settings->'catalog_profile'->>'bio','')),''),p.description),
+          updated_at=now()
+      where p.business_id=v_business.id;
   elsif v_action='DEACTIVATE' then
-    update public.businesses set status='INACTIVE' where id=p_business_id returning * into v_business;
+    update public.businesses set status='INACTIVE',updated_at=now() where id=p_business_id returning * into v_business;
   else
-    update public.businesses set status='ACTIVE' where id=p_business_id returning * into v_business;
+    update public.businesses set status='ACTIVE',updated_at=now() where id=p_business_id returning * into v_business;
   end if;
+
   insert into public.audit_logs(id,tenant_id,actor_user_id,action,entity_type,entity_id,old_values,new_values,result)
   values(gen_random_uuid()::text,v_business.tenant_id,v_actor,
     case v_action when 'UPDATE' then 'PLATFORM_BUSINESS_UPDATED' when 'DEACTIVATE' then 'PLATFORM_BUSINESS_DEACTIVATED' else 'PLATFORM_BUSINESS_RESTORED' end,
     'business',v_business.id::text,v_old,
     jsonb_build_object('name',v_business.name,'status',v_business.status,'settings',v_business.settings),'SUCCESS');
-  return jsonb_build_object('id',v_business.id,'name',v_business.name,'status',v_business.status);
+
+  return jsonb_build_object('id',v_business.id,'name',v_business.name,'status',v_business.status,'settings',v_business.settings);
 end;
 $function$;
 
