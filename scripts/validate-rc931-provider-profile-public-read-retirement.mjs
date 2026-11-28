@@ -10,12 +10,12 @@ const rc926 = read("supabase/migrations/20261125110000_rc926_provider_profile_co
 const rc115 = read("supabase/migrations/20261125130000_rc115_crm_business_scoped_reads.sql");
 const fixture = read("supabase/tests/rc931_provider_profile_public_read_fixture.sql");
 const integration = read("supabase/tests/rc931_provider_profile_public_read_integration.sql");
-assert.match(workflow, /validate-marketing-crm-tenant-scope\\.mjs/);
+const workflow = read(".github/workflows/rc931-provider-profile-public-read-retirement.yml");
+assert.match(workflow, /validate-marketing-crm-tenant-scope\.mjs/);
 assert.match(workflow, /rc452_marketing_crm_scope_fixture\\.sql/);
 assert.match(workflow, /rc452_marketing_crm_scope_integration\\.sql/);
 assert.match(workflow, /CREATE DATABASE rc115_test/);
 const rc926Integration = read("supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql");
-const workflow = read(".github/workflows/rc931-provider-profile-public-read-retirement.yml");
 const replayWorkflow = read(".github/workflows/forward-migration-chain-replay.yml");
 const contract = read("scripts/production/live-reconciliation-contract.mjs");
 const verifier = read("scripts/production/verify-production.mjs");
