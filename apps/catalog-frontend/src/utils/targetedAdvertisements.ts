@@ -217,6 +217,14 @@ export async function loadTargetedAdvertisements(
     const creativeUrl = isSafeHttpsUrl(row.creative_url);
     if (!id || !creativeUrl) continue;
 
+    // The RPC's historical fallback can label an unmatched normal geo-targeted
+    // row as GLOBAL. Only platform_global_advertisements receives the GLOBAL-
+    // identity prefix; reject a mismatch rather than widening a local campaign.
+    const matchLevel = typeof row.match_level === 'string' ? row.match_level.trim().toUpperCase() : '';
+    const isPlatformGlobalAdvertisement = id.startsWith('GLOBAL-');
+    if (matchLevel === 'GLOBAL' && !isPlatformGlobalAdvertisement) continue;
+    if (isPlatformGlobalAdvertisement && matchLevel !== 'GLOBAL') continue;
+
     if (!unique.has(id)) {
       unique.set(id, {
         advertisement_id: id,
