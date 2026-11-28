@@ -56,6 +56,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
   const [saving,setSaving]=useState('');
   const [notice,setNotice]=useState<{error:boolean;text:string}|null>(null);
   const [roleEdit,setRoleEdit]=useState<{membership:Membership;role:string}|null>(null);
+  const [roleEditorSupported,setRoleEditorSupported]=useState(false);
   const load=useCallback(async(preserveNotice=false)=>{
     setLoading(true);
     if(!preserveNotice)setNotice(null);
@@ -63,6 +64,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     setLoading(false);
     if(error||!Array.isArray(data?.businesses)){setNotice({error:true,text:data?.message||error?.message||'تعذر تحميل الأنشطة والمشتركين. تحقق من صلاحيات مالك المنصة.'});return;}
     const next=data.businesses as BusinessRow[];
+    setRoleEditorSupported(data.capabilities?.branchScopedRoleEdits === true);
     setRows(next);
     setDrafts(Object.fromEntries(next.map((b)=>[b.id,draftFor(b)])));
   },[search]);
@@ -118,6 +120,10 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     await load(true);
   };
   const openRoleEditor=(membership:Membership)=>{
+    if(!roleEditorSupported){
+      setNotice({error:true,text:'تغيير الدور متوقف مؤقتًا حتى تؤكد خدمة الإدارة دعم نطاق الفرع. لم يتم إرسال أي تعديل.'});
+      return;
+    }
     const currentRole=String(membership.role||'').toUpperCase();
     if(!membershipRoleOptions.some((option)=>option.value===currentRole)){
       setNotice({error:true,text:'الدور الحالي غير موجود في قائمة الأدوار الآمنة؛ لم يتم فتح التعديل أو اقتراح دور بديل.'});
@@ -165,6 +171,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
       </div>
     </div>
     {notice&&<div role="status" className={'rounded-xl border p-3 text-sm '+(notice.error?'border-rose-200 bg-rose-50 text-rose-800':'border-emerald-200 bg-emerald-50 text-emerald-800')}>{notice.text}</div>}
+    {!roleEditorSupported&&rows.length>0&&<div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">تغيير أدوار العضويات موقوف مؤقتًا لأن نسخة خدمة الإدارة لم تؤكد دعم نطاق الفرع. ستظل قراءة العضويات وإجراءات الحالة متاحة دون تعديل الدور.</div>}
     {rows.length===0&&!loading&&<div className="rounded-2xl bg-white p-6 text-sm text-slate-500">لا توجد نتائج مطابقة.</div>}
     {rows.map(b=>{
       const d=drafts[b.id]||draftFor(b);
@@ -216,7 +223,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
           <div><div className="text-sm font-bold text-slate-800">{m.full_name||m.email||m.user_id}</div><div className="text-xs text-slate-500">{m.email} · {m.role} · {m.status}{m.branch_id?' · نطاق فرع':''}</div></div>
           <div className="flex flex-wrap gap-2">
             {m.is_platform_account?<span className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">حساب منصة محمي · غير قابل للتعديل هنا</span>:<>
-              <button type="button" disabled={!!saving} onClick={()=>openRoleEditor(m)} className={buttonClass}>تعديل الدور</button>
+              {roleEditorSupported?<button type="button" disabled={!!saving} onClick={()=>openRoleEditor(m)} className={buttonClass}>تعديل الدور</button>:<span className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-800">تغيير الدور غير متاح مؤقتًا</span>}
               {m.status==='ACTIVE'?<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'SUSPEND')} className={buttonClass}>إنهاء العضوية</button>:<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'RESTORE')} className={buttonClass}><RotateCcw className="h-3.5 w-3.5"/>إعادة التفعيل</button>}
             </>}
           </div>
