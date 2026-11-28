@@ -224,7 +224,7 @@ export const MarketplaceHome: React.FC = () => {
                 </div>
                 <span className="rounded-2xl border border-white/15 bg-white/10 p-3"><BadgeCheck className="h-7 w-7 text-[#f6c04d]" /></span>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-950/65 p-4 backdrop-blur">
+              <div className="rounded-2xl border border-[#f6c04d]/20 bg-[#2b1714]/75 p-4 backdrop-blur">
                 <p className="text-sm font-black">ابحث بذكاء… واكتشف الأقرب والأنسب</p>
                 <p className="mt-1 text-xs leading-5 text-slate-300">يظل البحث شاملًا لمصر، مع إبراز الأنشطة الموثقة وترتيب الأقرب عند السماح بالموقع.</p>
                 <button type="button" onClick={openSearch} className="mt-3 inline-flex items-center gap-1 text-xs font-black text-[#f6c04d]">افتح محرك البحث <ArrowLeft className="h-3.5 w-3.5" /></button>
@@ -307,7 +307,7 @@ export const MarketplaceHome: React.FC = () => {
         </section>
 
         <section aria-label="برنامج المكافآت والاشتراكات" className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-950 to-slate-900 p-6 text-white shadow-lg">
+          <div className="rounded-3xl border border-[#f6c04d]/25 bg-gradient-to-br from-[#5a0000] to-[#2b1714] p-6 text-white shadow-lg">
             <div className="flex items-center justify-between gap-3">
               <div><p className="text-xs font-bold text-[#ffe1a3]">MantiqatiX Rewards</p><h2 className="mt-1 text-xl font-black">نقاط وهدايا المنصة</h2></div>
               <span className="rounded-2xl bg-white/10 p-3 text-[#ffe1a3]"><Gift className="h-7 w-7" /></span>
@@ -327,7 +327,7 @@ export const MarketplaceHome: React.FC = () => {
             </> : <p className="mt-3 text-sm leading-6 text-slate-600">تابع حالة اشتراك نشاطك ومزاياه من حساب صاحب النشاط بعد تسجيل الدخول وربط العضوية.</p>}
             <div className="mt-4 flex flex-wrap gap-2">
               {personalBusiness && <button type="button" onClick={() => setCurrentView('merchant_admin')} className="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black text-white">لوحة نشاطي</button>}
-              {joinUrl && <a href={joinUrl} target="_blank" rel="noopener noreferrer" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-black text-emerald-900">اطلب الانضمام والاشتراك</a>}
+              {joinUrl && <a href={joinUrl} target="_blank" rel="noopener noreferrer" className="rounded-xl border border-[#ead5c5] bg-[#fff3e0] px-4 py-2.5 text-xs font-black text-[#7a0000]">اطلب الانضمام والاشتراك</a>}
               <span className="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-2.5 text-[11px] font-bold text-slate-600"><Gift className="h-3.5 w-3.5" /> كوبونات الاشتراك ستظهر بعد تفعيل نظام المكافآت</span>
             </div>
           </div>
