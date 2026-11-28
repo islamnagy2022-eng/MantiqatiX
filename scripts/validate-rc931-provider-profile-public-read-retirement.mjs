@@ -40,6 +40,9 @@ assert.doesNotMatch(migration, /um\.tenant_id\s*=\s*'MNTY-PLATFORM'/i,
   "provider CRM policy must not treat MNTY-PLATFORM membership metadata as platform authority");
 assert.ok(fixture.includes("CREATE TABLE private.platform_admins"), "fixture must model the canonical platform registry");
 assert.ok(fixture.includes("INSERT INTO private.platform_admins(user_id)"), "fixture must register platform authority only in the protected registry");
+assert.match(fixture, /SECURITY DEFINER[\\s\\S]*?SET search_path TO ''[\\s\\S]*?FROM private\\.platform_admins/);
+assert.match(migration, /RC931_PLATFORM_ADMIN_REGISTRY_REQUIRED/);
+assert.match(migration, /RC931_PLATFORM_ADMIN_HELPER_ACL_MISMATCH/);
 
 assert.match(migration, /RC931_PROVIDER_PROFILE_RLS_REQUIRED/);
 assert.match(migration, /RC931_PROVIDER_PROFILE_FORCE_RLS_REQUIRED/);
@@ -69,6 +72,7 @@ for (const marker of [
   "RC931_PROFILE_OWNER_READ_REGRESSED",
   "RC931_PROFILE_OWNER_UPDATE_REGRESSED",
   "RC931_TENANT_SUPER_ADMIN_GAINED_CROSS_TENANT_READ",
+  "RC931_TENANT_SUPER_ADMIN_LOCAL_SCOPE_REGRESSED",
   "RC931_PLATFORM_ADMIN_GLOBAL_READ_REGRESSED",
   "RC931_UNREGISTERED_MNTY_PLATFORM_MEMBERSHIP_GAINED_GLOBAL_READ",
   "RC931_ANONYMOUS_AUTH_PROVIDER_READ_SUCCEEDED",
