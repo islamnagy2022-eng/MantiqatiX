@@ -1,10 +1,21 @@
+## 2026-11-28 — RC931 privacy source candidate (fresh mainline branch)
+
+- Branch: fix/rc931-provider-profile-read-retirement-mainline-20261128, based on main c32bdb47ff3db2cebf19e38fd3e97f880b8e1f74.
+- Canonical required release contract is 90 ordered versions, including RC115 (20261125130000) and RC931 (20261128010000). Production remains at 310 rows through 20261110150618; exact-ID comparison is 0/90 and is not proof every physical effect is absent.
+- RC931 retires the global active-provider base-table SELECT policy only after RC479 raw-anon denial, RC926 explicit confirmed-Auth guard, RC115 tenant/business CRM scope, and RC484 registry-only platform helper. The new CRM policy no longer treats MNTY-PLATFORM membership/full_control as global authority.
+- Added PostgreSQL 17 adversarial fixture/workflow, corrected fixture counts, and owner-read compatibility test. CI and 90-version chronological replay remain pending; do not merge until exact-head checks pass.
+- **Production boundary:** no database migration, SQL write, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement or customer/business data mutation.
+- **Release:** FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED.
+
+---
+
 # CURRENT PRODUCTION GATE — 2026-11-28 00:55 EET
 
 This dated overlay supersedes every older migration-count and Production-status snapshot below it. Historical records are retained as evidence, not as current instructions.
 
 - Current application/source baseline recorded after RC930: `6581ba937f7075987bd1d6055412afb9a73ad44e`; latest read-only progress evidence commit recorded previously: `9aa0a4cca803f6d6d71ea06720fe9f15d23cb34f`.
 - Direct Production check: project `MANTIQATIX FINAL` is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155; ledger 310 rows through `20261110150618`.
-- Current canonical source release contract: 88 unique, ordered required versions; live exact-ID intersection 0/88. This is not proof that every physical effect is missing. Three known alias target IDs remain present; do not synthesize history rows or blindly replay.
+- Current canonical source release contract: 90 unique, ordered required versions; live exact-ID intersection 0/90. This is not proof that every physical effect is missing. Three known alias target IDs remain present; do not synthesize history rows or blindly replay.
 - Platform authorization is still BLOCKED: private registry RLS is ON / FORCE RLS OFF; `is_platform_admin()` is membership-derived; `mnty_can_platform_admin()` delegates to the unscoped membership helper. Known impact: 62 policy references / 27 tables.
 - Public-schema SECURITY DEFINER inventory: 149 functions total; 65 authenticated-executable, one anon-executable (the known public targeted-ad RPC), 28 empty search_path / 121 non-empty / 0 unset; 18 empty and 47 non-empty among the authenticated-executable group. Supabase Security Advisor reported 166 findings (157 WARN / 9 INFO); review each policy/function instead of bulk revokes.
 - Read-only existence/signature probe of the 79 canonical core/payment/control-center objects matched 37 and found 42 absent or non-matching (core 11/32; payment 3/14; control center 23/33). Presence probing does not verify ACL/RLS/ownership/runtime semantics.
