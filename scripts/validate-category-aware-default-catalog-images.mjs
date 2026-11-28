@@ -23,6 +23,7 @@ const marketplace = read('apps/catalog-frontend/src/components/MarketplaceHome.t
 const catalogSection = read('apps/catalog-frontend/src/components/storefront/CatalogSection.tsx');
 const activityModule = read('apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx');
 const cartDrawer = read('apps/catalog-frontend/src/components/cart/CartDrawer.tsx');
+const adminDashboard = read('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx');
 
 assert.ok(defaults.includes('export function resolveDefaultImage'), 'category-aware image resolver must remain the common source');
 assert.ok(defaults.includes('export function resolveDefaultActivityImages'), 'activity defaults must provide both logo and cover artwork');
@@ -103,6 +104,10 @@ assert.ok(activityModule.includes('business.coverUrl || resolveDefaultImage(') &
   'activity module cards must always render category-aware fallback covers and recover from broken uploads');
 assert.ok(cartDrawer.includes("import { resolveDefaultImage }") && cartDrawer.includes('image.src = resolveDefaultImage('),
   'cart thumbnails must receive category-aware images when a product photo is missing or broken');
+assert.ok(adminDashboard.includes('image.dataset.fallbackApplied !== \'true\'') &&
+  adminDashboard.includes('image.onerror = null') &&
+  adminDashboard.includes('image.style.visibility = \'hidden\''),
+  'admin business covers must recover from broken uploads and fail closed if the local fallback also fails');
 assert.ok(profileHeader.includes('imageElement.src = defaultCover'),
   'broken promotional gallery images must recover with the local activity cover');
 assert.ok(marketplace.includes('const adFallback = resolveDefaultImage') &&
