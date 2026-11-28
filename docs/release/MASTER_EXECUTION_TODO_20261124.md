@@ -1,3 +1,19 @@
+# Latest verified continuation — 2026-11-28 06:12 UTC
+
+- [x] Current application main is `2aaba935ea516806b2dfc8bd5b1ae045a5b6ce8b` (PR #1209). Center-aware homepage promotions are merged: verified Markaz targeting, corrected regional/global ad labels, and area-aware platform-service details.
+- [x] Main Pages deployment for this exact SHA completed SUCCESS: run [46115127321](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46115127321). Deploy job completed at 06:12:34 UTC. The deployed-origin checks for root/legacy/Preview, case-insensitive catalog routes, and dashboard/mobile/QR routes passed. The separate `deployed-origin-redirect-regression` job was SKIPPED, not passed.
+- [x] Exact-main frontend build and dashboard browser E2E passed in run [46115127405](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46115127405); backend/module/privacy checks and the disposable PostgreSQL 17 forward replay also passed on SHA `2aaba935...`.
+- [x] PR #1208 merchant/subscriber image fallbacks were merged as `af59e31fcf50ff47e095535670ae8ffbd56a20c8`; its main Pages deployment run [46114404944](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46114404944) completed SUCCESS, including deployed root/legacy/Preview, case-insensitive routes and dashboard/mobile/QR checks. Its independent redirect-regression check was skipped.
+- [x] PR #1199 RC932 was merged as `160228ee40590c27992cee5952895d0ed90b3ff6`. RC932 requires an explicit `is_anonymous=false` claim for MantiGO open-ride access; missing, null and true claims are denied in the disposable PostgreSQL 17 regression. This is source/CI evidence, not a Production migration.
+- [ ] PR #1202 remains DRAFT: [scoped provider-profile CRM and RC931 security](https://github.com/islamnagy2022-eng/MantiqatiX/pull/1202). Its then-current head `8892c4ec14a4cbe242b315e698d3666300e5761c` had 28 executed checks SUCCESS, including the RC931 integration and 92-version chronological PostgreSQL 17 replay. However, the PR base recorded at last read was still `85de189c9705a60520532826f5fc2ef047410ba7`, older than current main `2aaba935...`. Refresh/rebase it onto current main and rerun exact-head checks before marking ready or merging. The 92-version candidate contract is not yet the current main contract.
+- **Current source contract:** main still records 89 required migration versions. The 92-version RC115/RC116/RC931 candidate remains confined to PR #1202 until its current-main refresh and review.
+- **Production remains read-only.** The latest documented read-only snapshot (2026-11-28 00:55 EET) recorded 310 ledger rows through `20261110150618`, with 0/89 exact source migration IDs; this is an identity mismatch, not proof that every physical effect is absent. Platform-root registry enforcement, critical Edge source/runtime parity, complete migration/physical-effect/alias reconciliation, owner-controlled encrypted DB+Storage backup, Auth/Vault recovery, independent restore/rollback, measured RPO/RTO and financial sandbox evidence remain unverified/blocking.
+- Do not apply RC931/RC932 or deploy admin/payment Edge functions individually. No Production SQL/migration, Auth/RLS/GRANT, Storage, Edge, campaign, payment, wallet, settlement or customer/business data write occurred in this checkpoint.
+- Preserve the cancelled Menoufia-specific catalog/OSM work; retain the general Activity → Specialty taxonomy and keep unverified entries hidden DRAFT / UNVERIFIED.
+- **Release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 # CURRENT EXECUTION CHECKPOINT — 2026-11-28 — RC932
 
 This dated overlay supersedes older migration counts below; historical execution evidence remains append-only.
