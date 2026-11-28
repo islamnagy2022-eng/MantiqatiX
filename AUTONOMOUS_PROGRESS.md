@@ -1,7 +1,7 @@
 ## 2026-11-28 — Autonomous Production gate recheck and source evidence inventory
 
 - [x] Reconfirmed Production project `MANTIQATIX FINAL` ACTIVE_HEALTHY, PostgreSQL 17.6.1.155; live ledger 310 migrations through `20261110150618`.
-- [x] Current canonical migration release set is 88 unique, sorted source versions; exact live ledger ID intersection 0/88. Treat this as an identity gap, not proof every physical effect is absent. Three known alias targets are present; do not synthesize ledger rows or blindly replay.
+- [x] Current canonical migration release set is 90 unique, sorted source versions after adding source-only RC115 and RC931; exact live ledger ID intersection 0/90. Treat this as an identity gap, not proof every physical effect is absent. Three known alias targets are present; do not synthesize ledger rows or blindly replay.
 - [x] Probed the exact 79 core/payment/control-center object contracts read-only: 37 resolved and 42 did not resolve by exact required name/signature (42 group entries / 36 unique names, six intentional Core/Payment overlaps). Full mapping: `docs/audits/PRODUCTION_REQUIRED_79_OBJECT_READBACK_20261128.md`.
 - [x] Inventoried all 149 public SECURITY DEFINER routines with exact signature, owner, language, function-level search_path and effective anon/authenticated/service_role EXECUTE metadata. Counts: anon 1 (the intentional bounded targeted-ad-read RPC), authenticated 65, service_role 34 (sets overlap). Six no-direct-auth-token routines were individually triaged by delegated authorization; P0 platform-root and P1 commission preview scope findings remain. Full report: `docs/audits/PRODUCTION_SECURITY_DEFINER_INVENTORY_20261128.md`.
 - [x] Confirmed live MantiGO global admin/report routines still use broad tenant-role authorization. Live global financial report also references absent ledger columns `amount` / `captain_amount`; RC471 source replaces the report with registry authorization and canonical fields. The dashboard uses canonical fields but still accepts broad tenant roles. Issue #118 was updated with the current global-admin/report evidence. Issues #92/#94 remain open for their own follow-up; no comment was posted there in this checkpoint.
@@ -9,8 +9,13 @@
 - [x] Confirmed live MantiGO customer bid list discloses captain phone/vehicle plate before acceptance; RC477 masks until ACCEPTED. Issue #913 updated.
 - [x] Confirmed live MantiGO open ride list lacks ACTIVE/VERIFIED/AVAILABLE captain and vehicle-category gate; RC478 supplies the forward repair. Issue #911 updated.
 - [x] Confirmed `preview_commission_backend` uses tenant finance membership without exact business/branch binding; RC467 source fixes after RC464. Issue #884 updated.
-- [x] Compared nine selected critical live Edge entrypoints with current main; all nine differ. This is a selected-file comparison, not a full 42-function bundle audit.
-- [x] Updated the backup/restore runbook, exact object map, SECDEF inventory and a source validator on current-main branch `docs/backup-restore-current-main-rebase-20261128`. Local-equivalent consistency checks pass: 19 base runbook requirements, 70 current overlay requirements, 32 SECDEF/delegation requirements, 16 object mapping requirements, 14 backlog requirements; no missing strings; 149 unique routine rows; 42 group entries/36 unique objects; 88 migration IDs; both push/PR path triggers.
+- [x] Compared nine selected critical live Edge entrypoints with current main; all nine differ. This remains a selected-entrypoint sample, not a complete 42-function bundle audit. This is a selected-file comparison, not a full 42-function bundle audit.
+- [x] Updated the backup/restore runbook, exact object map, SECDEF inventory and a source validator on current-main branch `docs/backup-restore-current-main-rebase-20261128`. Local-equivalent consistency checks pass: 19 base runbook requirements, 70 current overlay requirements, 32 SECDEF/delegation requirements, 16 object mapping requirements, 14 backlog requirements; no missing strings; 149 unique routine rows; 42 group entries/36 unique objects; 90 migration IDs; both push/PR path triggers.
+- [x] Added RC115 (20261125130000) and RC931 (20261128010000) to the 90-version ordered release contract, Production verifier, strict gate, manifest and backup validator. Exact live-ledger match remains 0/90; this is an identity gap, not proof of absent effects.
+- [x] Built a fresh current-main branch fix/rc931-provider-profile-read-retirement-mainline-20261128 to avoid the 52-commit stale/diverged PR #1197 branch. Added RC931 migration/workflow/fixture/integration, updated RC926 owner-read compatibility, and refreshed related exact-version validators.
+- [x] Tightened RC931 to require the RC484 registry-only public.is_platform_admin() helper (owner/BYPASSRLS parity, SECURITY DEFINER, empty search_path, private registry body and restricted EXECUTE ACL). Removed the MNTY-PLATFORM membership/full_control shortcut from the provider CRM policy.
+- [x] Added adversarial tests for an unregistered MNTY-PLATFORM SUPER_ADMIN, tenant-local SUPER_ADMIN denial, tenant/business isolation, owner read/update, anonymous/missing claims and service-role projection; corrected the six-row fixture cardinality.
+- [ ] Exact-head RC931 PostgreSQL 17 workflow and complete 90-version chronological replay are pending PR creation and GitHub Actions. No CI pass is claimed yet.
 - [ ] PR #1196 exact-head GitHub Actions remains the merge gate; queued runs are not counted as passes.
 - [ ] Owner-controlled encrypted DB + separate Storage exports, Auth/Vault recovery, independent PG17 restore/rollback and measured RPO/RTO remain NOT VERIFIED.
 - [ ] Full chronological DB migration + Edge source/ACL/RLS parity release remains BLOCKED. Do not deploy any admin/payment/MantiGO function individually or apply isolated migrations.
@@ -19,6 +24,8 @@
 - **Safety:** no Production SQL write/migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement, or customer/business/ride/financial row mutation was performed during this audit. `docs/SESSION_LOG.md` remains untouched.
 - **Directory scope:** Menoufia-specific catalog and OSM work remain cancelled; use existing `Activity → Specialty` sections only. Unverified entries stay hidden `DRAFT / UNVERIFIED`.
 - **Release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
 
 ---
 
