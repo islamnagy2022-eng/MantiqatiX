@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getPublicGovernorateAdCode, getTargetedAdvertisementAudienceLabel, loadTargetedAdvertisements } from '../src/utils/targetedAdvertisements';
+import { getPublicCenterAdCode, getPublicGovernorateAdCode, getTargetedAdvertisementAudienceLabel, loadTargetedAdvertisements } from '../src/utils/targetedAdvertisements';
+import { EGYPT_GEO_DISTRICTS } from '../src/data/egyptGeoDiscovery';
 
 const validAd = (id: string, overrides: Record<string, unknown> = {}) => ({
   advertisement_id: id,
@@ -222,4 +223,30 @@ test('describes paid cover ads using the actual geographic match level', () => {
 test('does not invent a precise region when the ad RPC returns no match level', () => {
   assert.equal(getTargetedAdvertisementAudienceLabel(null, 'المنوفية'), 'نطاق الاستهداف غير محدد');
   assert.equal(getTargetedAdvertisementAudienceLabel(undefined, 'all'), 'نطاق الاستهداف غير محدد');
+});
+
+
+test('resolves only exact seeded Markaz codes from the administrative directory', () => {
+  assert.equal(getPublicCenterAdCode('مركز بركة السبع', 'المنوفية', EGYPT_GEO_DISTRICTS), 'EG1706');
+  assert.equal(getPublicCenterAdCode('مركز شبين الكوم', 'المنوفية', EGYPT_GEO_DISTRICTS), 'EG1702');
+  assert.equal(getPublicCenterAdCode('مركز طنطا', 'الغربية', EGYPT_GEO_DISTRICTS), 'EG1603');
+  assert.equal(getPublicCenterAdCode('قسم شبين الكوم', 'المنوفية', EGYPT_GEO_DISTRICTS), null);
+  assert.equal(getPublicCenterAdCode('مركز بركة السبع', 'الغربية', EGYPT_GEO_DISTRICTS), null);
+  assert.equal(getPublicCenterAdCode('مركز غير مسجل', 'المنوفية', EGYPT_GEO_DISTRICTS), null);
+});
+
+test('sends the selected, verified center code to HOME_HERO ad discovery', async () => {
+  const seenArgs: Array<Record<string, unknown>> = [];
+  const centerCode = getPublicCenterAdCode('مركز بركة السبع', 'المنوفية', EGYPT_GEO_DISTRICTS);
+  await loadTargetedAdvertisements(async (_name, args) => {
+    seenArgs.push(args);
+    return { data: [validAd('cover-center', { ad_space_id: 'HOME_HERO', match_level: 'CENTER' })], error: null };
+  }, {
+    adSpaces: ['HOME_HERO'],
+    governorate: 'المنوفية',
+    centerCode,
+  });
+
+  assert.equal(seenArgs[0]?.p_governorate_code, '17');
+  assert.equal(seenArgs[0]?.p_center_code, 'EG1706');
 });
