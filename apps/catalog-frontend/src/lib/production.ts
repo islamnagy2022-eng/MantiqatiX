@@ -102,6 +102,7 @@ export async function uploadCatalogImage(input: {
 export type CatalogMediaLibraryItem = {
   imageUrl: string;
   objectPath: string;
+  sourceKind: CatalogAiImageKind;
   createdAt: string | null;
   fileSize: number;
 };
@@ -109,7 +110,7 @@ export type CatalogMediaLibraryItem = {
 export async function listCatalogImages(input: {
   businessId: string;
   branchId?: string;
-  kind: CatalogAiImageKind;
+  kind?: CatalogAiImageKind | 'all';
 }): Promise<CatalogMediaLibraryItem[]> {
   if (!input.businessId) throw new Error('تعذر تحديد النشاط لفتح مكتبة الصور.');
 
@@ -118,7 +119,7 @@ export async function listCatalogImages(input: {
       action: 'list_catalog_images',
       businessId: input.businessId,
       branchId: input.branchId || '',
-      imageKind: input.kind,
+      imageKind: input.kind || 'all',
     },
   });
 
@@ -133,11 +134,14 @@ export async function listCatalogImages(input: {
       typeof item?.imageUrl === 'string' &&
       item.imageUrl.startsWith('https://') &&
       typeof item?.objectPath === 'string' &&
-      item.objectPath.startsWith(`businesses/${input.businessId}/owner-uploads/${input.kind}/`)
+      /^businesses\\/[0-9a-f-]{36}\\/owner-uploads\\/(activity|cover|product|service)\\/[A-Za-z0-9._-]+$/.test(item.objectPath) &&
+      item.objectPath.startsWith(`businesses/${input.businessId}/owner-uploads/`) &&
+      (input.kind === undefined || input.kind === 'all' || item.objectPath.startsWith(`businesses/${input.businessId}/owner-uploads/${input.kind}/`))
     )
     .map((item: any): CatalogMediaLibraryItem => ({
       imageUrl: item.imageUrl,
       objectPath: item.objectPath,
+      sourceKind: item.sourceKind as CatalogAiImageKind,
       createdAt: typeof item.createdAt === 'string' ? item.createdAt : null,
       fileSize: Number.isFinite(Number(item.fileSize)) ? Number(item.fileSize) : 0,
     }));
