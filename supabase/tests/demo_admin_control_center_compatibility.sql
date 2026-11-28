@@ -12,6 +12,8 @@ DECLARE
   v_root_body text;
   v_root_config text[];
   v_root_is_definer boolean;
+  v_admin_definition text;
+  v_list_definition text;
   v_function_config text[];
   v_function_is_definer boolean;
   v_registry_rls boolean;
@@ -117,6 +119,18 @@ BEGIN
       END IF;
     END LOOP;
   END LOOP;
+
+  -- Preserve RC117 activity synchronization and never truncate the admin directory.
+  SELECT pg_catalog.pg_get_functiondef('public.mnty_platform_admin_manage_business(uuid,text,jsonb,text)'::regprocedure)
+    INTO v_admin_definition;
+  IF position('marketing_provider_profiles' IN coalesce(v_admin_definition,'')) = 0 THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_RC117_ACTIVITY_NAME_SYNC_MISSING';
+  END IF;
+  SELECT pg_catalog.pg_get_functiondef('public.mnty_platform_admin_list_businesses(text)'::regprocedure)
+    INTO v_list_definition;
+  IF position('limit 300' IN lower(coalesce(v_list_definition,''))) > 0 THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_RC117_ACTIVITY_LIST_TRUNCATED';
+  END IF;
 
   -- The business-wide membership idempotency prerequisite is installed by RC472.
   SELECT i.indisunique, pg_catalog.pg_get_indexdef(i.indexrelid)
