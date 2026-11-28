@@ -3,7 +3,29 @@ import { RefreshCw, Search, Save, PauseCircle, RotateCcw, Users, Store, PencilLi
 import { supabase } from '../../lib/production';
 import { resolveDefaultActivityImages } from '../../utils/defaultImages';
 
-type Membership = { id:string; user_id:string; role:string; status:string; email:string; full_name:string };
+type Membership = { id:string; user_id:string; role:string; status:string; email:string; full_name:string; branch_id?:string|null };
+const membershipRoleOptions = [
+  { value: 'CUSTOMER', label: 'عميل' },
+  { value: 'OWNER', label: 'مالك' },
+  { value: 'BUSINESS_OWNER', label: 'مالك النشاط' },
+  { value: 'ADMIN', label: 'مدير' },
+  { value: 'MANAGER', label: 'مدير تشغيلي' },
+  { value: 'FINANCE', label: 'مسؤول مالية' },
+  { value: 'SALES', label: 'مسؤول مبيعات' },
+  { value: 'MARKETING', label: 'مسؤول تسويق' },
+  { value: 'SUPPORT', label: 'دعم فني' },
+  { value: 'SUPPORT_MANAGER', label: 'مشرف الدعم' },
+  { value: 'EMPLOYEE', label: 'موظف' },
+  { value: 'STAFF', label: 'فريق العمل' },
+  { value: 'SERVICE_PROVIDER', label: 'مقدم خدمة' },
+  { value: 'PROVIDER_OWNER', label: 'مالك مقدم الخدمة' },
+  { value: 'PROVIDER_ADMIN', label: 'مدير مقدم الخدمة' },
+  { value: 'BRANCH_MANAGER', label: 'مدير فرع' },
+  { value: 'PROVIDER_FINANCE', label: 'مسؤول مالية مقدم الخدمة' },
+  { value: 'PROVIDER_MARKETING', label: 'مسؤول تسويق مقدم الخدمة' },
+  { value: 'PROVIDER_OPERATIONS', label: 'مشرف عمليات مقدم الخدمة' },
+  { value: 'PROVIDER_SUPPORT', label: 'دعم مقدمي الخدمة' },
+] as const;
 type BusinessRow = { id:string; tenant_id:string; name:string; code:string; status:string; settings:any; memberships:Membership[] };
 type BusinessDraft = { name:string; category:string; description:string; logoUrl:string; coverUrl:string; logoSource:'auto'|'owner'; coverSource:'auto'|'owner' };
 const inputClass='w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500';
@@ -33,6 +55,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
   const [loading,setLoading]=useState(false);
   const [saving,setSaving]=useState('');
   const [notice,setNotice]=useState<{error:boolean;text:string}|null>(null);
+  const [roleEdit,setRoleEdit]=useState<{membership:Membership;role:string}|null>(null);
   const load=useCallback(async()=>{
     setLoading(true);setNotice(null);
     const {data,error}=await supabase.functions.invoke('catalog-platform-admin',{body:{action:'LIST_BUSINESSES',search:search.trim()}});
@@ -93,13 +116,14 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     setNotice({error:false,text:published?'تم إلغاء النشر وإيقاف النشاط.':'تم نشر النشاط وتفعيله.'});
     await load();
   };
-  const manageMembership=async(m:Membership,action:'SUSPEND'|'RESTORE'|'CHANGE_ROLE')=>{
+  const manageMembership=async(m:Membership,action:'SUSPEND'|'RESTORE'|'CHANGE_ROLE',nextRole?:string)=>{
     let role:string|undefined;
     if(action==='CHANGE_ROLE'){
-      const requestedRole=window.prompt('اكتب الدور الجديد للمشترك (مثال: CUSTOMER أو OWNER أو EMPLOYEE)',m.role);
-      if(requestedRole===null||!requestedRole.trim())return;
-      role=requestedRole.trim();
-      if(!window.confirm('تأكيد تغيير الدور؟ سيتم تسجيل العملية في سجل التدقيق.'))return;
+      role=String(nextRole||'').trim().toUpperCase();
+      const allowedRoles=membershipRoleOptions.map((option)=>option.value as string);
+      if(!allowedRoles.includes(role)){setNotice({error:true,text:'اختر دورًا من القائمة المعتمدة.'});return;}
+      if(role===String(m.role||'').toUpperCase()){setNotice({error:true,text:'الدور المختار مطابق للدور الحالي.'});return;}
+      if(!window.confirm(`تأكيد تغيير دور ${m.full_name||m.email} من ${m.role} إلى ${role}؟ سيتم الحفاظ على نطاق الفرع وتسجيل العملية.`))return;
     } else if(!window.confirm(action==='SUSPEND'?'إنهاء عضوية هذا المشترك مع الاحتفاظ بسجلاته؟':'إعادة تفعيل عضوية هذا المشترك؟'))return;
     const parent=rows.find((row)=>row.memberships?.some((membership)=>membership.id===m.id));
     if(!parent){setNotice({error:true,text:'تعذر تحديد النشاط المرتبط بهذه العضوية.'});return;}
@@ -107,7 +131,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     let data:any=null; let error:any=null;
     if(action==='CHANGE_ROLE'){
       const result=await supabase.functions.invoke('catalog-platform-admin',{body:{
-        action:'SAVE_MEMBERSHIP',tenantId:parent.tenant_id,businessId:parent.id,branchId:'',
+        action:'SAVE_MEMBERSHIP',tenantId:parent.tenant_id,businessId:parent.id,branchId:m.branch_id||'',
         membershipId:m.id,userId:m.user_id,role,status:m.status==='ACTIVE'?'ACTIVE':'INACTIVE',
         catalogEnabled:true,catalogWrite:true,accountRestricted:false
       }});
@@ -120,7 +144,8 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     }
     setSaving('');
     if(error||data?.error){setNotice({error:true,text:data?.message||error?.message||data?.error||'تعذر تعديل العضوية.'});return;}
-    setNotice({error:false,text:action==='SUSPEND'?'تم تعليق العضوية.':action==='RESTORE'?'تمت إعادة تفعيل العضوية.':'تم تغيير دور العضوية.'});
+    setNotice({error:false,text:action==='SUSPEND'?'تم تعليق العضوية.':action==='RESTORE'?'تمت إعادة تفعيل العضوية.':'تم تغيير دور العضوية مع الحفاظ على نطاق النشاط والفرع.'});
+    if(action==='CHANGE_ROLE')setRoleEdit(null);
     await load();
   };
   return <section dir="rtl" className="space-y-4">
@@ -182,11 +207,22 @@ export const BusinessSubscriberAdmin: React.FC = () => {
         <div className="space-y-2">{(b.memberships||[]).map(m=><div key={m.id} className="flex flex-col gap-2 rounded-xl bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
           <div><div className="text-sm font-bold text-slate-800">{m.full_name||m.email||m.user_id}</div><div className="text-xs text-slate-500">{m.email} · {m.role} · {m.status}</div></div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'CHANGE_ROLE')} className={buttonClass}>تعديل الدور</button>
+            <button type="button" disabled={!!saving} onClick={()=>setRoleEdit({membership:m,role:membershipRoleOptions.some((option)=>option.value===String(m.role||'').toUpperCase())?String(m.role).toUpperCase():'CUSTOMER'})} className={buttonClass}>تعديل الدور</button>
             {m.status==='ACTIVE'?<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'SUSPEND')} className={buttonClass}>إنهاء العضوية</button>:<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'RESTORE')} className={buttonClass}><RotateCcw className="h-3.5 w-3.5"/>إعادة التفعيل</button>}
           </div>
         </div>)}</div>
       </div>
     </article>})}
+    {roleEdit&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+      <form role="dialog" aria-modal="true" aria-labelledby="membership-role-editor-title" onSubmit={(event)=>{event.preventDefault();void manageMembership(roleEdit.membership,'CHANGE_ROLE',roleEdit.role);}} className="w-full max-w-md space-y-4 rounded-2xl bg-white p-5 shadow-2xl">
+        <div className="flex items-start justify-between gap-3">
+          <div><h3 id="membership-role-editor-title" className="text-lg font-black text-slate-900">تعديل دور العضوية</h3><p className="mt-1 text-xs leading-5 text-slate-500">{roleEdit.membership.full_name||roleEdit.membership.email} · {roleEdit.membership.email}</p></div>
+          <button type="button" onClick={()=>setRoleEdit(null)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600">إغلاق</button>
+        </div>
+        <label className="block space-y-1 text-xs font-bold text-slate-700"><span>الدور الجديد</span><select autoFocus required value={roleEdit.role} onChange={(event)=>setRoleEdit({...roleEdit,role:event.target.value})} className={inputClass}>{membershipRoleOptions.map((option)=><option key={option.value} value={option.value}>{option.label} ({option.value})</option>)}</select></label>
+        <div className="rounded-xl border border-sky-100 bg-sky-50 p-3 text-xs leading-5 text-sky-900">سيظل الإسناد داخل النشاط الحالي{roleEdit.membership.branch_id?` والفرع ${roleEdit.membership.branch_id}`:' وعلى مستوى النشاط بالكامل'}. لا يمكن منح صلاحية مالك المنصة من هذه الشاشة.</div>
+        <div className="flex flex-wrap justify-end gap-2"><button type="button" onClick={()=>setRoleEdit(null)} className={buttonClass}>إلغاء</button><button type="submit" disabled={!!saving||roleEdit.role===String(roleEdit.membership.role||'').toUpperCase()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-700 px-4 py-2 text-xs font-bold text-white disabled:opacity-50"><Save className="h-4 w-4"/>حفظ الدور</button></div>
+      </form>
+    </div>}
   </section>;
 };
