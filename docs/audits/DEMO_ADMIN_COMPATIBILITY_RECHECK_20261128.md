@@ -5,7 +5,7 @@
 **Repository:** `islamnagy2022-eng/MantiqatiX`  
 **Branch:** `dev/demo-admin-compat-20261128`  
 **Verified application-code head:** `1dfcef0cab2725f70d19e5d1d2df35bec14e0e2b`  
-**Latest branch head at documentation refresh:** `96b6258d3d87a3e1aacfc9d6ae6bebc53ac42935` (documentation-only changes after the tested code head)  
+**Note:** subsequent commits on this branch update documentation only; the application-code head used for the listed CI results is unchanged.  
 **Pull request:** [#1216 — isolated admin control-center compatibility](https://github.com/islamnagy2022-eng/MantiqatiX/pull/1216) (Draft)
 
 ## Applied migrations in DEMO
@@ -78,7 +78,7 @@ Read-after-apply and current read-only checks confirm:
 - Shared activity-module sanitization and subscriber-membership deduplication modules are included.
 - A fresh read-back compared the deployed `index.ts` content with branch source `supabase/functions/catalog-platform-admin/index.ts`: the contents match byte-for-byte (68,536 characters); both shared modules are present in the deployed bundle. This establishes DEMO Edge source parity for this function, not HTTP behavior.
 
-Direct DEMO Edge HTTP smoke was completed successfully by GitHub Actions on application-code head `1dfcef0cab2725f70d19e5d1d5df35bec14e0e2b`, Pages workflow run `46145201046`:
+Direct DEMO Edge HTTP smoke was completed successfully by GitHub Actions on application-code head `1dfcef0cab2725f70d19e5d1d2df35bec14e0e2b`, Pages workflow run `46145201046`:
 - OPTIONS from the existing Pages origin passed CORS checks for POST/OPTIONS and the requested headers.
 - Anonymous POST to `TENANT_LIST` returned HTTP 401 with `AUTH_REQUIRED`.
 - POST from `https://not-allowed.example` returned HTTP 403 with `ORIGIN_NOT_ALLOWED`, without granting that origin CORS access.
