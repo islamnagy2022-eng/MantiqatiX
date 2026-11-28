@@ -654,4 +654,33 @@ assert.match(activityModuleView, /onLoadMoreListings/,
   'Activity and specialty folders must expose their own load-more action.');
 assert.doesNotMatch(directory, /fetchPublicDirectoryListings\(\)/,
   'The main directory must not fall back to the capped legacy directory fetch.');
+// Owner image uploads: enforce confirmed Auth, business/branch membership, file signatures,
+ // server-side Storage persistence, audit/rate limits, and UI-to-profile/catalog wiring.
+assert.match(aiGeminiProxy, /action === "upload_catalog_image"[\\s\\S]{0,500}uploadedFile instanceof File/,
+  'The media proxy must expose a dedicated multipart image-upload action.');
+assert.match(aiGeminiProxy, /uploadSize > 5 \\* 1024 \\* 1024/,
+  'Server uploads must enforce the 5 MiB file-size limit.');
+assert.match(aiGeminiProxy, /uploadMimeType === "image\\/jpeg"[\\s\\S]{0,900}isJpeg[\\s\\S]{0,350}isPng[\\s\\S]{0,350}isWebp/,
+  'Server uploads must match declared JPEG, PNG, and WebP MIME types to file signatures.');
+assert.match(aiGeminiProxy, /businesses\\/" \\+ businessId \\+ "\\/owner-uploads\\/" \\+ imageKind/,
+  'Owner uploads must be stored under the target business and image-kind namespace.');
+assert.match(aiGeminiProxy, /CATALOG_IMAGE_UPLOAD_REQUESTED[\\s\\S]{0,500}requestLimit = action === "upload_catalog_image" \\? 60/,
+  'Owner uploads must be rate-limited and represented in the audit log.');
+assert.match(aiGeminiProxy, /if \\(\\(action === "generate_catalog_image" \\|\\| action === "upload_catalog_image"\\) && user\\.is_anonymous\\)/,
+  'Image upload and generation must reject anonymous Auth sessions.');
+assert.match(productionMapper, /export async function uploadCatalogImage[\\s\\S]{0,1800}supabase\\.functions\\.invoke\\('ai-gemini-proxy', \\{ body: formData \\}\\)/,
+  'Browser uploads must use the authenticated Edge proxy instead of writing directly to public Storage.');
+assert.match(merchantDashboard, /handleBusinessImageUpload[\\s\\S]{0,1200}uploadCatalogImage/,
+  'Merchant branding must upload logo and cover files through the shared secure uploader.');
+assert.match(merchantDashboard, /business-cover-file[\\s\\S]{0,500}handleBusinessImageUpload\\('cover'/,
+  'The business cover picker must be wired to the upload handler.');
+assert.match(merchantDashboard, /business-logo-file[\\s\\S]{0,500}handleBusinessImageUpload\\('activity'/,
+  'The business logo picker must be wired to the upload handler.');
+assert.match(merchantDashboard, /catalog-item-image-file[\\s\\S]{0,500}handleProductImageUpload/,
+  'The product/service image picker must be wired to the upload handler.');
+assert.match(merchantDashboard, /انتظر انتهاء رفع الصورة قبل حفظ بيانات النشاط/,
+  'The profile must not save while a logo/cover upload is still in progress.');
+assert.match(merchantDashboard, /انتظر انتهاء رفع الصورة قبل حفظ العنصر/,
+  'The catalog item must not save while its image upload is still in progress.');
+
 console.log('PRODUCTION_CATALOG_REAL_STATE=PASS');
