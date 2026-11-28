@@ -40,7 +40,7 @@ const businessSubscriberSource = readFileSync('src/components/admin/BusinessSubs
 const platformAdminEndpointSource = readFileSync('../../supabase/functions/catalog-platform-admin/index.ts', 'utf8');
 assert.ok(!businessSubscriberSource.includes('window.prompt('), 'Role changes must use the controlled role editor, not free-form text.');
 assert.ok(businessSubscriberSource.includes("branchId:m.branch_id||''"), 'Role changes must preserve the selected membership branch.');
-assert.ok(platformAdminEndpointSource.includes('select("id,user_id,tenant_id,business_id,branch_id,role,status")'), 'The protected admin list must expose the current branch scope to the UI.');
+assert.ok(platformAdminEndpointSource.includes('select("id,user_id,tenant_id,business_id,branch_id,role,status,permissions")'), 'The protected admin list must expose the current branch scope to the UI.');
 const uiRoleBlock = businessSubscriberSource.split('const membershipRoleOptions = [')[1]?.split('] as const;')[0] || '';
 const apiRoleStart = platformAdminEndpointSource.indexOf('const allowedRoles = new Set([', platformAdminEndpointSource.indexOf('if (action === "SAVE_MEMBERSHIP")'));
 const apiRoleEnd = platformAdminEndpointSource.indexOf(']);', apiRoleStart);
