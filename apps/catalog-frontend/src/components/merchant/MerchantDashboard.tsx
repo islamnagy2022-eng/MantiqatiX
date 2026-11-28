@@ -261,7 +261,6 @@ export const MerchantDashboard: React.FC = () => {
   const [mediaUploadNotice, setMediaUploadNotice] = useState('');
   const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const [mediaLibraryTarget, setMediaLibraryTarget] = useState<'logo' | 'cover' | 'catalog'>('logo');
-  const [mediaLibraryKind, setMediaLibraryKind] = useState<'activity' | 'cover' | 'product' | 'service'>('activity');
   const [mediaLibraryItems, setMediaLibraryItems] = useState<CatalogMediaLibraryItem[]>([]);
   const [mediaLibraryLoading, setMediaLibraryLoading] = useState(false);
   const [mediaLibraryError, setMediaLibraryError] = useState('');
@@ -590,7 +589,6 @@ export const MerchantDashboard: React.FC = () => {
       target === 'logo' ? 'activity' : target === 'cover' ? 'cover' : formType;
     const requestId = ++mediaLibraryRequestRef.current;
     setMediaLibraryTarget(target);
-    setMediaLibraryKind(kind);
     setMediaLibraryItems([]);
     setMediaLibraryError('');
     setMediaLibraryLoading(true);
