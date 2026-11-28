@@ -24,6 +24,8 @@ const catalogSection = read('apps/catalog-frontend/src/components/storefront/Cat
 const activityModule = read('apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx');
 const cartDrawer = read('apps/catalog-frontend/src/components/cart/CartDrawer.tsx');
 const adminDashboard = read('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx');
+const merchantDashboard = read('apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx');
+const subscriberAccountPortal = read('apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx');
 
 assert.ok(defaults.includes('export function resolveDefaultImage'), 'category-aware image resolver must remain the common source');
 assert.ok(defaults.includes('export function resolveDefaultActivityImages'), 'activity defaults must provide both logo and cover artwork');
@@ -126,6 +128,22 @@ assert.ok(marketplace.includes('data-testid="home-hero-sponsored-placement"') &&
   marketplace.includes('heroAdvertisements.slice(0, 2)') &&
   marketplace.includes('sponsoredAdvertisements.slice(0, 4)'),
   'hero ads must render as wide primary banners while sponsored ads use their own placement cards');
+
+assert.ok(merchantDashboard.includes('src={p.imageUrl || resolveDefaultImage({') &&
+  merchantDashboard.includes('DASHBOARD_CATALOG_IMAGE_FALLBACK') &&
+  merchantDashboard.includes('applyDashboardImageFallback'),
+  'merchant product rows must render category-aware images immediately and recover through the local neutral placeholder');
+assert.ok(merchantDashboard.includes('src={bizCoverUrl || resolveDefaultImage(') &&
+  merchantDashboard.includes('src={bizLogoUrl || resolveDefaultImage('),
+  'merchant live previews must never begin with empty cover or logo image sources');
+assert.ok(merchantDashboard.includes('معاينة الصورة الترويجية') &&
+  merchantDashboard.includes('DASHBOARD_BUSINESS_COVER_FALLBACK') &&
+  merchantDashboard.includes('src={formImageUrl || resolveDefaultImage('),
+  'merchant cover, promotional, and product-form previews must handle missing or broken image URLs');
+assert.ok(subscriberAccountPortal.includes('business.logoUrl || resolveDefaultImage(') &&
+  subscriberAccountPortal.includes('ACCOUNT_BUSINESS_IMAGE_FALLBACK') &&
+  subscriberAccountPortal.includes('image.style.visibility = \'hidden\''),
+  'subscriber account activity cards must use a category-aware logo and a local emergency fallback');
 
 const directoryListings = read('apps/catalog-frontend/src/components/DirectoryListingsView.tsx');
 assert.ok(directoryListings.includes("import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from \"../utils/defaultImages\";"),

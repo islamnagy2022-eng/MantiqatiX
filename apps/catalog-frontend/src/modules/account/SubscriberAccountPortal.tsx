@@ -4,6 +4,9 @@ import { canAccessMerchantDashboard, canAccessProfessionalDashboard, hasBusiness
 import type { Business } from '../../types';
 import { BadgeCheck, Building2, CreditCard, Eye, LayoutDashboard, LockKeyhole, LogOut, Package, ShieldCheck, Store, UserRound } from 'lucide-react';
 import { ReferralInviteCard } from './ReferralInviteCard';
+import { resolveDefaultImage } from '../../utils/defaultImages';
+
+const ACCOUNT_BUSINESS_IMAGE_FALLBACK = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
 type Section = 'overview' | 'subscription' | 'permissions' | 'activities' | 'manage';
 
@@ -267,7 +270,24 @@ export const SubscriberAccountPortal: React.FC = () => {
                 ) : (
                   <div className="mt-4 flex flex-col gap-4 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
-                      {business.logoUrl ? <img src={business.logoUrl} alt={`شعار ${business.name}`} className="h-14 w-14 rounded-xl bg-slate-100 object-cover" /> : <div aria-hidden="true" className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100"><Store className="h-6 w-6 text-slate-400" /></div>}
+                      <img
+                        src={business.logoUrl || resolveDefaultImage({ name: business.name, category: business.category, kind: 'activity' })}
+                        alt={`شعار ${business.name}`}
+                        className="h-14 w-14 rounded-xl bg-slate-100 object-cover"
+                        onError={(event) => {
+                          const image = event.currentTarget;
+                          if (!image.dataset.defaultFallbackApplied) {
+                            image.dataset.defaultFallbackApplied = 'true';
+                            image.src = resolveDefaultImage({ name: business.name, category: business.category, kind: 'activity' });
+                          } else if (!image.dataset.emergencyFallbackApplied) {
+                            image.dataset.emergencyFallbackApplied = 'true';
+                            image.src = ACCOUNT_BUSINESS_IMAGE_FALLBACK;
+                          } else {
+                            image.onerror = null;
+                            image.style.visibility = 'hidden';
+                          }
+                        }}
+                      />
                       <div>
                         <h3 className="font-black">{business.name}</h3>
                         <p className="mt-1 text-xs text-slate-500">{business.category}</p>
