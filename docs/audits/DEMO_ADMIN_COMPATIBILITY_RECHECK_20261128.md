@@ -50,8 +50,8 @@ Performance notices include unindexed foreign keys and multiple permissive polic
 ## Next safe implementation sequence
 
 1. Keep the newly prepared control-center compatibility migration isolated in its Draft PR. It is source-only and is not yet safe to apply by itself.
-2. Resolve and test the null-safe user/business/branch membership uniqueness prerequisite and every missing object/column/type against the actual DEMO schema. Keep RC117 image/default changes out of this slice.
-3. Rehearse the ordered platform-root source chain RC464 → RC469 → RC471 → RC484 → RC485 together, including the eight shared helper callers and five dependent RLS policies.
+2. Include RC472 (`20261118010000_rc472_directory_claim_review_atomicity.sql`) in the chronological prerequisite chain. It installs the null-safe `ux_user_memberships_user_business_branch_nullsafe` index and also changes directory claim-review atomicity; validate its duplicate preflight and complete behavior rather than extracting only its index. Keep RC117 image/default changes out of this slice.
+3. Rehearse the platform-root authority chain RC464 → RC469 → RC471 → RC484 → RC485 together, including the eight shared helper callers and five dependent RLS policies. In chronological replay, RC472 sits between RC471 and RC484 and must be included before the new control-center migration.
 4. Replay the resulting chronological migration set on disposable PostgreSQL 17 from the exact DEMO schema baseline, then run the added SQL ACL/RLS contract and targeted positive/negative authorization tests.
 5. Only after replay passes, use a trusted operator bootstrap to create a synthetic DEMO-only platform-admin identity and synthetic tenant/business/branch fixtures. Do not copy Production user or customer data.
 6. Deploy compatible `catalog-admin` and `catalog-platform-admin` bundles to DEMO only after verifying imports, secret contracts, `verify_jwt`, and handler authentication.
@@ -92,7 +92,7 @@ A new read-only catalog check confirms:
 - **Eight SECURITY DEFINER routines** call the legacy helper, and **five RLS policies** use it across `digital_pages`, `mantigo_financial_config`, and `mantigo_rate_limit_config`.
 - Four shared helper callers have non-empty `search_path=public, pg_temp`; changing the helper alone would alter multiple RLS and RPC authorization paths without completing their hardened dependency chain.
 
-The canonical source sequence is RC464 → RC469 → RC471 → RC484 → RC485, with its migration prerequisites and positive/negative policy and caller regression tests. This sequence must be rehearsed together against the exact DEMO baseline before deployment. Do not hot-patch the helper independently, do not manufacture a privileged identity, and do not copy a Production identity into DEMO. A verified DEMO Auth user must be provisioned through an explicitly trusted operator bootstrap after the rehearsal.
+The core platform-root sequence is RC464 → RC469 → RC471 → RC484 → RC485, with migration prerequisites and positive/negative policy/caller regression tests. RC472 is chronologically between RC471 and RC484; it supplies the null-safe membership uniqueness index consumed by later logic and also includes directory claim-review atomicity changes. Replay and test RC472 as a complete migration, not as a hand-extracted index. The full ordered chain must be rehearsed against the exact DEMO baseline before deployment. Do not hot-patch the helper independently, do not manufacture a privileged identity, and do not copy a Production identity into DEMO. A verified DEMO Auth user must be provisioned through an explicitly trusted operator bootstrap after the rehearsal.
 
 ### Verification and deployment state
 
@@ -100,7 +100,7 @@ The canonical source sequence is RC464 → RC469 → RC471 → RC484 → RC485, 
 - [x] Two missing internal-helper client revokes added to the migration source.
 - [x] Live DEMO root-helper implementation, registry counts, table ACL, helper callers, and dependent RLS policies read back without mutation.
 - [x] Static validation source added for RPC ACLs, internal-helper ACLs, forced RLS, and absence of a seeded platform administrator.
-- [x] SQL integration contract added to the chronological PostgreSQL 17 replay workflow; exact-head result pending.
+- [x] SQL integration contract added to the chronological PostgreSQL 17 replay workflow; it checks the RC472 null-safe membership index, admin RPC ACLs, all relevant SECURITY DEFINER search paths, registry ACL/RLS, and privileged table grants. Exact-head result pending.
 - [x] Source-level static contract checked in this session: 50/50 assertions passed.
 - [ ] Run `npm run validate:demo-admin-compatibility` on the exact PR head in GitHub Actions; the step is wired into Pages PR validation.
 - [ ] Complete the isolated PostgreSQL 17 forward replay from the captured Production schema checkpoint and its newly added admin ACL/RLS SQL contract; this is not an exact DEMO baseline replay.
