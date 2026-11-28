@@ -42,8 +42,8 @@ const normalizeGovernorateName = (value: unknown): string => String(value || '')
   .replace(/[أإآ]/g, 'ا')
   .replace(/[ىي]/g, 'ي')
   .replace(/ة/g, 'ه')
-  .replace(/[\\u064B-\\u065F\\u0670]/g, '')
-  .replace(/\\s+/g, ' ')
+  .replace(/[\u064B-\u065F\u0670]/g, '')
+  .replace(/\s+/g, ' ')
   .trim();
 
 const GOVERNORATE_CODE_BY_NAME = new Map(
