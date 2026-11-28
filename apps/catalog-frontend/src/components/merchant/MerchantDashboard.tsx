@@ -578,8 +578,8 @@ export const MerchantDashboard: React.FC = () => {
   };
 
   const openMediaLibrary = async (target: 'logo' | 'cover' | 'catalog'): Promise<void> => {
-    if (!currentBusiness?.id || !currentBusiness.branchId) {
-      const message = 'تعذر تحديد النشاط والفرع المسموح لهما بفتح مكتبة الصور.';
+    if (!currentBusiness?.id) {
+      const message = 'تعذر تحديد النشاط لفتح مكتبة الصور.';
       if (target === 'catalog') setFormError(message);
       else setProfileSaveError(message);
       return;
@@ -597,7 +597,7 @@ export const MerchantDashboard: React.FC = () => {
     try {
       const items = await listCatalogImages({
         businessId: currentBusiness.id,
-        branchId: currentBusiness.branchId,
+        branchId: currentBusiness.branchId || '',
         kind,
       });
       if (requestId === mediaLibraryRequestRef.current) setMediaLibraryItems(items);
