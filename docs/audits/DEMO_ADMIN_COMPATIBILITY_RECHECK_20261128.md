@@ -1,6 +1,6 @@
 # MantiqatiX-DEMO — Admin Control Center Delivery & Security Recheck
 
-**Checkpoint:** 2026-11-28 12:30 UTC  
+**Checkpoint:** 2026-11-28 12:45 UTC  
 **Project:** `MantiqatiX-DEMO` — `lkijdgqanbqjudiducjt`  
 **Repository:** `islamnagy2022-eng/MantiqatiX`  
 **Branch:** `dev/demo-admin-compat-20261128`  
@@ -27,14 +27,31 @@ Read-only inspection of the live DEMO functions confirms that the SQL effect of 
 - Both helpers have `search_path=""`.
 - The live migration ledger still does not contain version `20261128112652`.
 
-The source migration is therefore a history-alignment item, not a missing live ACL change. The current execution environment has no Supabase CLI installed, so no repair command was run. From an authorized terminal linked only to MantiqatiX-DEMO, run the documented Supabase CLI history repair:
+The source migration is therefore a history-alignment item, not a missing live ACL change. No repair command has been run from this execution environment. From an authorized terminal, sign in and link the checkout to **DEMO only**, confirming the project ref before any repair:
 
 ```bash
-supabase migration repair 20261128112652 --status applied
-supabase migration list
+supabase --version
+supabase login
+supabase link --project-ref lkijdgqanbqjudiducjt
 ```
 
-This command records the migration as applied without rerunning its SQL. Verify the remote list shows `20261128112652` after repair. Do not insert rows manually into `supabase_migrations.schema_migrations`, do not use `db reset --linked`, and never run the repair against Production. Supabase documentation: [Database migrations and history repair](https://supabase.com/docs/guides/deployment/database-migrations) and [migration repair CLI](https://supabase.com/docs/reference/cli/supabase-migration-repair).
+For current Supabase CLI v3, database commands are local-first. Specify the hosted target explicitly, inspect the remote history, and include `--yes` for the intentional hosted history write:
+
+```bash
+supabase migration list --remote=lkijdgqanbqjudiducjt
+supabase migration repair 20261128112652 --status applied --remote=lkijdgqanbqjudiducjt --yes
+supabase migration list --remote=lkijdgqanbqjudiducjt
+```
+
+For the repository-pinned Supabase CLI v2.122.0, use the linked-target form instead:
+
+```bash
+supabase migration list --linked
+supabase migration repair 20261128112652 --status applied --linked
+supabase migration list --linked
+```
+
+Proceed only after confirming the project is exactly `lkijdgqanbqjudiducjt`, the version is absent before repair, and the ACL effects described above remain present. The repair inserts the missing migration-history record; it does **not** execute the migration SQL. Afterward, verify that remote history contains `20261128112652` and still contains `20261128112653`. Do not use `db push`, `migration up`, `db reset`, or direct SQL writes to `supabase_migrations.schema_migrations` for this reconciliation. Never run the repair against Production. The v3 remote-target and confirmation behavior is described in the [CLI v2-to-v3 migration guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3); the [migration repair CLI reference](https://supabase.com/docs/reference/cli/supabase-migration-repair) confirms the command records history as applied without executing SQL.
 
 ## Verified DEMO schema and authorization state
 
@@ -55,8 +72,9 @@ Read-after-apply and current read-only checks confirm:
 - Gateway `verify_jwt=false` permits CORS OPTIONS to reach the handler.
 - The handler performs its own Bearer-token validation, Auth user validation, rejects anonymous users, and checks `mnty_can_platform_admin()` before platform actions.
 - Shared activity-module sanitization and subscriber-membership deduplication modules are included.
+- A fresh read-back compared the deployed `index.ts` content with branch source `supabase/functions/catalog-platform-admin/index.ts`: the contents match byte-for-byte (68,536 characters); both shared modules are present in the deployed bundle. This establishes DEMO Edge source parity for this function, not HTTP behavior.
 
-A direct unauthenticated HTTP/CORS test of this specific DEMO function has not been completed. The current execution environment cannot resolve the Supabase hostname (curl DNS error 6); the request did not reach the function. Do not treat the handler response or CORS behavior as network-verified.
+Direct live-origin smoke tests remain incomplete. Attempts against both the GitHub Pages catalog URL and the DEMO Supabase Edge URL failed before establishing an HTTP connection because this execution environment could not resolve the hostnames (`curl: (6) Could not resolve host`). Requests did not reach GitHub Pages or the Edge Function; do not treat CORS, unauthenticated rejection, or page rendering as network-verified.
 
 ## Operator bootstrap still required
 
