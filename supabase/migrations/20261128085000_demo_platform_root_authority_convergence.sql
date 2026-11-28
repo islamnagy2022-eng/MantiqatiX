@@ -1823,6 +1823,24 @@ END
 $function$;
 
 -- Preserve the chronological RC486/RC923/RC925 catalog serialization and auth-boundary repairs after RC485.
+-- RC485 catalog RPCs retain their scoped auth.uid()/membership checks.
+-- DEMO's existing rows were service_role-only; RC923/RC925 require authenticated
+-- EXECUTE while keeping anon and PUBLIC closed.
+REVOKE ALL ON FUNCTION public.adjust_catalog_stock_backend(character varying,uuid,character varying,character varying,uuid,numeric,numeric,character varying,text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.adjust_catalog_stock_backend(character varying,uuid,character varying,character varying,uuid,numeric,numeric,character varying,text) TO authenticated;
+REVOKE ALL ON FUNCTION public.create_catalog_warehouse_backend(character varying,uuid,character varying,character varying,character varying) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.create_catalog_warehouse_backend(character varying,uuid,character varying,character varying,character varying) TO authenticated;
+REVOKE ALL ON FUNCTION public.upsert_catalog_item_backend(character varying,uuid,character varying,character varying,character varying,text,text,text,character varying,numeric,jsonb,uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.upsert_catalog_item_backend(character varying,uuid,character varying,character varying,character varying,text,text,text,character varying,numeric,jsonb,uuid) TO authenticated;
+REVOKE ALL ON FUNCTION public.upsert_catalog_price_backend(character varying,uuid,uuid,character varying,character varying,numeric,timestamp with time zone,timestamp with time zone) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.upsert_catalog_price_backend(character varying,uuid,uuid,character varying,character varying,numeric,timestamp with time zone,timestamp with time zone) TO authenticated;
+REVOKE ALL ON FUNCTION public.upsert_catalog_settings_backend(character varying,uuid,character varying,numeric,boolean,boolean) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.upsert_catalog_settings_backend(character varying,uuid,character varying,numeric,boolean,boolean) TO authenticated;
+REVOKE ALL ON FUNCTION public.update_catalog_item_status_backend(character varying,uuid,uuid,character varying,character varying) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.update_catalog_item_status_backend(character varying,uuid,uuid,character varying,character varying) TO authenticated;
+REVOKE ALL ON FUNCTION public.upsert_catalog_business_profile_backend(character varying,uuid,character varying,text,text,text,text,text,text,text,text,text,text,boolean) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.upsert_catalog_business_profile_backend(character varying,uuid,character varying,text,text,text,text,text,text,text,text,text,text,boolean) TO authenticated;
+
 -- RC486: serialize catalog price-version allocation per item/branch.
 -- The null-safe key matches the RPC's existing coalesce(branch_id, '') scope.
 
