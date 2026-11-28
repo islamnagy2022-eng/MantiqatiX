@@ -182,6 +182,13 @@ BEGIN
   IF affected <> 1 THEN
     RAISE EXCEPTION 'RC931_PROFILE_OWNER_UPDATE_REGRESSED:%', affected;
   END IF;
+  UPDATE public.marketing_provider_profiles
+     SET settings=jsonb_set(settings,'{rc931_wrong_owner_update}','true'::jsonb,true)
+   WHERE id='40000000-0000-4000-8000-000000000002';
+  GET DIAGNOSTICS affected = ROW_COUNT;
+  IF affected <> 0 THEN
+    RAISE EXCEPTION 'RC931_PROFILE_OWNER_CROSSED_OWNER_BOUNDARY:%', affected;
+  END IF;
 END;
 $profile_owner$;
 RESET ROLE;
