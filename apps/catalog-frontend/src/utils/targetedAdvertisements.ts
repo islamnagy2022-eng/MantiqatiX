@@ -132,7 +132,7 @@ export const getTargetedAdvertisementAudienceLabel = (
   const hasCenter = Boolean(selectedCenter && selectedCenter.toLowerCase() !== 'all');
 
   if (level === 'CENTER') {
-    const centerName = selectedCenter.replace(/^مركز\\s*/u, '').trim();
+    const centerName = selectedCenter.replace(/^مركز\s*/u, '').trim();
     return hasCenter && centerName ? `موجه لمركز ${centerName}` : 'موجه لمركز محدد';
   }
   if (level === 'GOVERNORATE') return hasGovernorate ? `موجه لمحافظة ${selectedGovernorate}` : 'موجه لمحافظة محددة';
