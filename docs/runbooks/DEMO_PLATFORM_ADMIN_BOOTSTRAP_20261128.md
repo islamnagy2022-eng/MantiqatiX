@@ -26,7 +26,17 @@ The root-convergence migration makes `private.platform_admins` the only source o
 
 The live DEMO database already has the ACL effect introduced by migration `20261128112652`: both `mnty_active_membership` and `mnty_can` deny EXECUTE to `PUBLIC`/`anon`, grant it to `authenticated`, and use an empty `search_path`. The source migration also passed chronological forward replay. Its timestamp is earlier than the already-applied `20261128112653`, so do not apply it out of order through a direct SQL migration call.
 
-An authorized operator should first mark this already-present effect as applied in the DEMO migration history using the Supabase CLI v3. This changes the history record only; it does not re-run the SQL:
+An authorized operator should first mark this already-present effect as applied in the DEMO migration history using the Supabase CLI. This changes the history record only; it does not re-run the SQL. The repository's forward migration test pins CLI `2.122.0`, so the matching commands are:
+
+```bash
+supabase --version
+supabase link --project-ref lkijdgqanbqjudiducjt
+supabase migration list --linked
+supabase migration repair 20261128112652 --status applied --linked
+supabase migration list --linked
+```
+
+For Supabase CLI v3 and newer, use the explicit project-ref form instead:
 
 ```bash
 supabase link --project-ref lkijdgqanbqjudiducjt
@@ -35,7 +45,7 @@ supabase migration repair 20261128112652 --status applied --remote=lkijdgqanbqju
 supabase migration list --remote=lkijdgqanbqjudiducjt
 ```
 
-The `--remote=lkijdgqanbqjudiducjt` value explicitly selects MantiqatiX-DEMO; do not use a bare `--remote` for this repair. Review the CLI's hosted-database confirmation prompt and confirm only after the project name/ref and the pending version are correct. Keep this interactive; do not add `--yes` for the operator-driven repair. Verify the remote list shows all four admin migration versions in timestamp order. Current CLI v3 uses explicit `--remote=<project-ref>` for remote database commands; `--linked` is deprecated. Never perform this operation against Production, and never edit `supabase_migrations.schema_migrations` manually.
+For either form, verify the target is **MantiqatiX-DEMO** and the version is missing before repair. Review and accept the CLI's hosted-database confirmation prompt only after checking the target and version. Keep the repair interactive; do not add `--yes` to a manual run. Verify the remote list shows all four admin migration versions in timestamp order. Never perform this operation against Production, and never edit `supabase_migrations.schema_migrations` manually.
 
 ## Bootstrap
 
