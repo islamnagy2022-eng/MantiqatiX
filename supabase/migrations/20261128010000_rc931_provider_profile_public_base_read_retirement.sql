@@ -331,7 +331,7 @@ begin
   );
 
   if v_crm_qual is null
-     or position('is_platform_admin()' in v_crm_qual_normalized) = 0
+     or position('is_platform_admin' in v_crm_qual_normalized) = 0
      or position($rc931_tenant$b.tenant_id<>'mnty-platform'$rc931_tenant$ in v_crm_qual_normalized) = 0 then
     raise exception 'RC931_REGISTRY_ONLY_CRM_POLICY_REQUIRED';
   end if;
