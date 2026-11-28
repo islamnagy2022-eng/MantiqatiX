@@ -41,8 +41,8 @@ BEGIN
     WHERE table_schema='public' AND table_name='businesses' AND column_name='code'
   ) THEN
     INSERT INTO public.businesses(id,tenant_id,organization_id,name,code,status,settings) VALUES
-    ('10000000-0000-0000-0000-000000000001','tenant-a','org-a','Business A','RBAC-BIZ-A','ACTIVE','{}'::jsonb),
-    ('10000000-0000-0000-0000-000000000002','tenant-b','org-b','Business B','RBAC-BIZ-B','ACTIVE','{}'::jsonb);
+    ('10000000-0000-0000-0000-000000000001','tenant-a','org-a','Business A','RBAC-BIZ-A','INACTIVE','{}'::jsonb),
+    ('10000000-0000-0000-0000-000000000002','tenant-b','org-b','Business B','RBAC-BIZ-B','INACTIVE','{}'::jsonb);
   ELSE
     INSERT INTO public.businesses(id,tenant_id,organization_id,name) VALUES
     ('10000000-0000-0000-0000-000000000001','tenant-a','org-a','Business A'),
@@ -50,6 +50,29 @@ BEGIN
   END IF;
 END
 $dashboard_seed_businesses$;
+
+-- The full schema enforces LEGAL_BUSINESS_OWNER_REQUIRED on activation.
+-- Create the tenant/business owner memberships first, then activate both fixtures.
+INSERT INTO public.user_memberships
+  (id,user_id,tenant_id,organization_id,business_id,branch_id,role,permissions,status)
+VALUES
+  ('owner-a','00000000-0000-0000-0000-000000000001','tenant-a','org-a','10000000-0000-0000-0000-000000000001',null,'OWNER','{}','ACTIVE'),
+  ('owner-b','00000000-0000-0000-0000-000000000001','tenant-b','org-b','10000000-0000-0000-0000-000000000002',null,'OWNER','{}','ACTIVE')
+ON CONFLICT (id) DO NOTHING;
+
+DO $dashboard_activate_businesses$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='businesses' AND column_name='status'
+  ) THEN
+    UPDATE public.businesses
+    SET status='ACTIVE'
+    WHERE id IN ('10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002')
+      AND status <> 'ACTIVE';
+  END IF;
+END
+$dashboard_activate_businesses$;
 
 DO $dashboard_seed_branches$
 BEGIN
@@ -76,7 +99,8 @@ INSERT INTO public.user_memberships(id,user_id,tenant_id,organization_id,busines
 ('employee-view-branch-a','00000000-0000-0000-0000-000000000005','tenant-a','org-a','10000000-0000-0000-0000-000000000001','branch-a-1','EMPLOYEE','{"modules":{"EMPLOYEES":["view"]}}','ACTIVE'),
 ('branch-owner-a','00000000-0000-0000-0000-000000000008','tenant-a','org-a','10000000-0000-0000-0000-000000000001','branch-a-1','OWNER','{}','ACTIVE'),
 ('tenant-owner-a','00000000-0000-0000-0000-000000000009','tenant-a','org-a',null,null,'OWNER','{}','ACTIVE'),
-('employee-update-a','00000000-0000-0000-0000-000000000010','tenant-a','org-a','10000000-0000-0000-0000-000000000001',null,'EMPLOYEE','{"modules":{"EMPLOYEES":["update"]}}','ACTIVE');
+('employee-update-a','00000000-0000-0000-0000-000000000010','tenant-a','org-a','10000000-0000-0000-0000-000000000001',null,'EMPLOYEE','{"modules":{"EMPLOYEES":["update"]}}','ACTIVE')
+ON CONFLICT (id) DO NOTHING;
 
 -- Owner-owned seed rows: no browser role has direct table access.
 INSERT INTO public.business_job_positions
