@@ -40,7 +40,7 @@ assert.doesNotMatch(migration, /um\.tenant_id\s*=\s*'MNTY-PLATFORM'/i,
   "provider CRM policy must not treat MNTY-PLATFORM membership metadata as platform authority");
 assert.ok(fixture.includes("CREATE TABLE private.platform_admins"), "fixture must model the canonical platform registry");
 assert.ok(fixture.includes("INSERT INTO private.platform_admins(user_id)"), "fixture must register platform authority only in the protected registry");
-assert.match(fixture, /SECURITY DEFINER[\\s\\S]*?SET search_path TO ''[\\s\\S]*?FROM private\\.platform_admins/);
+assert.match(fixture, /SECURITY DEFINER[\s\S]*?SET search_path TO ''[\s\S]*?FROM private\.platform_admins/);
 assert.match(migration, /RC931_PLATFORM_ADMIN_REGISTRY_REQUIRED/);
 assert.match(migration, /RC931_PLATFORM_ADMIN_HELPER_ACL_MISMATCH/);
 
