@@ -119,6 +119,15 @@ begin
     raise exception 'MEDIA_RETENTION_DID_NOT_RELEASE_IMAGE_AFTER_FIVE_UNUSED_DAYS:%',v_candidates;
   end if;
 
+  -- Final pre-delete confirmation repeats the reference scan once for the
+  -- whole deletion batch and returns only still-unreferenced paths.
+  select count(*) into v_candidates
+  from public.mnty_confirm_catalog_media_deletion(array[v_path])
+  where object_path=v_path;
+  if v_candidates <> 1 then
+    raise exception 'MEDIA_RETENTION_FINAL_BATCH_CONFIRMATION_FAILED:%',v_candidates;
+  end if;
+
   perform public.mnty_clear_catalog_media_retention_state(array[v_path]);
   if exists (
     select 1 from public.mnty_catalog_media_retention_state where object_path=v_path
