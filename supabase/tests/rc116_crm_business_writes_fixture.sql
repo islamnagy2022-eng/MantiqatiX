@@ -113,3 +113,24 @@ insert into public.marketing_provider_profiles(
   ('40000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000011', 'FREELANCER', 'Provider A', 'provider-a', 'PENDING', false),
   ('40000000-0000-4000-8000-000000000002', '30000000-0000-4000-8000-000000000003', '30000000-0000-4000-8000-000000000013', 'FREELANCER', 'Provider B', 'provider-b', 'PENDING', false),
   ('40000000-0000-4000-8000-000000000004', null, '30000000-0000-4000-8000-000000000021', 'FREELANCER', 'Legacy Owner Profile', 'legacy-owner-profile', 'ACTIVE', false);
+
+ 
+-- Seed non-brand metadata to prove an owner logo update preserves it.
+update public.marketing_provider_profiles
+set settings = jsonb_build_object(
+  'official_showcase', true,
+  'managed_by', 'SUPER_ADMIN',
+  'activity_code', 'HEALTH',
+  'branding', jsonb_build_object(
+    'logo_path', 'assets/original-provider-a.svg',
+    'preserve_me', 'platform-owned'
+  )
+)
+where id = '40000000-0000-4000-8000-000000000001';
+
+update public.marketing_provider_profiles
+set settings = jsonb_build_object(
+  'managed_by', 'PLATFORM',
+  'branding', jsonb_build_object('logo_path', 'assets/original-legacy.svg')
+)
+where id = '40000000-0000-4000-8000-000000000004';
