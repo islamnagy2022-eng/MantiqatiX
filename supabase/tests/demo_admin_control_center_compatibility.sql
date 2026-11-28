@@ -157,12 +157,21 @@ BEGIN
   FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
   WHERE n.nspname='public' AND c.relname='bizcatalog_platform_settings';
   IF NOT FOUND OR NOT v_bizcatalog_rls THEN RAISE EXCEPTION 'DEMO_ADMIN_BIZCATALOG_SETTINGS_RLS_MISSING'; END IF;
-  IF pg_catalog.has_table_privilege('anon','public.bizcatalog_platform_settings','SELECT')
-     OR pg_catalog.has_table_privilege('anon','public.bizcatalog_platform_settings','INSERT')
-     OR pg_catalog.has_table_privilege('authenticated','public.bizcatalog_platform_settings','SELECT')
-     OR pg_catalog.has_table_privilege('authenticated','public.bizcatalog_platform_settings','INSERT')
-     OR pg_catalog.has_table_privilege('authenticated','public.bizcatalog_platform_settings','UPDATE') THEN
-    RAISE EXCEPTION 'DEMO_ADMIN_BIZCATALOG_SETTINGS_CLIENT_PRIVILEGE_GRANTED';
+  FOREACH v_privilege IN ARRAY v_table_privileges LOOP
+    IF pg_catalog.has_table_privilege('anon','public.bizcatalog_platform_settings',v_privilege)
+       OR pg_catalog.has_table_privilege('authenticated','public.bizcatalog_platform_settings',v_privilege) THEN
+      RAISE EXCEPTION 'DEMO_ADMIN_BIZCATALOG_SETTINGS_CLIENT_PRIVILEGE_GRANTED: %', v_privilege;
+    END IF;
+  END LOOP;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_policies p
+    WHERE p.schemaname='public'
+      AND p.tablename='bizcatalog_platform_settings'
+      AND p.policyname='bizcatalog_platform_settings_service_role_only'
+      AND p.cmd='ALL'
+      AND 'service_role'=ANY(p.roles::text[])
+  ) THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_BIZCATALOG_SETTINGS_SERVICE_POLICY_MISSING';
   END IF;
   IF NOT pg_catalog.has_table_privilege('service_role','public.bizcatalog_platform_settings','SELECT')
      OR NOT pg_catalog.has_table_privilege('service_role','public.bizcatalog_platform_settings','INSERT')
