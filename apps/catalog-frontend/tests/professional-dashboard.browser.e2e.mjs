@@ -409,7 +409,10 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
         return json({ success: true, settings: platformSettingsState.settings, auditLogged: true });
       }
       if (action === 'LIST_SUBSCRIBERS') return json({ subscribers: [] });
-      if (action === 'LIST_BUSINESSES') return json({ businesses: Array.isArray(options.adminBusinesses) ? options.adminBusinesses : [] });
+      if (action === 'LIST_BUSINESSES') return json({
+        businesses: Array.isArray(options.adminBusinesses) ? options.adminBusinesses : [],
+        ...(options.omitScopedRoleCapabilities ? {} : { capabilities: { branchScopedRoleEdits: true } }),
+      });
       if (action === 'SAVE_MEMBERSHIP') {
         const parent = (options.adminBusinesses || []).find((business) => String(business.id) === String(body.businessId));
         const membership = parent?.memberships?.find((item) => String(item.id) === String(body.membershipId));
@@ -1541,6 +1544,39 @@ try {
         .getByText('MANAGER', { exact: false }).waitFor({ state: 'visible' });
       results.push('business-subscriber-role-editor-preserves-branch-status-and-catalog-permissions');
       results.push('legacy-and-platform-protected-memberships-fail-closed-in-business-admin');
+    } finally { await context.close(); }
+  }
+
+  // Role editing must remain unavailable while the live backend has not advertised branch-scope support.
+  {
+    const { context, page } = await newScenario(browser, roles.platformAdmin, [], {
+      initialRoute: '?view=super_admin&tab=control_center&controlTab=management',
+      omitScopedRoleCapabilities: true,
+      adminBusinesses: [{
+        id: businessId,
+        tenant_id: tenantId,
+        name: 'نشاط اختبار توافق خدمة الإدارة',
+        code: 'ADMIN-CAPABILITY-E2E',
+        status: 'ACTIVE',
+        settings: {},
+        memberships: [{
+          id: 'membership-awaiting-scoped-api',
+          user_id: '30000000-0000-0000-0000-000000000031',
+          branch_id: branchId,
+          role: 'EMPLOYEE',
+          status: 'ACTIVE',
+          email: 'capability.employee@example.test',
+          full_name: 'موظف بانتظار تحديث الخادم',
+        }],
+      }],
+    });
+    try {
+      await page.getByText('المشتركون والعضويات (1)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByText('تغيير أدوار العضويات موقوف مؤقتًا لأن نسخة خدمة الإدارة لم تؤكد دعم نطاق الفرع.', { exact: false })
+        .waitFor({ state: 'visible' });
+      assert.equal(await page.getByRole('button', { name: 'تعديل الدور', exact: true }).count(), 0,
+        'the UI must not submit branch-scoped role edits against an older Edge Function');
+      results.push('business-subscriber-role-editor-fails-closed-without-server-capability');
     } finally { await context.close(); }
   }
 
