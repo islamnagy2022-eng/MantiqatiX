@@ -19,13 +19,16 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
   const defaultCover = resolveDefaultImage({
     name: business.name, description: business.bio, category: business.category, kind: 'cover',
   });
+  const isPlatformBrandProfile = isMantiqatiXBrandName(business.name);
   const logo = business.logoUrl || defaultLogo;
   const cover = business.coverUrl || defaultCover;
+  const displayLogo = isPlatformBrandProfile ? defaultLogo : logo;
+  const displayCover = isPlatformBrandProfile ? defaultCover : cover;
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
       <button type="button" onClick={() => onOpen(business)} className="block w-full text-right" aria-label={'فتح كتالوج ' + business.name}>
         <div className="relative h-28 overflow-hidden bg-slate-100 sm:h-32">
-          <img src={cover} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy"
+          <img src={displayCover} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy"
             onError={(event) => {
               const image = event.currentTarget;
               if (image.dataset.defaultFallbackApplied !== 'true') {
@@ -41,7 +44,7 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
           </span>
         </div>
         <div className="relative px-3 pb-3 pt-9">
-          <img src={logo} alt="" className="absolute -top-7 right-3 h-14 w-14 rounded-2xl border-2 border-white bg-white object-cover shadow" loading="lazy"
+          <img src={displayLogo} alt="" className="absolute -top-7 right-3 h-14 w-14 rounded-2xl border-2 border-white bg-white object-cover shadow" loading="lazy"
             onError={(event) => {
               const image = event.currentTarget;
               if (image.dataset.defaultFallbackApplied !== 'true') {
