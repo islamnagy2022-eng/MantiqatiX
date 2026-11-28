@@ -180,6 +180,15 @@ INSERT INTO public.user_memberships(id,user_id,tenant_id,business_id,role,status
 INSERT INTO private.platform_admins(user_id)
 VALUES ('30000000-0000-4000-8000-000000000015');
 
+INSERT INTO public.marketing_provider_profiles(id,business_id,owner_user_id,name_ar,status,settings) VALUES
+  ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000016','Provider A','ACTIVE','{"private":"synthetic-A"}'),
+  ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000001',NULL,'Pending Provider A','PENDING','{"private":"pending-A"}'),
+  ('40000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000003',NULL,'Pending Provider B','PENDING','{"private":"pending-B"}'),
+  ('40000000-0000-4000-8000-000000000004','30000000-0000-4000-8000-000000000003',NULL,'Active Provider B','ACTIVE','{"private":"active-B"}'),
+  ('40000000-0000-4000-8000-000000000005','30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000016','Provider A Pending Own Profile','PENDING','{"private":"owner-pending"}'),
+  ('40000000-0000-4000-8000-000000000006','30000000-0000-4000-8000-000000000002',NULL,'Pending Provider A2','PENDING','{"private":"pending-A2"}'),
+  ('40000000-0000-4000-8000-000000000007','30000000-0000-4000-8000-000000000005',NULL,'Platform Tenant Pending Provider','PENDING','{"private":"platform-tenant-only"}');
+
 -- Platform-owned settings prove that owner logo changes preserve all other keys.
 UPDATE public.marketing_provider_profiles
 SET settings = jsonb_build_object(
@@ -192,12 +201,3 @@ SET settings = jsonb_build_object(
   )
 )
 WHERE id = '40000000-0000-4000-8000-000000000001';
-
-INSERT INTO public.marketing_provider_profiles(id,business_id,owner_user_id,name_ar,status,settings) VALUES
-  ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000016','Provider A','ACTIVE','{"private":"synthetic-A"}'),
-  ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000001',NULL,'Pending Provider A','PENDING','{"private":"pending-A"}'),
-  ('40000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000003',NULL,'Pending Provider B','PENDING','{"private":"pending-B"}'),
-  ('40000000-0000-4000-8000-000000000004','30000000-0000-4000-8000-000000000003',NULL,'Active Provider B','ACTIVE','{"private":"active-B"}'),
-  ('40000000-0000-4000-8000-000000000005','30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000016','Provider A Pending Own Profile','PENDING','{"private":"owner-pending"}'),
-  ('40000000-0000-4000-8000-000000000006','30000000-0000-4000-8000-000000000002',NULL,'Pending Provider A2','PENDING','{"private":"pending-A2"}'),
-  ('40000000-0000-4000-8000-000000000007','30000000-0000-4000-8000-000000000005',NULL,'Platform Tenant Pending Provider','PENDING','{"private":"platform-tenant-only"}');
