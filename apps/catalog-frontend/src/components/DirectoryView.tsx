@@ -37,7 +37,7 @@ import {
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { supabase } from '../lib/production';
-import { isSafeHttpsUrl, loadTargetedAdvertisements, type TargetedAdvertisement } from '../utils/targetedAdvertisements';
+import { getTargetedAdvertisementAudienceLabel, isSafeHttpsUrl, loadTargetedAdvertisements, type TargetedAdvertisement } from '../utils/targetedAdvertisements';
 const DirectoryListingsView = lazy(() => import('./DirectoryListingsView').then((module) => ({ default: module.DirectoryListingsView })));
 const ActivityModuleView = lazy(() => import('../modules/activities/ActivityModuleView').then((module) => ({ default: module.ActivityModuleView })));
 
@@ -93,6 +93,7 @@ interface CoverSlide {
   advertisementId?: string;
   targetUrl?: string;
   matchLevel?: string;
+  targetingLabel?: string;
   platformPromoId?: string;
 }
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
@@ -729,18 +730,24 @@ export const DirectoryView: React.FC = () => {
       governorates: [business.governorate || 'all'],
       businessId: business.id,
     }));
-  const targetedCoverSlides: CoverSlide[] = coverAdvertisements.map((ad) => ({
-      image: ad.creative_url,
-      badge: 'إعلان ممول',
-      title: ad.title || 'خدمات وعروض من منطقتك',
-      subtitle: selectedGovFilter === 'all'
-        ? 'إعلان معتمد لخدمات متاحة داخل مصر.'
-        : 'إعلان يظهر ضمن نطاق البحث: ' + selectedGovFilter,
-      governorates: selectedGovFilter === 'all' ? ['all'] : [selectedGovFilter],
-      advertisementId: ad.advertisement_id,
-      targetUrl: ad.target_url || undefined,
-      matchLevel: ad.match_level,
-    }));
+  const targetedCoverSlides: CoverSlide[] = coverAdvertisements.map((ad) => {
+      const targetingLabel = getTargetedAdvertisementAudienceLabel(
+        ad.match_level,
+        selectedGovFilter,
+        selectedMarkazFilter,
+      );
+      return {
+        image: ad.creative_url,
+        badge: 'إعلان ممول',
+        title: ad.title || 'خدمات وعروض من منطقتك',
+        subtitle: targetingLabel + ' — حملة معتمدة لخدمات وعروض مناسبة لنطاقك.',
+        governorates: selectedGovFilter === 'all' ? ['all'] : [selectedGovFilter],
+        advertisementId: ad.advertisement_id,
+        targetUrl: ad.target_url || undefined,
+        matchLevel: ad.match_level,
+        targetingLabel,
+      };
+    });
   const platformPromoCoverSlides: CoverSlide[] = DIRECTORY_PLATFORM_PROMOS.map((promo) => ({
       image: promo.image,
       badge: 'خدمات المنصة',
@@ -1074,7 +1081,7 @@ export const DirectoryView: React.FC = () => {
         {/* Paid HOME_HERO campaigns take priority; published businesses remain a fallback when no eligible campaign exists. */}
         <section aria-label="إعلانات الخدمات والأنشطة حسب المنطقة" data-testid="directory-cover-advertisements" className="space-y-3">
           {activeCoverSlides.length > 0 ? (
-            <div className="relative aspect-[4/3] sm:aspect-[650/228] w-full rounded-3xl overflow-hidden shadow-2xl bg-slate-900 group">
+            <div className="relative aspect-[45/26] w-full rounded-3xl overflow-hidden border border-[#ead5c5] shadow-xl bg-[#160809] group">
               {activeCoverSlides.map((slide, idx) => (
                 <div
                   key={slide.advertisementId || slide.platformPromoId || slide.businessId || `${slide.title}-${idx}`}
@@ -1104,12 +1111,17 @@ export const DirectoryView: React.FC = () => {
                       data-testid={slide.advertisementId ? 'directory-cover-paid-ad' : slide.platformPromoId ? 'directory-cover-platform-promo' : undefined}
                       src={slide.image || resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' })}
                       alt={slide.title}
-                      className="h-full w-full object-contain sm:object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
+                      className="relative z-[1] h-full w-full object-contain object-center transition-transform duration-700 group-hover:scale-[1.01]"
                       loading={idx === currentCoverIndex ? 'eager' : 'lazy'}
                       onError={(event) => {
                         const image = event.currentTarget;
-                        const fallback = resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' });
-                        if (!image.src.endsWith(fallback.replace(/^.*\//, ''))) image.src = fallback;
+                        if (image.dataset.defaultFallbackApplied === 'true') {
+                          image.onerror = null;
+                          image.style.visibility = 'hidden';
+                          return;
+                        }
+                        image.dataset.defaultFallbackApplied = 'true';
+                        image.src = resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' });
                       }}
                     />
 
@@ -1118,8 +1130,13 @@ export const DirectoryView: React.FC = () => {
                   {(slide.advertisementId || slide.platformPromoId) && (
                     <div className="pointer-events-none absolute right-3 top-3 z-20 flex items-center gap-2" aria-label={slide.advertisementId ? 'إعلان ممول' : 'إعلان من المنصة'}>
                       <span className="rounded-full border border-white/40 bg-[#7a0000]/95 px-3 py-1.5 text-[10px] font-black text-white shadow-lg">{slide.advertisementId ? 'إعلان ممول' : 'خدمات المنصة'}</span>
-                      {selectedGovFilter !== 'all' && (
-                        <span className="rounded-full border border-white/35 bg-slate-950/75 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">لمنطقة {selectedGovFilter}</span>
+                      {slide.advertisementId && slide.targetingLabel && (
+                        <span data-testid="directory-cover-ad-targeting" className="rounded-full border border-white/35 bg-slate-950/80 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">
+                          {slide.targetingLabel}
+                        </span>
+                      )}
+                      {slide.platformPromoId && selectedGovFilter !== 'all' && (
+                        <span className="rounded-full border border-white/35 bg-slate-950/80 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">خدمات لأصحاب الأنشطة في {selectedGovFilter}</span>
                       )}
                     </div>
                   )}
