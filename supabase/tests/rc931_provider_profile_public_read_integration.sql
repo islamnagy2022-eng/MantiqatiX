@@ -27,7 +27,8 @@ BEGIN
        AND permissive='RESTRICTIVE'
        AND cmd='SELECT'
        AND 'authenticated'=ANY(roles)
-       AND qual ILIKE '%IS NOT DISTINCT FROM%'
+       AND qual ILIKE '%IS DISTINCT FROM%false%'
+       AND qual ILIKE '%is_anonymous%'
   ) THEN
     RAISE EXCEPTION 'RC931_RC926_STRICT_IDENTITY_GUARD_MISSING';
   END IF;
