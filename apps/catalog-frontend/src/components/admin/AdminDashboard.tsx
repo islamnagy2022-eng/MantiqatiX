@@ -475,7 +475,7 @@ export const AdminDashboard: React.FC = () => {
     return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Admin Header */}
-      <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div className="bg-gradient-to-l from-[#3a0000] via-[#7a0000] to-[#3a0000] text-white rounded-3xl border border-[#f6c04d]/25 p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
             <span className="bg-amber-400 text-slate-950 text-xs font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
@@ -508,7 +508,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => {
               setIsSubModalOpen(true);
             }}
-            className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer"
+            className="bg-[#f6c04d] hover:bg-[#ffe1a3] text-[#3a0000] font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-black/15 cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             <span>تعيين مشترك</span>
@@ -518,7 +518,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setIsBizModalOpen(true)}
             className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer"
           >
-            <Building2 className="w-4 h-4 text-emerald-400" />
+            <Building2 className="w-4 h-4 text-[#f6c04d]" />
             <span>إضافة نشاط تجاري</span>
           </button>
         </div>
@@ -568,7 +568,7 @@ export const AdminDashboard: React.FC = () => {
                   alert('تم نسخ تعليمات الدخول باستخدام Google!');
                 }
               }}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
+              className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md shadow-[#7a0000]/20 cursor-pointer"
             >
               <Copy className="w-3.5 h-3.5" />
               <span>نسخ تعليمات الدخول للواتساب</span>
@@ -580,7 +580,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Quick KPI Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+          <div className="w-12 h-12 rounded-2xl bg-[#fff3e0] flex items-center justify-center text-[#7a0000]">
             <Layers className="w-6 h-6" />
           </div>
           <div>
@@ -590,7 +590,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+          <div className="w-12 h-12 rounded-2xl bg-[#fff3e0] flex items-center justify-center text-[#a00000]">
             <Store className="w-6 h-6" />
           </div>
           <div>
@@ -600,7 +600,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+          <div className="w-12 h-12 rounded-2xl bg-[#fff8f0] flex items-center justify-center text-[#a00000]">
             <Users className="w-6 h-6" />
           </div>
           <div>
@@ -1281,7 +1281,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
             <button
               onClick={() => setIsBizModalOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
+              className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <Building2 className="w-4 h-4" />
               <span>إضافة نشاط تجاري</span>
@@ -1457,7 +1457,7 @@ export const AdminDashboard: React.FC = () => {
 
                     <button
                       onClick={() => handleCopyStoreLink(b)}
-                      className="text-xs text-slate-700 hover:text-emerald-700 font-bold flex items-center gap-1 cursor-pointer"
+                      className="text-xs text-slate-700 hover:text-[#7a0000] font-bold flex items-center gap-1 cursor-pointer"
                     >
                       {copiedId === b.id ? (
                         <>
@@ -1477,7 +1477,7 @@ export const AdminDashboard: React.FC = () => {
                         setSelectedBusinessId(b.id);
                         setCurrentView('public_storefront');
                       }}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-xs cursor-pointer"
+                      className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-xs cursor-pointer"
                     >
                       <span>معاينة</span>
                       <ExternalLink className="w-3 h-3" />
@@ -1534,7 +1534,7 @@ export const AdminDashboard: React.FC = () => {
                 onClick={() => {
                   setIsSubModalOpen(true);
                 }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
+                className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>تعيين مشترك جديد</span>
