@@ -257,13 +257,17 @@ assert.ok(
   directory.includes("badge: 'إعلان ممول'") &&
   directory.includes('advertisementId: ad.advertisement_id') &&
   directory.includes('matchLevel: ad.match_level') &&
-  directory.includes('getTargetedAdvertisementAudienceLabel'),
+  directory.includes('getTargetedAdvertisementAudienceLabel') &&
+  directory.includes('getPublicCenterAdCode(') &&
+  directory.includes('selectedMarkazFilter,') &&
+  directory.includes('centerCode,'),
   'The home cover must render real targeted HOME_HERO advertisement records and preserve their actual geographic match level'
 );
 assert.match(targetedAdvertisements, /p_ad_space_id: space/);
 assert.match(targetedAdvertisements, /p_governorate_code: governorateCode/);
 assert.match(targetedAdvertisements, /p_center_code: centerCode/);
 assert.match(targetedAdvertisements, /export const getTargetedAdvertisementAudienceLabel/);
+assert.match(targetedAdvertisements, /export const getPublicCenterAdCode/);
 assert.ok(directory.includes('const platformPromoCoverSlides: CoverSlide[] = DIRECTORY_PLATFORM_PROMOS.map((promo) => ({') && directory.includes('assets/mnty-cover-ad-1.svg') && directory.includes("badge: 'خدمات المنصة'"), 'Official platform service promos must fill the cover when no regional paid campaign exists');
 assert.ok(directoryCoverPromoAssets.length === 3 && directoryCoverPromoAssets.every((asset) => asset.startsWith('<svg') && asset.includes('MantiqatiX')), 'All three official platform promo creatives must ship inside the catalog app public assets'); 
 assert.ok(directory.includes('const coverSlides: CoverSlide[] = [...targetedCoverSlides, ...platformPromoCoverSlides, ...businessCoverSlides]'), 'Targeted paid cover campaigns must appear first, followed by official platform promos and local business fallback');
