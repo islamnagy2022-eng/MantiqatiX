@@ -110,6 +110,13 @@ assert.ok(marketplace.includes('const adFallback = resolveDefaultImage') &&
   marketplace.includes('aspect-[16/7]') &&
   marketplace.includes('إعلان ممول'),
   'sponsored ads must use a branded banner aspect ratio and local fallback artwork rather than an empty image area');
+assert.ok(marketplace.includes("ad.ad_space_id === 'HOME_HERO'") &&
+  marketplace.includes("ad.ad_space_id === 'HOME_SPONSORED'"),
+  'home hero placements and sponsored placements must remain isolated from each other');
+assert.ok(marketplace.includes('data-testid="home-hero-sponsored-placement"') &&
+  marketplace.includes('heroAdvertisements.slice(0, 2)') &&
+  marketplace.includes('sponsoredAdvertisements.slice(0, 4)'),
+  'hero ads must render as wide primary banners while sponsored ads use their own placement cards');
 
 const directoryListings = read('apps/catalog-frontend/src/components/DirectoryListingsView.tsx');
 assert.ok(directoryListings.includes("import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from \"../utils/defaultImages\";"),
