@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 const config = readFileSync("supabase/config.toml", "utf8");
 const specs = {
+  "cleanup-catalog-media": ["supabase/functions/cleanup-catalog-media/index.ts", ['authorization.startsWith("Bearer ")', "mnty_catalog_media_cleanup_token_valid", "tokenValid !== true"]],
   "api": ["supabase/functions/api/index.ts", ["supabaseAdmin.auth.getUser(token)", "user_memberships"]],
   "catalog-admin": ["supabase/functions/catalog-admin/index.ts", ["service.auth.getUser(token)", "mnty_can_platform_admin"]],
   "directory-listings": ["supabase/functions/directory-listings/index.ts", ["service.auth.getUser(token)", "sanitizePublicDirectoryListing", "loadContactConsentScopes"]],

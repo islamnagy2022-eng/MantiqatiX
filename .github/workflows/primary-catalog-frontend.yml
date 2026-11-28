@@ -27,6 +27,12 @@ on:
       - "scripts/validate-catalog-business-identity-contract.mjs"
       - "scripts/validate-directory-listings-origin-allowlist.mjs"
       - "scripts/validate-production-catalog-real-state.mjs"
+      - "scripts/validate-catalog-media-library-retention.mjs"
+      - "supabase/functions/ai-gemini-proxy/**"
+      - "supabase/functions/cleanup-catalog-media/**"
+      - "supabase/migrations/20261128070000_mnty_catalog_media_library_retention.sql"
+      - "supabase/migrations/20261128071000_optimize_catalog_media_reference_scan.sql"
+      - "supabase/migrations/20261128072000_include_all_text_catalog_media_references.sql"
       - "scripts/validate-canonical-activity-taxonomy.mjs"
       - "scripts/validate-activity-module-admin.mjs"
       - "scripts/test-activity-module-overrides.mjs"
@@ -84,6 +90,12 @@ on:
       - "scripts/validate-directory-listings-origin-allowlist.mjs"
       - "scripts/production/verify-catalog-pilot.mjs"
       - "scripts/validate-production-catalog-real-state.mjs"
+      - "scripts/validate-catalog-media-library-retention.mjs"
+      - "supabase/functions/ai-gemini-proxy/**"
+      - "supabase/functions/cleanup-catalog-media/**"
+      - "supabase/migrations/20261128070000_mnty_catalog_media_library_retention.sql"
+      - "supabase/migrations/20261128071000_optimize_catalog_media_reference_scan.sql"
+      - "supabase/migrations/20261128072000_include_all_text_catalog_media_references.sql"
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
       - "scripts/validate-pages-production-deploy-gate.mjs"
@@ -227,6 +239,8 @@ jobs:
         run: node scripts/validate-catalog-membership-bootstrap.mjs
       - name: Verify production catalog uses real persisted state
         run: node scripts/validate-production-catalog-real-state.mjs
+      - name: Validate business media library and five-day reference-aware retention
+        run: node scripts/validate-catalog-media-library-retention.mjs
       - name: Verify directory CORS origins exclude retired domain
         run: node scripts/validate-directory-listings-origin-allowlist.mjs
       - name: Verify scoped catalog pilot release prerequisites

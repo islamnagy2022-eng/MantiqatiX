@@ -98,6 +98,64 @@ export async function uploadCatalogImage(input: {
   return data.imageUrl;
 }
 
+
+export type CatalogMediaLibraryItem = {
+  imageUrl: string;
+  objectPath: string;
+  sourceKind: CatalogAiImageKind;
+  createdAt: string | null;
+  fileSize: number;
+};
+
+export async function listCatalogImages(input: {
+  businessId: string;
+  branchId?: string;
+  kind?: CatalogAiImageKind | 'all';
+}): Promise<CatalogMediaLibraryItem[]> {
+  if (!input.businessId) throw new Error('تعذر تحديد النشاط لفتح مكتبة الصور.');
+
+  const { data, error } = await supabase.functions.invoke('ai-gemini-proxy', {
+    body: {
+      action: 'list_catalog_images',
+      businessId: input.businessId,
+      branchId: input.branchId || '',
+      imageKind: input.kind || 'all',
+    },
+  });
+
+  if (error || data?.error) {
+    let payload: any = data;
+    try { payload = payload || await (error as any)?.context?.json?.(); } catch { /* The request may fail before an HTTP response exists. */ }
+    throw new Error(String(payload?.message || payload?.error || error?.message || 'تعذر تحميل مكتبة الصور السابقة.'));
+  }
+
+  const businessMediaPrefix = `businesses/${input.businessId}/owner-uploads/`;
+  return (Array.isArray(data?.images) ? data.images : [])
+    .filter((item: any) => {
+      if (
+        typeof item?.imageUrl !== 'string' ||
+        !item.imageUrl.startsWith('https://') ||
+        typeof item?.objectPath !== 'string' ||
+        !item.objectPath.startsWith(businessMediaPrefix)
+      ) return false;
+
+      const [sourceKind, fileName, ...extraSegments] = item.objectPath
+        .slice(businessMediaPrefix.length)
+        .split('/');
+      return ['activity', 'cover', 'product', 'service'].includes(sourceKind) &&
+        /^[A-Za-z0-9._-]+$/.test(fileName || '') &&
+        extraSegments.length === 0 &&
+        (input.kind === undefined || input.kind === 'all' || input.kind === sourceKind);
+    })
+    .map((item: any): CatalogMediaLibraryItem => ({
+      imageUrl: item.imageUrl,
+      objectPath: item.objectPath,
+      sourceKind: item.objectPath.slice(businessMediaPrefix.length).split('/')[0] as CatalogAiImageKind,
+      createdAt: typeof item.createdAt === 'string' ? item.createdAt : null,
+      fileSize: Number.isFinite(Number(item.fileSize)) ? Number(item.fileSize) : 0,
+    }));
+}
+
 async function invokeAdminFunction<T = any>(name: string, body: Record<string, unknown>, fallback: string): Promise<T> {
   const { data, error } = await supabase.functions.invoke(name, { body });
   if (error) {

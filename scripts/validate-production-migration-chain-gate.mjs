@@ -6,6 +6,7 @@ import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS, REQU
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const rc117ImageRepairValidator = fs.readFileSync("scripts/validate-rc117-image-provenance-forward-repair.mjs", "utf8");
 const rc932Validator = fs.readFileSync("scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs", "utf8");
+const mediaCleanupVaultFixture = fs.readFileSync("supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql", "utf8");
 
 const dependentReleaseCountValidators = [
   "scripts/validate-rc117-image-provenance-forward-repair.mjs",
@@ -143,6 +144,14 @@ assert.ok(rc117ImageRepairValidator.includes("20261126020000_preserve_marketing_
 assert.ok(rc932Validator.includes("(auth.jwt()->>'is_anonymous') IS DISTINCT FROM 'false'"), "RC932 must strictly reject missing/null/anonymous JWT claims");
 assert.ok(forwardReplayWorkflow.includes("node scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs"), "full forward replay must run the RC932 source validator");
 assert.ok(forwardReplayWorkflow.includes("supabase/tests/rc932_mantigo_open_ride_explicit_confirmed_auth_integration.sql"), "full forward replay must execute RC932 missing/null-claim regression tests");
+assert.ok(forwardReplayWorkflow.includes("RESTORE_TEST_ONLY_CATALOG_MEDIA_CLEANUP_VAULT_PLACEHOLDERS") &&
+  forwardReplayWorkflow.includes("supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql"),
+  "forward replay must seed disposable Vault placeholders before migrations that schedule private cleanup jobs");
+assert.ok(mediaCleanupVaultFixture.includes("repeat('c', 64)") &&
+  mediaCleanupVaultFixture.includes("'https://example.invalid'") &&
+  mediaCleanupVaultFixture.includes("'ci-placeholder-public-api-key'") &&
+  mediaCleanupVaultFixture.includes("mnty_catalog_media_cleanup_token"),
+  "the replay Vault fixture must use unmistakable dummy values and never Production secrets");
 assert.match(source, /migrationTimestampOrderViolations/, "migration timestamp/order conflicts must be checked");
 assert.match(source, /const reconciliationPath="docs\/release\/production-migration-reconciliation\.json"/, "live reconciliation manifest must be read");
 assert.match(liveContract, /source_ledger_identity_reconciled\s*===\s*true/, "source/ledger identity must be reconciled");
@@ -250,7 +259,8 @@ for (const contractPath of [
   "scripts/production/verify-production.mjs",
   "docs/release/production-migration-reconciliation.json",
   "supabase/tests/rc482_legal_platform_admin_registry_integration.sql",
-  "supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql"
+  "supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql",
+  "supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql"
 ]) {
   assert.ok(forwardReplay.includes(contractPath), `forward replay trigger paths must include ${contractPath}`);
 }

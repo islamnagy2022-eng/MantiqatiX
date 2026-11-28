@@ -666,8 +666,8 @@ assert.ok(aiGeminiProxy.includes('" + businessId + "/owner-uploads/" + imageKind
   'Owner uploads must be stored under the target business and image-kind namespace.');
 assert.ok(aiGeminiProxy.includes('CATALOG_IMAGE_UPLOAD_REQUESTED') && aiGeminiProxy.includes('requestLimit = action === "upload_catalog_image" ? 60'),
   'Owner uploads must be rate-limited and represented in the audit log.');
-assert.ok(aiGeminiProxy.includes('action === "upload_catalog_image") && user.is_anonymous'),
-  'Image upload must reject anonymous Auth sessions.');
+assert.ok(aiGeminiProxy.includes('action === "upload_catalog_image" || action === "list_catalog_images") && user.is_anonymous'),
+  'Image upload and image-library listing must reject anonymous Auth sessions.');
 assert.ok(productionMapper.includes('export async function uploadCatalogImage') &&
   productionMapper.includes("supabase.functions.invoke('ai-gemini-proxy', { body: formData })"),
   'Browser uploads must use the authenticated Edge proxy instead of writing directly to public Storage.');
