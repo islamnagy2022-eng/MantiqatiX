@@ -110,6 +110,7 @@ for (const marker of [
   'demo_admin_root_helper_anon_execute_granted',
   'demo_admin_root_helper_search_path_not_empty',
   'demo_admin_root_registry_rls_not_forced',
+  'demo_admin_root_registry_direct_client_privilege_granted',
 ]) {
   assert.ok(postgresTest.includes(marker), 'PostgreSQL integration contract missing assertion marker: ' + marker);
 }
