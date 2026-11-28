@@ -104,4 +104,4 @@ Do not disable RLS, widen grants, or add a tenant membership as a substitute for
 
 ## Current state
 
-The three migrations listed in the preconditions are already applied to MantiqatiX-DEMO, and `catalog-platform-admin` is deployed there as ACTIVE version 1. The registry still contains **zero** platform-admin identities; this runbook has not been executed and no user has been promoted. Direct DEMO HTTP/browser authorization smoke tests remain outstanding. Production and GitHub Pages production have not been changed.
+The three migrations listed in the preconditions are applied to MantiqatiX-DEMO, and `catalog-platform-admin` is deployed there as ACTIVE version 1. The registry currently contains **zero** platform-admin identities; this runbook has not been executed and no user has been promoted. Direct HTTP/browser authorization smoke tests remain outstanding; the most recent direct HTTP attempt could not resolve the Supabase hostname from the execution environment and did not reach the function. Production and GitHub Pages production have not been changed.
