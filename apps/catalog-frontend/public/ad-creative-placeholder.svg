@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
+  <title id="title">إعلان ممول</title>
+  <desc id="desc">مساحة إعلانية من منصة MantiqatiX</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#260000"/>
+      <stop offset=".55" stop-color="#7a0000"/>
+      <stop offset="1" stop-color="#3a0000"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="80%" cy="20%" r="70%">
+      <stop offset="0" stop-color="#f6c04d" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#f6c04d" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="420" fill="url(#bg)"/>
+  <rect width="1200" height="420" fill="url(#glow)"/>
+  <circle cx="1050" cy="30" r="250" fill="none" stroke="#f6c04d" stroke-opacity=".22" stroke-width="2"/>
+  <circle cx="1050" cy="30" r="190" fill="none" stroke="#f6c04d" stroke-opacity=".15" stroke-width="2"/>
+  <path d="M0 350 Q240 260 470 390 T950 330 T1200 360" fill="none" stroke="#ffffff" stroke-opacity=".08" stroke-width="3"/>
+  <g fill="#ffffff" text-anchor="middle" font-family="Arial,Tahoma,sans-serif">
+    <text x="600" y="170" font-size="34" font-weight="700" fill="#f6c04d">MantiqatiX</text>
+    <text x="600" y="235" font-size="48" font-weight="700">مساحة إعلانية ممولة</text>
+    <text x="600" y="292" font-size="25" opacity=".8">سيظهر التصميم الإعلاني هنا عند توفره</text>
+  </g>
+</svg>
