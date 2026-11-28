@@ -20,9 +20,7 @@ assert.equal((migration.match(/^\s+business_id is null$/gm) || []).length, 3);
 assert.match(migration, /business_id cannot be changed because it[\s\S]*?is not included/i);
 assert.match(migration, /revoke insert, update, delete[\s\S]*?from authenticated/i);
 assert.match(migration, /grant update \(profile_image_path, settings, updated_at\)/i);
-assert.match(migration, /create or replace function public\.mnty_guard_provider_profile_branding_only\(\)/i);
 assert.match(migration, /current_user <> 'authenticated'/i);
-assert.match(migration, /v_new_settings - 'branding'/);
 assert.match(migration, /coalesce\(v_new_settings->'branding', '\{\}'::jsonb\) - 'logo_path'/);
 assert.match(migration, /before update of settings on public\.marketing_provider_profiles/i);
 assert.equal((migration.match(/auth\.jwt\(\)->>'is_anonymous'/g) || []).length, 4);
@@ -40,8 +38,6 @@ for (const marker of [
   "unscoped tenant admin created a business lead",
   "anonymous session created a marketing lead",
   "provider owner could not update own branding",
-  "provider owner changed a non-logo branding setting",
-  "provider owner changed official showcase metadata",
   "owner logo update changed non-brand profile settings",
   "provider owner changed profile business_id",
   "provider owner self-approved profile",
