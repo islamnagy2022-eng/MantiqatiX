@@ -26,16 +26,16 @@ The root-convergence migration makes `private.platform_admins` the only source o
 
 The live DEMO database already has the ACL effect introduced by migration `20261128112652`: both `mnty_active_membership` and `mnty_can` deny EXECUTE to `PUBLIC`/`anon`, grant it to `authenticated`, and use an empty `search_path`. The source migration also passed chronological forward replay. Its timestamp is earlier than the already-applied `20261128112653`, so do not apply it out of order through a direct SQL migration call.
 
-An authorized operator should first mark this already-present effect as applied in the DEMO migration history using the Supabase CLI. This changes the history record only; it does not re-run the SQL:
+An authorized operator should first mark this already-present effect as applied in the DEMO migration history using the Supabase CLI v3. This changes the history record only; it does not re-run the SQL:
 
 ```bash
 supabase link --project-ref lkijdgqanbqjudiducjt
-supabase migration list --remote
-supabase migration repair 20261128112652 --status applied --remote
-supabase migration list --remote
+supabase migration list --remote=lkijdgqanbqjudiducjt
+supabase migration repair 20261128112652 --status applied --remote=lkijdgqanbqjudiducjt
+supabase migration list --remote=lkijdgqanbqjudiducjt
 ```
 
-Before confirming, verify the command targets **MantiqatiX-DEMO**. Let the CLI show its hosted-database confirmation prompt; do not use `--yes`. Verify the remote migration list shows all four versions in timestamp order. The CLI's current remote syntax is `--remote`; the old `--linked` flag is deprecated. Never perform this operation against Production, and never edit `supabase_migrations.schema_migrations` manually.
+The `--remote=lkijdgqanbqjudiducjt` value explicitly selects MantiqatiX-DEMO; do not use a bare `--remote` for this repair. Review the CLI's hosted-database confirmation prompt and confirm only after the project name/ref and the pending version are correct. Keep this interactive; do not add `--yes` for the operator-driven repair. Verify the remote list shows all four admin migration versions in timestamp order. Current CLI v3 uses explicit `--remote=<project-ref>` for remote database commands; `--linked` is deprecated. Never perform this operation against Production, and never edit `supabase_migrations.schema_migrations` manually.
 
 ## Bootstrap
 
