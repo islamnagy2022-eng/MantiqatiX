@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { supabase, uploadCatalogImage } from '../../lib/production';
+import { supabase, uploadCatalogImage, listCatalogImages, type CatalogMediaLibraryItem } from '../../lib/production';
 import { Product } from '../../types';
 import { generateStorePublicUrl, getCurrentAppBasePath, MAX_PRODUCTS_PER_BUSINESS } from '../../utils/rules';
 import { resolveDefaultImage } from '../../utils/defaultImages';
@@ -259,6 +259,13 @@ export const MerchantDashboard: React.FC = () => {
   const [formError, setFormError] = useState('');
   const [mediaUploadBusy, setMediaUploadBusy] = useState('');
   const [mediaUploadNotice, setMediaUploadNotice] = useState('');
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
+  const [mediaLibraryTarget, setMediaLibraryTarget] = useState<'logo' | 'cover' | 'catalog'>('logo');
+  const [mediaLibraryKind, setMediaLibraryKind] = useState<'activity' | 'cover' | 'product' | 'service'>('activity');
+  const [mediaLibraryItems, setMediaLibraryItems] = useState<CatalogMediaLibraryItem[]>([]);
+  const [mediaLibraryLoading, setMediaLibraryLoading] = useState(false);
+  const [mediaLibraryError, setMediaLibraryError] = useState('');
+  const mediaLibraryRequestRef = useRef(0);
 
   useEffect(() => {
     if (formImageSource !== 'auto') return;
@@ -288,6 +295,10 @@ export const MerchantDashboard: React.FC = () => {
     setBizWorkingHours(currentBusiness?.workingHours || '');
     setSaveSuccess(false);
     setProfileSaveError('');
+    mediaLibraryRequestRef.current += 1;
+    setIsMediaLibraryOpen(false);
+    setMediaLibraryItems([]);
+    setMediaLibraryError('');
   }, [currentBusiness?.id]);
   
 
@@ -561,6 +572,61 @@ export const MerchantDashboard: React.FC = () => {
     }
   };
 
+  const closeMediaLibrary = (): void => {
+    mediaLibraryRequestRef.current += 1;
+    setIsMediaLibraryOpen(false);
+    setMediaLibraryLoading(false);
+  };
+
+  const openMediaLibrary = async (target: 'logo' | 'cover' | 'catalog'): Promise<void> => {
+    if (!currentBusiness?.id || !currentBusiness.branchId) {
+      const message = 'تعذر تحديد النشاط والفرع المسموح لهما بفتح مكتبة الصور.';
+      if (target === 'catalog') setFormError(message);
+      else setProfileSaveError(message);
+      return;
+    }
+
+    const kind: 'activity' | 'cover' | 'product' | 'service' =
+      target === 'logo' ? 'activity' : target === 'cover' ? 'cover' : formType;
+    const requestId = ++mediaLibraryRequestRef.current;
+    setMediaLibraryTarget(target);
+    setMediaLibraryKind(kind);
+    setMediaLibraryItems([]);
+    setMediaLibraryError('');
+    setMediaLibraryLoading(true);
+    setIsMediaLibraryOpen(true);
+
+    try {
+      const items = await listCatalogImages({
+        businessId: currentBusiness.id,
+        branchId: currentBusiness.branchId,
+        kind,
+      });
+      if (requestId === mediaLibraryRequestRef.current) setMediaLibraryItems(items);
+    } catch (error) {
+      if (requestId === mediaLibraryRequestRef.current) {
+        setMediaLibraryError(error instanceof Error ? error.message : 'تعذر تحميل مكتبة الصور السابقة.');
+      }
+    } finally {
+      if (requestId === mediaLibraryRequestRef.current) setMediaLibraryLoading(false);
+    }
+  };
+
+  const handleSelectMediaLibraryImage = (item: CatalogMediaLibraryItem): void => {
+    if (mediaLibraryTarget === 'logo') {
+      setBizLogoUrl(item.imageUrl);
+      setMediaUploadNotice('تم اختيار شعار من مكتبة الصور. اضغط «حفظ التغييرات» لاعتماده.');
+    } else if (mediaLibraryTarget === 'cover') {
+      setBizCoverUrl(item.imageUrl);
+      setMediaUploadNotice('تم اختيار غلاف من مكتبة الصور. اضغط «حفظ التغييرات» لاعتماده.');
+    } else {
+      setFormImageUrl(item.imageUrl);
+      setFormImageSource('owner');
+      setMediaUploadNotice('تم اختيار صورة سابقة. ستُحفظ مع المنتج عند الضغط على حفظ العنصر.');
+    }
+    closeMediaLibrary();
+  };
+
   const openAddModal = () => {
     setMediaUploadNotice('');
     setEditingProduct(null);
@@ -660,6 +726,49 @@ export const MerchantDashboard: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {isMediaLibraryOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/70 p-3 sm:p-6" dir="rtl">
+          <section role="dialog" aria-modal="true" aria-labelledby="catalog-media-library-title" className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <header className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
+              <div>
+                <h2 id="catalog-media-library-title" className="text-base font-black text-slate-900">مكتبة الصور المرفوعة سابقًا</h2>
+                <p className="mt-1 text-xs leading-6 text-slate-500">اختر صورة محفوظة لنفس النشاط بدل رفعها مرة أخرى. الصور المستخدمة في بيانات الموقع لا تُحذف.</p>
+              </div>
+              <button type="button" onClick={closeMediaLibrary} aria-label="إغلاق مكتبة الصور" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xl font-bold text-slate-600 hover:bg-slate-200">×</button>
+            </header>
+            <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+              <p className="mb-4 rounded-xl bg-amber-50 px-3 py-2 text-[11px] leading-6 text-amber-900">
+                تُحذف الصور التي تظل غير مستخدمة بعد 5 أيام تلقائيًا. أي صورة مرتبطة بمحتوى منشور أو محفوظ في الموقع تظل محفوظة.
+              </p>
+              {mediaLibraryLoading && <p role="status" className="py-10 text-center text-sm font-bold text-slate-500">جارٍ تحميل الصور السابقة...</p>}
+              {mediaLibraryError && <p role="alert" className="rounded-xl bg-rose-50 px-3 py-3 text-sm font-bold text-rose-700">{mediaLibraryError}</p>}
+              {!mediaLibraryLoading && !mediaLibraryError && mediaLibraryItems.length === 0 && (
+                <div className="py-12 text-center">
+                  <ImageIcon className="mx-auto h-10 w-10 text-slate-300" />
+                  <p className="mt-3 text-sm font-bold text-slate-700">لا توجد صور مرفوعة سابقًا لهذا النوع.</p>
+                  <p className="mt-1 text-xs text-slate-500">حمّل صورة من جهازك وستظهر هنا للاستخدام لاحقًا.</p>
+                </div>
+              )}
+              {mediaLibraryItems.length > 0 && (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  {mediaLibraryItems.map((item) => (
+                    <button key={item.objectPath} type="button" onClick={() => handleSelectMediaLibraryImage(item)} className="group overflow-hidden rounded-2xl border border-slate-200 bg-white text-right transition hover:border-emerald-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                      <img src={item.imageUrl} alt="صورة محفوظة في مكتبة النشاط" loading="lazy" className="aspect-square w-full bg-slate-100 object-cover" />
+                      <span className="block px-3 py-2">
+                        <span className="block text-xs font-black text-slate-800">اختيار هذه الصورة</span>
+                        <span className="mt-1 block text-[10px] text-slate-500">{item.createdAt ? new Date(item.createdAt).toLocaleDateString('ar-EG') : 'تاريخ الرفع غير متاح'}{item.fileSize > 0 ? ` · ${(item.fileSize / (1024 * 1024)).toFixed(1)} ميجابايت` : ''}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <footer className="flex justify-end border-t border-slate-100 px-5 py-3">
+              <button type="button" onClick={closeMediaLibrary} className="rounded-xl bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">إغلاق</button>
+            </footer>
+          </section>
+        </div>
+      )}
       {/* Page Freeze Warning Banner */}
       {isFrozen && (
         <div className="bg-rose-600 text-white p-4 sm:p-5 rounded-3xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -1208,6 +1317,9 @@ export const MerchantDashboard: React.FC = () => {
                     {mediaUploadBusy === 'cover' ? 'جارٍ رفع الغلاف...' : 'تحميل الغلاف من الجهاز'}
                   </label>
                   <input id="business-cover-file" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={Boolean(mediaUploadBusy)} onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; void handleBusinessImageUpload('cover', file); }} />
+                  <button type="button" onClick={() => void openMediaLibrary('cover')} disabled={Boolean(mediaUploadBusy)} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+                    <ImageIcon className="h-4 w-4" /> اختيار غلاف سابق
+                  </button>
                   <span className="text-[11px] text-slate-500">JPG أو PNG أو WebP · بحد أقصى 5 ميجابايت</span>
                 </div>
               </div>
@@ -1229,6 +1341,9 @@ export const MerchantDashboard: React.FC = () => {
                     {mediaUploadBusy === 'activity' ? 'جارٍ رفع الشعار...' : 'تحميل الشعار من الجهاز'}
                   </label>
                   <input id="business-logo-file" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={Boolean(mediaUploadBusy)} onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; void handleBusinessImageUpload('activity', file); }} />
+                  <button type="button" onClick={() => void openMediaLibrary('logo')} disabled={Boolean(mediaUploadBusy)} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+                    <ImageIcon className="h-4 w-4" /> اختيار شعار سابق
+                  </button>
                   <span className="text-[11px] text-slate-500">JPG أو PNG أو WebP · بحد أقصى 5 ميجابايت</span>
                 </div>
               </div>
@@ -1802,6 +1917,9 @@ export const MerchantDashboard: React.FC = () => {
                     {mediaUploadBusy === 'product' ? 'جارٍ رفع الصورة...' : 'تحميل صورة من الجهاز'}
                   </label>
                   <input id="catalog-item-image-file" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={Boolean(mediaUploadBusy)} onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; void handleProductImageUpload(file); }} />
+                  <button type="button" onClick={() => void openMediaLibrary('catalog')} disabled={Boolean(mediaUploadBusy)} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+                    <ImageIcon className="h-4 w-4" /> اختيار صورة سابقة
+                  </button>
                   <span className="text-[11px] text-slate-500">JPG أو PNG أو WebP · بحد أقصى 5 ميجابايت</span>
                 </div>
                 {mediaUploadNotice && <p role="status" className="mt-2 text-xs font-bold text-emerald-700">{mediaUploadNotice}</p>}
