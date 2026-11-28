@@ -585,8 +585,6 @@ export const MerchantDashboard: React.FC = () => {
       return;
     }
 
-    const kind: 'activity' | 'cover' | 'product' | 'service' =
-      target === 'logo' ? 'activity' : target === 'cover' ? 'cover' : formType;
     const requestId = ++mediaLibraryRequestRef.current;
     setMediaLibraryTarget(target);
     setMediaLibraryItems([]);
@@ -598,7 +596,7 @@ export const MerchantDashboard: React.FC = () => {
       const items = await listCatalogImages({
         businessId: currentBusiness.id,
         branchId: currentBusiness.branchId || '',
-        kind,
+        kind: 'all',
       });
       if (requestId === mediaLibraryRequestRef.current) setMediaLibraryItems(items);
     } catch (error) {
@@ -730,7 +728,7 @@ export const MerchantDashboard: React.FC = () => {
             <header className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
               <div>
                 <h2 id="catalog-media-library-title" className="text-base font-black text-slate-900">مكتبة الصور المرفوعة سابقًا</h2>
-                <p className="mt-1 text-xs leading-6 text-slate-500">اختر صورة محفوظة لنفس النشاط بدل رفعها مرة أخرى. الصور المستخدمة في بيانات الموقع لا تُحذف.</p>
+                <p className="mt-1 text-xs leading-6 text-slate-500">اختر أي صورة سبق رفعها لهذا النشاط، مهما كان نوعها الأصلي، واستخدمها للشعار أو الغلاف أو المنتج أو الخدمة.</p>
               </div>
               <button type="button" onClick={closeMediaLibrary} aria-label="إغلاق مكتبة الصور" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xl font-bold text-slate-600 hover:bg-slate-200">×</button>
             </header>
@@ -754,7 +752,11 @@ export const MerchantDashboard: React.FC = () => {
                       <img src={item.imageUrl} alt="صورة محفوظة في مكتبة النشاط" loading="lazy" className="aspect-square w-full bg-slate-100 object-cover" />
                       <span className="block px-3 py-2">
                         <span className="block text-xs font-black text-slate-800">اختيار هذه الصورة</span>
-                        <span className="mt-1 block text-[10px] text-slate-500">{item.createdAt ? new Date(item.createdAt).toLocaleDateString('ar-EG') : 'تاريخ الرفع غير متاح'}{item.fileSize > 0 ? ` · ${(item.fileSize / (1024 * 1024)).toFixed(1)} ميجابايت` : ''}</span>
+                        <span className="mt-1 block text-[10px] text-slate-500">
+                          {item.sourceKind === 'activity' ? 'شعار نشاط' : item.sourceKind === 'cover' ? 'غلاف' : item.sourceKind === 'service' ? 'صورة خدمة' : 'صورة منتج'}
+                          {item.createdAt ? ` · ${new Date(item.createdAt).toLocaleDateString('ar-EG')}` : ''}
+                          {item.fileSize > 0 ? ` · ${(item.fileSize / (1024 * 1024)).toFixed(1)} ميجابايت` : ''}
+                        </span>
                       </span>
                     </button>
                   ))}
