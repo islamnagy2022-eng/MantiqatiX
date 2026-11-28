@@ -6,6 +6,34 @@ import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS, REQU
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const rc117ImageRepairValidator = fs.readFileSync("scripts/validate-rc117-image-provenance-forward-repair.mjs", "utf8");
 const rc932Validator = fs.readFileSync("scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs", "utf8");
+
+const dependentReleaseCountValidators = [
+  "scripts/validate-rc117-image-provenance-forward-repair.mjs",
+  "scripts/validate-rc479-anonymous-auth-session-boundary.mjs",
+  "scripts/validate-rc494-settlement-financial-atomic-registry-scope.mjs",
+  "scripts/validate-rc924-agreement-participant-read-scope.mjs",
+  "scripts/validate-rc925-catalog-rpc-missing-claim-guard.mjs",
+  "scripts/validate-rc926-provider-profile-confirmed-identity-strict-guard.mjs",
+  "scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs",
+  "scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs",
+  "scripts/validate-rc929-orders-confirmed-auth-guard.mjs",
+];
+for (const validatorPath of dependentReleaseCountValidators) {
+  const validatorSource = fs.readFileSync(validatorPath, "utf8");
+  assert.ok(!validatorSource.includes("expected_migration_versions, 88"),
+    validatorPath + " must use the current 89-version migration manifest");
+  assert.ok(!validatorSource.includes("CURRENT_RELEASE_MIGRATION_COUNT=88"),
+    validatorPath + " must not pin the superseded 88-version backup contract");
+  assert.ok(!validatorSource.includes("88-version contract") && !validatorSource.includes("88 exact source migrations"),
+    validatorPath + " must not assert the superseded 88-version release count");
+  assert.ok(
+    !validatorSource.includes("required\\\\.length, 88") &&
+    !validatorSource.includes("required\\.length, 88") &&
+    !validatorSource.includes("required.length, 88"),
+    validatorPath + " must not pin the superseded 88-entry migration chain"
+  );
+}
+
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
 const forwardReplayWorkflow = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
 const liveContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
