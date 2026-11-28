@@ -912,7 +912,7 @@ export const DirectoryView: React.FC = () => {
   const locationWelcomeDialog = showLocationWelcome ? (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="geo-discovery-title">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 text-right shadow-2xl" dir="rtl">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff3e0] text-[#7a0000]">
               <Navigation className="h-6 w-6" />
             </div>
             <h2 id="geo-discovery-title" className="text-lg font-black text-slate-950">اكتشف الأنشطة الأقرب إليك</h2>
@@ -920,13 +920,13 @@ export const DirectoryView: React.FC = () => {
               اسمح للموقع باستخدام إحداثيات جهازك داخل المتصفح لاختيار أقرب نطاق إداري وترتيب الأنشطة التي لها إحداثيات موثوقة. لا نرسل إحداثيات GPS نفسها ولا نحفظها؛ نحمّل أسماء الشياخات لعدد محدود من المراكز الأقرب باستخدام أكوادها الإدارية فقط.
             </p>
             <div className="mt-5 grid gap-2">
-              <button type="button" onClick={requestUserLocation} disabled={locationBusy} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-800 disabled:opacity-60">
+              <button type="button" onClick={requestUserLocation} disabled={locationBusy} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#7a0000] px-4 py-3 text-sm font-black text-white transition hover:bg-[#5a0000] disabled:opacity-60">
                 <Navigation className="h-4 w-4" /> {locationBusy ? 'جارٍ طلب إذن الموقع…' : 'السماح باستخدام موقعي'}
               </button>
               <button type="button" onClick={() => { completeGeoSetup('manual'); setLocationMessage('يمكنك اختيار مصر بالكامل أو المحافظة والمركز والقرية من أدوات تحديد النطاق.'); }} className="min-h-11 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-slate-50">
                 اختيار الموقع يدويًا
               </button>
-              <button type="button" onClick={() => { completeGeoSetup('manual'); setSelectedGovFilter('all'); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); setUserCoordinates(null); setLocationMessage('يتم الآن عرض الأنشطة والخدمات المنشورة في مصر بالكامل.'); }} className="min-h-10 text-xs font-bold text-emerald-800 underline">
+              <button type="button" onClick={() => { completeGeoSetup('manual'); setSelectedGovFilter('all'); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); setUserCoordinates(null); setLocationMessage('يتم الآن عرض الأنشطة والخدمات المنشورة في مصر بالكامل.'); }} className="min-h-10 text-xs font-bold text-[#7a0000] underline">
                 عرض مصر بالكامل
               </button>
             </div>
@@ -1106,7 +1106,7 @@ export const DirectoryView: React.FC = () => {
                     data-testid="activity-category-card"
                     className="group relative flex min-h-24 w-full min-w-0 flex-1 flex-col items-center justify-center gap-2 rounded-xl p-1 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] sm:min-h-24 sm:flex-row sm:justify-start sm:gap-3 sm:p-2 sm:text-right"
                   >
-                    <span className="absolute left-1 top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-1 text-[9px] font-black text-emerald-800 sm:h-6 sm:min-w-6 sm:text-[10px]">{totalCount.toLocaleString('ar-EG')}</span>
+                    <span className="absolute left-1 top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-[#ead5c5] bg-[#fff3e0] px-1 text-[9px] font-black text-[#7a0000] sm:h-6 sm:min-w-6 sm:text-[10px]">{totalCount.toLocaleString('ar-EG')}</span>
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff8f0] text-[#7a625c] group-hover:bg-[#fff3e0] group-hover:text-[#7a0000] sm:h-11 sm:w-11">{ICONS_MAP[category.functionalGroupId] || <Store className="h-6 w-6" />}</span>
                     <span className="min-w-0 flex-1"><span className="block text-xs font-black leading-snug text-slate-900 sm:text-base">{category.name}</span><span className="mt-1 flex flex-wrap justify-center gap-1 text-[9px] font-bold sm:mt-2 sm:justify-start sm:text-[10px]"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثق {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير موثق {unconfirmedCount}</span></span></span>
                     <ChevronLeft className="hidden h-4 w-4 shrink-0 text-slate-400 transition group-hover:text-[#a00000] sm:block" />
@@ -1342,7 +1342,7 @@ export const DirectoryView: React.FC = () => {
                             <h3 className="w-full break-words font-black text-xs sm:text-base text-slate-900 group-hover:text-[#a00000] transition-colors line-clamp-2">
                               {biz.name}
                             </h3>
-                            <span className="hidden sm:inline-block text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                            <span className="hidden sm:inline-block text-[11px] font-bold text-[#7a0000] bg-[#fff3e0] px-2.5 py-0.5 rounded-full border border-[#ead5c5]">
                               {biz.category}
                             </span>
                           </div>
@@ -1356,7 +1356,7 @@ export const DirectoryView: React.FC = () => {
                             <span>{formatEgyptianLocation(biz.governorate, biz.markaz, biz.village)}</span>
                           </div>
                           {userCoordinates && distanceKm(userCoordinates, getCoordinates(biz)) !== null && (
-                            <p className="hidden sm:block text-[11px] font-bold text-emerald-800">
+                            <p className="hidden sm:block text-[11px] font-bold text-[#7a0000]">
                               على بُعد {distanceKm(userCoordinates, getCoordinates(biz))!.toFixed(1)} كم
                             </p>
                           )}
@@ -1416,8 +1416,8 @@ export const DirectoryView: React.FC = () => {
                     <h3 className="line-clamp-2 break-words text-xs font-black text-slate-900 sm:text-base">{listing.display_name}</h3>
                     <p className="mt-1 line-clamp-2 text-[10px] text-slate-600 sm:text-xs">{listing.taxonomy_specialty || listing.specialty || 'نشاط محلي'}</p>
                     <p className="mt-2 line-clamp-2 text-[10px] text-slate-500 sm:text-xs">{[listing.village, listing.district, listing.governorate].filter(Boolean).join('، ') || listing.address || 'الموقع غير مكتمل'}</p>
-                    {userCoordinates && distanceKm(userCoordinates, getCoordinates(listing)) !== null && <p className="mt-2 text-[10px] font-bold text-emerald-800 sm:text-xs">على بُعد {distanceKm(userCoordinates, getCoordinates(listing))!.toFixed(1)} كم</p>}
-                    <span className="mt-3 inline-flex rounded-lg bg-slate-900 px-3 py-2 text-[10px] font-black text-white sm:text-xs">عرض التفاصيل <ArrowRight className="mr-1 inline h-3 w-3" /></span>
+                    {userCoordinates && distanceKm(userCoordinates, getCoordinates(listing)) !== null && <p className="mt-2 text-[10px] font-bold text-[#7a0000] sm:text-xs">على بُعد {distanceKm(userCoordinates, getCoordinates(listing))!.toFixed(1)} كم</p>}
+                    <span className="mt-3 inline-flex rounded-lg bg-[#7a0000] px-3 py-2 text-[10px] font-black text-white sm:text-xs">عرض التفاصيل <ArrowRight className="mr-1 inline h-3 w-3" /></span>
                   </div>
                 </button>
               ))}
@@ -1427,7 +1427,7 @@ export const DirectoryView: React.FC = () => {
             <div className="flex flex-col items-center gap-2 pt-2">
               {(visibleActivityTotal < totalFilteredActivities || directoryHasMoreForView || directoryListingsHasMore) && (
                 <button type="button" onClick={showMoreDirectoryActivities} disabled={directoryListingsLoadingMore || directoryLoadingMoreForView}
-                  className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
+                  className="min-h-11 rounded-xl border border-[#ead5c5] bg-white px-6 py-3 text-xs font-black text-[#7a0000] shadow-sm transition hover:bg-[#fff8f0] disabled:cursor-wait disabled:opacity-60">
                   {directoryListingsLoadingMore || directoryLoadingMoreForView ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من الأنشطة'}
                 </button>
               )}
