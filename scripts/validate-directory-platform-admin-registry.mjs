@@ -63,7 +63,7 @@ assert.ok(
 );
 assert.match(aiGeminiProxy, /global:\s*\{\s*headers:\s*\{\s*Authorization:\s*authHeader/,
   "AI catalog image registry RPC must use the verified caller Authorization header");
-assert.match(aiGeminiProxy, /action === "generate_catalog_image" && user\.is_anonymous/);
+assert.match(aiGeminiProxy, /action === "generate_catalog_image" \|\| action === "upload_catalog_image"[\s\S]{0,100}user\.is_anonymous/);
 assert.doesNotMatch(aiGeminiProxy, /isPlatformAdminMembership|some\(isPlatformAdminMembership\)/);
 
 // Shared helper accepts only exact boolean true and fails closed on errors or malformed values.
