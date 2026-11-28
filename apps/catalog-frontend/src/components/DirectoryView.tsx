@@ -1331,8 +1331,14 @@ export const DirectoryView: React.FC = () => {
                             className="w-full h-full object-cover rounded-xl bg-slate-100"
                             onError={(e) => {
                               const image = e.currentTarget;
-                              const fallback = resolveDefaultImage({ name: biz.name, description: biz.bio, category: biz.category, kind: 'activity' });
-                        if (!image.src.endsWith(fallback.replace(/^.*\//, ''))) image.src = fallback;
+                              if (image.dataset.fallbackApplied !== 'true') {
+                                image.dataset.fallbackApplied = 'true';
+                                image.src = resolveDefaultImage({ name: biz.name, description: biz.bio, category: biz.category, kind: 'activity' });
+                              } else {
+                                image.onerror = null;
+                                image.style.visibility = 'hidden';
+                                image.parentElement?.classList.add('bg-slate-100');
+                              }
                             }}
                           />
                         </div>

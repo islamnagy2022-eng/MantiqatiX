@@ -266,7 +266,18 @@ export const BusinessProfileHeader: React.FC = () => {
                   src={image}
                   alt={`صورة ترويجية ${index + 1} لنشاط ${currentBusiness.name}`}
                   loading="lazy"
+                  decoding="async"
                   className="aspect-square w-full object-cover transition duration-300 group-hover:scale-105"
+                  onError={(event) => {
+                    const imageElement = event.currentTarget;
+                    if (imageElement.dataset.fallbackApplied !== 'true') {
+                      imageElement.dataset.fallbackApplied = 'true';
+                      imageElement.src = defaultCover;
+                    } else {
+                      imageElement.onerror = null;
+                      imageElement.style.visibility = 'hidden';
+                    }
+                  }}
                 />
               </button>
             ))}

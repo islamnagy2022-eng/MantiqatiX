@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { calculateCartTotals, calculatePaymobFee } from '../../utils/rules';
 import { PaymobChannel } from '../../types';
+import { resolveDefaultImage } from '../../utils/defaultImages';
 import {
   X,
   ShoppingBag,
@@ -347,9 +348,31 @@ export const CartDrawer: React.FC = () => {
                       className="flex items-center gap-3 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80"
                     >
                       <img
-                        src={product.imageUrl}
+                        src={product.imageUrl || resolveDefaultImage({
+                          name: product.name,
+                          description: product.description,
+                          category: product.category,
+                          kind: product.type === 'service' ? 'service' : 'product',
+                        })}
                         alt={product.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-16 h-16 rounded-xl object-cover bg-slate-200 flex-shrink-0"
+                        onError={(event) => {
+                          const image = event.currentTarget;
+                          if (image.dataset.fallbackApplied !== 'true') {
+                            image.dataset.fallbackApplied = 'true';
+                            image.src = resolveDefaultImage({
+                              name: product.name,
+                              description: product.description,
+                              category: product.category,
+                              kind: product.type === 'service' ? 'service' : 'product',
+                            });
+                          } else {
+                            image.onerror = null;
+                            image.style.visibility = 'hidden';
+                          }
+                        }}
                       />
 
                       <div className="flex-1 min-w-0">

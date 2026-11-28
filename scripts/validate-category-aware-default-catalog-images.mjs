@@ -21,6 +21,8 @@ const context = read('apps/catalog-frontend/src/context/AppContext.tsx');
 const profileHeader = read('apps/catalog-frontend/src/components/storefront/BusinessProfileHeader.tsx');
 const marketplace = read('apps/catalog-frontend/src/components/MarketplaceHome.tsx');
 const catalogSection = read('apps/catalog-frontend/src/components/storefront/CatalogSection.tsx');
+const activityModule = read('apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx');
+const cartDrawer = read('apps/catalog-frontend/src/components/cart/CartDrawer.tsx');
 
 assert.ok(defaults.includes('export function resolveDefaultImage'), 'category-aware image resolver must remain the common source');
 assert.ok(defaults.includes('export function resolveDefaultActivityImages'), 'activity defaults must provide both logo and cover artwork');
@@ -94,7 +96,20 @@ assert.ok(marketplace.includes('target.src = defaultImage'), 'broken marketplace
 assert.ok(context.includes("kind: data.type === 'service' ? 'service' : 'product'"),
   'new products and services must receive type-aware artwork');
 assert.ok(catalogSection.includes('import { resolveDefaultImage }'), 'storefront product cards must share the category-aware resolver');
-assert.ok(catalogSection.includes('image.src = resolveDefaultImage({'), 'broken storefront product images must fall back by category');
+assert.ok(catalogSection.includes('image.src = defaultProductImage'), 'broken storefront product images must fall back by category');
+assert.ok(catalogSection.includes('src={product.imageUrl || defaultProductImage}'),
+  'storefront product cards must not render an empty image source');
+assert.ok(activityModule.includes('business.coverUrl || resolveDefaultImage(') && activityModule.includes('image.src = resolveDefaultImage('),
+  'activity module cards must always render category-aware fallback covers and recover from broken uploads');
+assert.ok(cartDrawer.includes("import { resolveDefaultImage }") && cartDrawer.includes('image.src = resolveDefaultImage('),
+  'cart thumbnails must receive category-aware images when a product photo is missing or broken');
+assert.ok(profileHeader.includes('imageElement.src = defaultCover'),
+  'broken promotional gallery images must recover with the local activity cover');
+assert.ok(marketplace.includes('const adFallback = resolveDefaultImage') &&
+  marketplace.includes('image.src = adFallback') &&
+  marketplace.includes('aspect-[16/7]') &&
+  marketplace.includes('إعلان ممول'),
+  'sponsored ads must use a branded banner aspect ratio and local fallback artwork rather than an empty image area');
 
 const directoryListings = read('apps/catalog-frontend/src/components/DirectoryListingsView.tsx');
 assert.ok(directoryListings.includes("import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from \"../utils/defaultImages\";"),

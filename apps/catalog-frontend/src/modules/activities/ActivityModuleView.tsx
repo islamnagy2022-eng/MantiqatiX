@@ -5,7 +5,7 @@ import type { PublicDirectoryListing } from '../../lib/directoryListings';
 import { useApp } from '../../context/AppContext';
 import { resolveActivityModuleConfig } from './activityModuleRegistry';
 import { resolveCanonicalSpecialty } from '../../data/productionDefaults';
-import { isMantiqatiXBrandName, resolveDefaultImage } from '../../utils/defaultImages';
+import { resolveDefaultImage } from '../../utils/defaultImages';
 import { EGYPT_GEO_GOVERNORATES } from '../../data/egyptGeoDiscovery';
 
 type Section = 'overview' | 'specialties' | 'marketing' | 'operations';
@@ -222,12 +222,48 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {visibleBusinesses.map((business) => <article key={business.id} className={`overflow-hidden rounded-2xl border bg-white shadow-sm ${business.isVerified ? 'border-emerald-200' : 'border-red-200'}`}>
-              <div className="relative h-28 bg-slate-100">
-                {(business.coverUrl || isMantiqatiXBrandName(business.name)) && <img src={business.coverUrl || resolveDefaultImage({ name: business.name, kind: 'cover' })} alt="" loading="lazy" className="h-full w-full object-cover" />}
+              <div className="relative h-28 overflow-hidden bg-slate-100">
+                <Store aria-hidden="true" className="absolute inset-0 m-auto h-10 w-10 text-slate-300" />
+                <img
+                  src={business.coverUrl || resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'cover' })}
+                  alt={`غلاف ${business.name}`}
+                  loading="lazy"
+                  decoding="async"
+                  className="relative h-full w-full object-cover"
+                  onError={(event) => {
+                    const image = event.currentTarget;
+                    if (image.dataset.fallbackApplied !== 'true') {
+                      image.dataset.fallbackApplied = 'true';
+                      image.src = resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'cover' });
+                    } else {
+                      image.onerror = null;
+                      image.style.visibility = 'hidden';
+                    }
+                  }}
+                />
                 <span className={`absolute right-2 top-2 rounded-full px-2 py-1 text-[10px] font-black text-white ${business.isVerified ? 'bg-emerald-700' : 'bg-red-700'}`}>{business.isVerified ? 'موثق' : 'غير موثق'}</span>
               </div>
               <div className="flex items-center gap-3 p-3">
-                {business.logoUrl || isMantiqatiXBrandName(business.name) ? <img src={business.logoUrl || resolveDefaultImage({ name: business.name, kind: 'activity' })} alt="" className="h-12 w-12 rounded-xl border object-cover" /> : <Store className="h-10 w-10 text-slate-400" />}
+                <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-slate-50">
+                  <Store aria-hidden="true" className="h-6 w-6 text-slate-300" />
+                  <img
+                    src={business.logoUrl || resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'activity' })}
+                    alt={`شعار ${business.name}`}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                    onError={(event) => {
+                      const image = event.currentTarget;
+                      if (image.dataset.fallbackApplied !== 'true') {
+                        image.dataset.fallbackApplied = 'true';
+                        image.src = resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'activity' });
+                      } else {
+                        image.onerror = null;
+                        image.style.visibility = 'hidden';
+                      }
+                    }}
+                  />
+                </span>
                 <div className="min-w-0"><h3 className="font-black text-slate-900">{business.name}</h3><p className="text-xs text-slate-500">{business.activitySpecialty || business.category}</p>
                   <p className="text-xs text-slate-500">{[business.village, business.markaz, business.governorate].filter(Boolean).join('، ')}</p></div>
               </div>

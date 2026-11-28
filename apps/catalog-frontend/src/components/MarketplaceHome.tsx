@@ -19,7 +19,6 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
   const defaultCover = resolveDefaultImage({
     name: business.name, description: business.bio, category: business.category, kind: 'cover',
   });
-  const isPlatformBrandProfile = isMantiqatiXBrandName(business.name);
   const logo = business.logoUrl || defaultLogo;
   const cover = business.coverUrl || defaultCover;
   return (
@@ -32,6 +31,9 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
               if (image.dataset.defaultFallbackApplied !== 'true') {
                 image.dataset.defaultFallbackApplied = 'true';
                 image.src = defaultCover;
+              } else {
+                image.onerror = null;
+                image.style.visibility = 'hidden';
               }
             }} />
           <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-700 px-2.5 py-1 text-[10px] font-black text-white shadow">
@@ -45,6 +47,9 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
               if (image.dataset.defaultFallbackApplied !== 'true') {
                 image.dataset.defaultFallbackApplied = 'true';
                 image.src = defaultLogo;
+              } else {
+                image.onerror = null;
+                image.style.visibility = 'hidden';
               }
             }} />
           <div className="min-h-12">
@@ -84,6 +89,9 @@ const ProductCard: React.FC<{
               if (target.dataset.defaultFallbackApplied !== 'true') {
                 target.dataset.defaultFallbackApplied = 'true';
                 target.src = defaultImage;
+              } else {
+                target.onerror = null;
+                target.style.visibility = 'hidden';
               }
             }} />
           {hasDiscount && <span className="absolute right-2 top-2 rounded-full bg-rose-600 px-2.5 py-1 text-[10px] font-black text-white">خصم {discount}%</span>}
@@ -212,7 +220,23 @@ export const MarketplaceHome: React.FC = () => {
             </div>
           </div>
           <div className="relative min-h-64 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#5a0000] via-[#3a0000] to-[#2b1714] p-5 shadow-2xl sm:min-h-80">
-            {verifiedBusinesses[0] && <img src={isMantiqatiXBrandName(verifiedBusinesses[0].name) ? resolveDefaultImage({ name: verifiedBusinesses[0].name, kind: 'cover' }) : verifiedBusinesses[0].coverUrl || resolveDefaultImage({ name: verifiedBusinesses[0].name, description: verifiedBusinesses[0].bio, category: verifiedBusinesses[0].category, kind: 'cover' })} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />}
+            {verifiedBusinesses[0] && <img
+              src={isMantiqatiXBrandName(verifiedBusinesses[0].name) ? resolveDefaultImage({ name: verifiedBusinesses[0].name, kind: 'cover' }) : verifiedBusinesses[0].coverUrl || resolveDefaultImage({ name: verifiedBusinesses[0].name, description: verifiedBusinesses[0].bio, category: verifiedBusinesses[0].category, kind: 'cover' })}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover opacity-25"
+              onError={(event) => {
+                const image = event.currentTarget;
+                if (image.dataset.defaultFallbackApplied !== 'true') {
+                  image.dataset.defaultFallbackApplied = 'true';
+                  image.src = resolveDefaultImage({ name: verifiedBusinesses[0].name, description: verifiedBusinesses[0].bio, category: verifiedBusinesses[0].category, kind: 'cover' });
+                } else {
+                  image.onerror = null;
+                  image.style.visibility = 'hidden';
+                }
+              }}
+            />}
             <div className="absolute -left-10 -top-10 h-44 w-44 rounded-full border border-[#f6c04d]/25" />
             <div className="absolute -bottom-20 -right-8 h-64 w-64 rounded-full border border-[#f6c04d]/25" />
             <div className="relative flex h-full min-h-64 flex-col justify-between sm:min-h-72">
@@ -262,9 +286,23 @@ export const MarketplaceHome: React.FC = () => {
           {advertisements.length ? <div className="grid gap-4 md:grid-cols-2">
             {advertisements.slice(0, 4).map((ad) => {
               const href = isSafeHttpsUrl(ad.target_url);
-              const card = <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <img src={ad.creative_url} alt={ad.title || 'إعلان'} className="max-h-64 min-h-40 w-full object-cover" loading="lazy" />
-                <div className="flex items-center justify-between gap-3 p-3"><p className="line-clamp-1 text-sm font-black">{ad.title}</p><span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">إعلان معتمد</span></div>
+              const adFallback = resolveDefaultImage({ name: ad.title || 'إعلان المنصة', kind: 'cover' });
+              const card = <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+                <div className="relative aspect-[16/7] min-h-36 overflow-hidden bg-gradient-to-br from-[#3a0000] via-[#7a0000] to-[#3a0000]">
+                  <img src={ad.creative_url || adFallback} alt={ad.title || 'إعلان المنصة'} className="h-full w-full object-cover" loading="lazy" decoding="async"
+                    onError={(event) => {
+                      const image = event.currentTarget;
+                      if (image.dataset.fallbackApplied !== 'true') {
+                        image.dataset.fallbackApplied = 'true';
+                        image.src = adFallback;
+                      } else {
+                        image.onerror = null;
+                        image.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350"%3E%3Crect width="800" height="350" fill="%237a0000"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="36" fill="white"%3E%D8%A5%D8%B9%D9%84%D8%A7%D9%86%D8%A7%D8%AA%20%D9%85%D9%86%D8%B5%D8%A9%20%D9%85%D9%86%D8%B7%D9%82%D8%AA%D9%8AX%3C/text%3E%3C/svg%3E';
+                      }
+                    }} />
+                  <span className="absolute right-3 top-3 rounded-full bg-[#7a0000]/90 px-3 py-1 text-[10px] font-black text-white shadow">إعلان ممول</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 p-3"><p className="line-clamp-1 text-sm font-black">{ad.title || 'إعلان من شركاء المنصة'}</p><span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">معتمد</span></div>
               </div>;
               return href ? <a key={ad.advertisement_id} href={href} target="_blank" rel="noopener noreferrer">{card}</a> : <div key={ad.advertisement_id}>{card}</div>;
             })}
