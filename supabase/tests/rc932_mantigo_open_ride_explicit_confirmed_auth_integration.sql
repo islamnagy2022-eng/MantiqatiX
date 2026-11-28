@@ -7,6 +7,7 @@ BEGIN;
 DO $auth_fixture$
 DECLARE
   v_schema_owner name;
+  v_runner name := current_user;
 BEGIN
   IF pg_catalog.to_regclass('auth.users') IS NULL THEN
     IF pg_catalog.has_schema_privilege(current_user, 'auth', 'CREATE') THEN
@@ -24,6 +25,7 @@ BEGIN
 
       EXECUTE pg_catalog.format('SET ROLE %I', v_schema_owner);
       EXECUTE 'CREATE TABLE auth.users (id uuid PRIMARY KEY)';
+      EXECUTE pg_catalog.format('GRANT SELECT, INSERT, UPDATE, DELETE ON auth.users TO %I', v_runner);
       EXECUTE 'RESET ROLE';
     END IF;
   END IF;
