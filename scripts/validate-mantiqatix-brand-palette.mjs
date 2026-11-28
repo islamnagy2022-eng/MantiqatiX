@@ -21,8 +21,7 @@ const expectedTokens = {
   '--mx-danger': '#d90000',
 };
 for (const [token, value] of Object.entries(expectedTokens)) {
-  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  expect(`token ${token} uses ${value}`, new RegExp(`\\\\s*${escaped}\\\\s*:\\\\s*${value}\\\\s*;`).test(css));
+  expect(`token ${token} uses ${value}`, css.includes(`  ${token}: ${value};`));
 }
 
 const requiredFiles = [
