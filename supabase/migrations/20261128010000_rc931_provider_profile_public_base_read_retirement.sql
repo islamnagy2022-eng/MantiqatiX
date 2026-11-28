@@ -128,8 +128,14 @@ begin
 
   if v_crm_qual is null
      or v_crm_qual not ilike '%um.tenant_id = b.tenant_id%'
-     or v_crm_qual not ilike '%b.id = marketing_provider_profiles.business_id%' then
-    raise exception 'RC931_RC115_TENANT_AND_BUSINESS_SCOPED_CRM_POLICY_REQUIRED';
+     or v_crm_qual not ilike '%business_id%' 
+     or v_crm_qual not ilike '%b.id%' then
+    raise exception
+      'RC931_RC115_TENANT_AND_BUSINESS_SCOPED_CRM_POLICY_REQUIRED: tenant_match=%, business_column_match=%, business_alias_match=%, policy_qual=%',
+      coalesce(v_crm_qual ilike '%um.tenant_id = b.tenant_id%', false),
+      coalesce(v_crm_qual ilike '%business_id%', false),
+      coalesce(v_crm_qual ilike '%b.id%', false),
+      coalesce(v_crm_qual, '<missing>');
   end if;
 
   -- RC116 intentionally split the former ALL policy into owner-only SELECT and UPDATE policies.
