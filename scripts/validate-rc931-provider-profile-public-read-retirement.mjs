@@ -49,6 +49,11 @@ assert.match(fixture, /SECURITY DEFINER[\s\S]*?SET search_path TO ''[\s\S]*?FROM
 assert.match(migration, /RC931_PLATFORM_ADMIN_REGISTRY_REQUIRED/);
 assert.match(migration, /RC931_PLATFORM_ADMIN_HELPER_ACL_MISMATCH/);
 assert.match(migration, /RC931_OWNER_PROFILE_SCOPE_POLICY_REQUIRED/);
+assert.match(migration, /create or replace function public\.mnty_guard_provider_profile_branding_only\(\)/i);
+assert.match(migration, /current_user <> 'authenticated'/i);
+assert.match(migration, /v_new_settings - 'branding'/);
+assert.match(migration, /coalesce\(v_new_settings->'branding', '\{\}'::jsonb\) - 'logo_path'/);
+assert.match(migration, /before update of settings on public\.marketing_provider_profiles/i);
 
 assert.match(migration, /RC931_PROVIDER_PROFILE_RLS_REQUIRED/);
 assert.match(migration, /RC931_PROVIDER_PROFILE_FORCE_RLS_REQUIRED/);
@@ -117,6 +122,10 @@ for (const marker of [
   "RC931_BUSINESS_OWNER_SCOPED_READ_REGRESSED",
   "RC931_PROFILE_OWNER_READ_REGRESSED",
   "RC931_PROFILE_OWNER_UPDATE_REGRESSED",
+  "RC931_OWNER_LOGO_UPDATE_CHANGED_NON_BRANDING_SETTINGS",
+  "RC931_OWNER_NON_BRANDING_SETTINGS_MUTATION_ALLOWED",
+  "RC931_OWNER_NON_LOGO_BRANDING_MUTATION_ALLOWED",
+  "RC931_OWNER_SETTINGS_CHANGED_OUTSIDE_BRANDING_LOGO",
   "RC931_PROFILE_OWNER_CROSSED_OWNER_BOUNDARY",
   "RC931_TENANT_SUPER_ADMIN_GAINED_CROSS_TENANT_READ",
   "RC931_TENANT_SUPER_ADMIN_LOCAL_SCOPE_REGRESSED",
