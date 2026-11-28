@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { loadTargetedAdvertisements } from '../src/utils/targetedAdvertisements';
+import { getPublicGovernorateAdCode, loadTargetedAdvertisements } from '../src/utils/targetedAdvertisements';
 
 const validAd = (id: string, overrides: Record<string, unknown> = {}) => ({
   advertisement_id: id,
@@ -144,4 +144,69 @@ test('rejects IP-literal destinations and normalizes trailing-dot hostnames', as
   assert.deepEqual(ads.map((ad) => ad.advertisement_id), ['ipv6-target', 'trailing-dot-host']);
   assert.equal(ads[0].target_url, null, 'IPv6-literal targets must be disabled without discarding the ad');
   assert.equal(ads[1].creative_url, 'https://cdn.example.test./ad.webp');
+});
+
+
+test('maps Egyptian governorate labels to the authoritative public-ad codes', () => {
+  assert.equal(getPublicGovernorateAdCode('المنوفية'), '17');
+  assert.equal(getPublicGovernorateAdCode('الإسكندرية'), '02');
+  assert.equal(getPublicGovernorateAdCode('الاسكندرية'), '02');
+  assert.equal(getPublicGovernorateAdCode('الغربية'), '16');
+  assert.equal(getPublicGovernorateAdCode('all'), null);
+  assert.equal(getPublicGovernorateAdCode('اسم غير معروف'), null);
+});
+
+test('requests only HOME_HERO ads for the selected governorate and consented coordinates', async () => {
+  const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
+  const ads = await loadTargetedAdvertisements(async (name, args) => {
+    calls.push({ name, args });
+    return { data: [validAd('cover-local', { ad_space_id: 'HOME_HERO' })], error: null };
+  }, {
+    adSpaces: ['HOME_HERO'],
+    governorate: 'المنوفية',
+    latitude: 30.64,
+    longitude: 31.08,
+    limit: 8,
+  });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].name, 'get_mnty_targeted_advertisements');
+  assert.equal(calls[0].args.p_ad_space_id, 'HOME_HERO');
+  assert.equal(calls[0].args.p_governorate_code, '17');
+  assert.equal(calls[0].args.p_center_code, null);
+  assert.equal(calls[0].args.p_lat, 30.64);
+  assert.equal(calls[0].args.p_lon, 31.08);
+  assert.equal(calls[0].args.p_limit, 8);
+  assert.equal(ads[0].advertisement_id, 'cover-local');
+});
+
+test('manual governorate targeting does not send precise coordinates', async () => {
+  let argsSeen: Record<string, unknown> | null = null;
+  await loadTargetedAdvertisements(async (_name, args) => {
+    argsSeen = args;
+    return { data: [validAd('cover-manual', { ad_space_id: 'HOME_HERO' })], error: null };
+  }, {
+    adSpaces: ['HOME_HERO'],
+    governorate: 'المنوفية',
+  });
+
+  assert.equal(argsSeen?.p_governorate_code, '17');
+  assert.equal(argsSeen?.p_lat, null);
+  assert.equal(argsSeen?.p_lon, null);
+});
+
+test('rejects out-of-Egypt or partial coordinates for location targeting', async () => {
+  let argsSeen: Record<string, unknown> | null = null;
+  await loadTargetedAdvertisements(async (_name, args) => {
+    argsSeen = args;
+    return { data: [validAd('cover-invalid-coordinates', { ad_space_id: 'HOME_HERO' })], error: null };
+  }, {
+    adSpaces: ['HOME_HERO'],
+    governorate: 'المنوفية',
+    latitude: 40,
+    longitude: 31,
+  });
+
+  assert.equal(argsSeen?.p_lat, null);
+  assert.equal(argsSeen?.p_lon, null);
 });
