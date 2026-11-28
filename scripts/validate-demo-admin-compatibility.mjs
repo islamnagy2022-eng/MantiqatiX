@@ -43,6 +43,34 @@ const externalRpcSignatures = [
 ];
 
 const serviceOnlyRpcSignature = 'mnty_platform_admin_delete_business';
+
+const catalogRpcSignatures = [
+  'adjust_catalog_stock_backend(character varying,uuid,character varying,character varying,uuid,numeric,numeric,character varying,text)',
+  'create_catalog_warehouse_backend(character varying,uuid,character varying,character varying,character varying)',
+  'upsert_catalog_item_backend(character varying,uuid,character varying,character varying,character varying,text,text,text,character varying,numeric,jsonb,uuid)',
+  'upsert_catalog_price_backend(character varying,uuid,uuid,character varying,character varying,numeric,timestamp with time zone,timestamp with time zone)',
+  'upsert_catalog_settings_backend(character varying,uuid,character varying,numeric,boolean,boolean)',
+  'update_catalog_item_status_backend(character varying,uuid,uuid,character varying,character varying)',
+  'upsert_catalog_business_profile_backend(character varying,uuid,character varying,text,text,text,text,text,text,text,text,text,text,boolean)',
+];
+for (const signature of catalogRpcSignatures) {
+  assert.ok(
+    demoPlatformRootMigration.includes('revoke all on function public.' + signature.toLowerCase() + ' from public, anon;'),
+    'Catalog RPC must keep PUBLIC/anon EXECUTE revoked: ' + signature,
+  );
+  assert.ok(
+    demoPlatformRootMigration.includes('grant execute on function public.' + signature.toLowerCase() + ' to authenticated;'),
+    'Catalog RPC authenticated EXECUTE grant missing: ' + signature,
+  );
+}
+assert.ok(demoPlatformRootMigration.includes("is distinct from 'false'"),
+  'RC925 missing-claim guard must remain fail-closed.');
+assert.ok(demoPlatformRootMigration.includes('pg_catalog.pg_advisory_xact_lock'),
+  'RC486 price version serialization must be replayed after RC485.');
+assert.equal((demoPlatformRootMigration.match(/^\\s*begin;\\s*$/gim) || []).length, 1,
+  'Root convergence migration must contain exactly one BEGIN.');
+assert.equal((demoPlatformRootMigration.match(/^\\s*commit;\\s*$/gim) || []).length, 1,
+  'Root convergence migration must contain exactly one COMMIT.');
 assert.ok(demoPlatformRootMigration.includes('pg_catalog.pg_advisory_xact_lock'), 'RC486 catalog price serialization must be preserved after RC485.');
 assert.ok(demoPlatformRootMigration.includes('is_anonymous'), 'RC923/RC925 anonymous-session and missing-claim guards must be preserved.');
 assert.ok(demoPlatformRootMigration.includes("is distinct from 'false'"), 'RC925 must reject a missing is_anonymous claim.');
