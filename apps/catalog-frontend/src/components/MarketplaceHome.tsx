@@ -32,6 +32,9 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
               if (image.dataset.defaultFallbackApplied !== 'true') {
                 image.dataset.defaultFallbackApplied = 'true';
                 image.src = defaultCover;
+              } else {
+                image.onerror = null;
+                image.style.visibility = 'hidden';
               }
             }} />
           <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-700 px-2.5 py-1 text-[10px] font-black text-white shadow">
@@ -45,6 +48,9 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
               if (image.dataset.defaultFallbackApplied !== 'true') {
                 image.dataset.defaultFallbackApplied = 'true';
                 image.src = defaultLogo;
+              } else {
+                image.onerror = null;
+                image.style.visibility = 'hidden';
               }
             }} />
           <div className="min-h-12">
@@ -212,7 +218,23 @@ export const MarketplaceHome: React.FC = () => {
             </div>
           </div>
           <div className="relative min-h-64 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#5a0000] via-[#3a0000] to-[#2b1714] p-5 shadow-2xl sm:min-h-80">
-            {verifiedBusinesses[0] && <img src={isMantiqatiXBrandName(verifiedBusinesses[0].name) ? resolveDefaultImage({ name: verifiedBusinesses[0].name, kind: 'cover' }) : verifiedBusinesses[0].coverUrl || resolveDefaultImage({ name: verifiedBusinesses[0].name, description: verifiedBusinesses[0].bio, category: verifiedBusinesses[0].category, kind: 'cover' })} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />}
+            {verifiedBusinesses[0] && <img
+              src={isMantiqatiXBrandName(verifiedBusinesses[0].name) ? resolveDefaultImage({ name: verifiedBusinesses[0].name, kind: 'cover' }) : verifiedBusinesses[0].coverUrl || resolveDefaultImage({ name: verifiedBusinesses[0].name, description: verifiedBusinesses[0].bio, category: verifiedBusinesses[0].category, kind: 'cover' })}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover opacity-25"
+              onError={(event) => {
+                const image = event.currentTarget;
+                if (image.dataset.defaultFallbackApplied !== 'true') {
+                  image.dataset.defaultFallbackApplied = 'true';
+                  image.src = resolveDefaultImage({ name: verifiedBusinesses[0].name, description: verifiedBusinesses[0].bio, category: verifiedBusinesses[0].category, kind: 'cover' });
+                } else {
+                  image.onerror = null;
+                  image.style.visibility = 'hidden';
+                }
+              }}
+            />}
             <div className="absolute -left-10 -top-10 h-44 w-44 rounded-full border border-[#f6c04d]/25" />
             <div className="absolute -bottom-20 -right-8 h-64 w-64 rounded-full border border-[#f6c04d]/25" />
             <div className="relative flex h-full min-h-64 flex-col justify-between sm:min-h-72">
