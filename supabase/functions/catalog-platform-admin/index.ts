@@ -250,9 +250,12 @@ Deno.serve(async (req: Request) => {
           full_name: String(u?.user_metadata?.full_name || u?.user_metadata?.name || u?.email || ""),
         });
       }
-      return response(origin, { businesses: filteredBusinesses.map((b: any) => ({
-        ...b, memberships: membershipsByBusiness.get(String(b.id)) || [],
-      })) });
+      return response(origin, {
+        businesses: filteredBusinesses.map((b: any) => ({
+          ...b, memberships: membershipsByBusiness.get(String(b.id)) || [],
+        })),
+        capabilities: { branchScopedRoleEdits: true },
+      });
     }
 
     if (action === "BUSINESS_MANAGE") {
