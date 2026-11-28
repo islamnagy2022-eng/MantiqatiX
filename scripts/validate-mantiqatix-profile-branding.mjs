@@ -13,8 +13,10 @@ assert.ok(utility.includes('replace(/\\s+/g'), 'brand-name matching must normali
 assert.match(marketplace, /isMantiqatiXBrandName\(business\.name\)/);
 assert.match(marketplace, /const logo = business\.logoUrl \|\| defaultLogo/);
 assert.match(marketplace, /const cover = business\.coverUrl \|\| defaultCover/);
-assert.match(activity, /business\.coverUrl \|\| resolveDefaultImage\(\{ name: business\.name, kind: 'cover' \}\)/);
-assert.match(activity, /business\.logoUrl \|\| resolveDefaultImage\(\{ name: business\.name, kind: 'activity' \}\)/);
+assert.ok(activity.includes("business.coverUrl || resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'cover' })"),
+  'activity cover defaults must use the business description and category for relevant artwork');
+assert.ok(activity.includes("business.logoUrl || resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'activity' })"),
+  'activity logo defaults must use the business description and category for relevant artwork');
 assert.match(component, /const coverImage = isPlatformBrandProfile \? defaultCover : currentBusiness\?\.coverUrl \|\| defaultCover/);
 assert.match(component, /src=\{currentBusiness\.logoUrl \|\| defaultLogo\}/);
 assert.doesNotMatch(component, /currentBusiness\.coverImages|merchantCovers|currentSlideIndex|slides\.map/, 'legacy multi-cover rotation must not be used for the main cover');
