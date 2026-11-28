@@ -116,6 +116,14 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     setNotice({error:false,text:published?'تم إلغاء النشر وإيقاف النشاط.':'تم نشر النشاط وتفعيله.'});
     await load();
   };
+  const openRoleEditor=(membership:Membership)=>{
+    const currentRole=String(membership.role||'').toUpperCase();
+    if(!membershipRoleOptions.some((option)=>option.value===currentRole)){
+      setNotice({error:true,text:'الدور الحالي غير موجود في قائمة الأدوار الآمنة؛ لم يتم فتح التعديل أو اقتراح دور بديل.'});
+      return;
+    }
+    setRoleEdit({membership,role:currentRole});
+  };
   const manageMembership=async(m:Membership,action:'SUSPEND'|'RESTORE'|'CHANGE_ROLE',nextRole?:string)=>{
     let role:string|undefined;
     if(action==='CHANGE_ROLE'){
@@ -207,7 +215,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
           <div><div className="text-sm font-bold text-slate-800">{m.full_name||m.email||m.user_id}</div><div className="text-xs text-slate-500">{m.email} · {m.role} · {m.status}{m.branch_id?' · نطاق فرع':''}</div></div>
           <div className="flex flex-wrap gap-2">
             {m.is_platform_account?<span className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">حساب منصة محمي · غير قابل للتعديل هنا</span>:<>
-              <button type="button" disabled={!!saving} onClick={()=>setRoleEdit({membership:m,role:membershipRoleOptions.some((option)=>option.value===String(m.role||'').toUpperCase())?String(m.role).toUpperCase():'CUSTOMER'})} className={buttonClass}>تعديل الدور</button>
+              <button type="button" disabled={!!saving} onClick={()=>openRoleEditor(m)} className={buttonClass}>تعديل الدور</button>
               {m.status==='ACTIVE'?<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'SUSPEND')} className={buttonClass}>إنهاء العضوية</button>:<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'RESTORE')} className={buttonClass}><RotateCcw className="h-3.5 w-3.5"/>إعادة التفعيل</button>}
             </>}
           </div>
