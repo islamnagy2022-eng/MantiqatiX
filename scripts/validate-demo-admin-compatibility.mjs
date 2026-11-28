@@ -16,6 +16,11 @@ const platformAdminEdge = readFileSync(
   'utf8',
 ).toLowerCase();
 
+const permissionRepairSource = readFileSync(
+  'supabase/migrations/20261128090000_demo_admin_control_center_compatibility.sql',
+  'utf8',
+);
+
 const externalRpcSignatures = [
   'mnty_platform_admin_list_custom_roles()',
   'mnty_platform_admin_upsert_custom_role(text,text,text,text,jsonb,uuid,boolean)',
@@ -95,6 +100,25 @@ for (const table of [
     ),
     'Direct client table access revoke missing for ' + table,
   );
+}
+
+for (const functionName of [
+  'mnty_business_employee_position_upsert',
+  'mnty_business_employee_upsert',
+]) {
+  const matches = [...permissionRepairSource.matchAll(
+    new RegExp('create\\s+or\\s+replace\\s+function\\s+public\\.' + functionName + '\\s*\\(', 'gi'),
+  )];
+  assert.ok(matches.length >= 1, 'Permission-aware final RPC definition missing: ' + functionName);
+  const finalDefinition = permissionRepairSource.slice(matches[matches.length - 1].index);
+  const end = finalDefinition.indexOf('$function$;');
+  assert.ok(end >= 0, 'Final employee RPC definition is incomplete: ' + functionName);
+  const body = finalDefinition.slice(0, end + 11);
+  assert.ok(body.includes('mnty_business_employee_permissions_subset'), 'Employee permission override ceiling missing: ' + functionName);
+  assert.ok(body.includes('EMPLOYEE_PERMISSION_ESCALATION'), 'Employee escalation denial missing: ' + functionName);
+  if (functionName === 'mnty_business_employee_position_upsert') {
+    assert.ok(body.includes('mnty_business_employee_permission_ceiling_allows'), 'Position authority ceiling missing.');
+  }
 }
 
 assert.ok(
