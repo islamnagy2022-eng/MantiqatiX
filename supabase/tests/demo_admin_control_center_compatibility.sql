@@ -270,4 +270,87 @@ BEGIN
 END;
 $demo_admin_compatibility$;
 
+
+-- Exercise the server-only BizCatalog settings and guarded business deletion paths
+-- with synthetic rows inside a transaction. The final ROLLBACK leaves no fixture data.
+BEGIN;
+
+SET LOCAL ROLE service_role;
+INSERT INTO public.bizcatalog_platform_settings(settings_key,settings,updated_by,updated_at)
+VALUES ('bizcatalog','{"test_fixture":"demo_admin_compatibility"}'::jsonb,
+        'f7914ac7-4b03-4456-afdd-e386f2ac6a5b',pg_catalog.now())
+ON CONFLICT (settings_key) DO UPDATE
+SET settings=EXCLUDED.settings,updated_by=EXCLUDED.updated_by,updated_at=EXCLUDED.updated_at;
+
+DO $demo_settings_service_role$
+DECLARE v_settings jsonb;
+BEGIN
+  SELECT s.settings INTO v_settings
+  FROM public.bizcatalog_platform_settings s
+  WHERE s.settings_key='bizcatalog';
+  IF v_settings->>'test_fixture' IS DISTINCT FROM 'demo_admin_compatibility' THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_BIZCATALOG_SERVICE_ROLE_WRITE_FAILED';
+  END IF;
+END;
+$demo_settings_service_role$;
+RESET ROLE;
+
+INSERT INTO public.businesses(id,tenant_id,name,code,status,settings)
+VALUES (
+  '00000000-0000-4000-8000-000000009901',
+  'MNTY-PLATFORM',
+  'DEMO Admin Delete Fixture',
+  'DEMO-ADMIN-DELETE-FIXTURE-901',
+  'ACTIVE',
+  '{"test_fixture":"demo_admin_compatibility"}'::jsonb
+);
+INSERT INTO public.branches(id,tenant_id,business_id,name,code,status)
+VALUES (
+  'demo-admin-delete-branch-901',
+  'MNTY-PLATFORM',
+  '00000000-0000-4000-8000-000000009901',
+  'DEMO Admin Delete Fixture Branch',
+  'DEMO-ADMIN-DELETE-BRANCH-901',
+  'ACTIVE'
+);
+
+SET LOCAL ROLE service_role;
+DO $demo_business_delete_service_role$
+DECLARE v_result jsonb;
+BEGIN
+  v_result := public.mnty_platform_admin_delete_business(
+    'MNTY-PLATFORM',
+    '00000000-0000-4000-8000-000000009901',
+    'f7914ac7-4b03-4456-afdd-e386f2ac6a5b'
+  );
+  IF coalesce((v_result->>'deleted')::boolean,false) IS NOT TRUE THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_BUSINESS_DELETE_RPC_RESULT_INVALID: %',v_result;
+  END IF;
+END;
+$demo_business_delete_service_role$;
+RESET ROLE;
+
+DO $demo_business_delete_result$
+BEGIN
+  IF EXISTS (SELECT 1 FROM public.businesses WHERE id='00000000-0000-4000-8000-000000009901') THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_BUSINESS_DELETE_LEFT_BUSINESS_ROW';
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.branches WHERE id='demo-admin-delete-branch-901') THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_BUSINESS_DELETE_LEFT_BRANCH_ROW';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.audit_logs
+    WHERE action='BIZCATALOG_BUSINESS_DELETED'
+      AND entity_id='00000000-0000-4000-8000-000000009901'
+      AND tenant_id='MNTY-PLATFORM'
+  ) THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_BUSINESS_DELETE_AUDIT_ROW_MISSING';
+  END IF;
+END;
+$demo_business_delete_result$;
+
+ROLLBACK;
+
+SELECT 'DEMO_ADMIN_BIZCATALOG_AND_DELETE_BEHAVIOR=PASS' AS result;
+
 SELECT 'DEMO_ADMIN_COMPATIBILITY_ACL_RLS_DEFINER_AND_EDGE_DEPS=PASS' AS result;
