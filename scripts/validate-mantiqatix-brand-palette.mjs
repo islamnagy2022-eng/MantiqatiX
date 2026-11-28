@@ -38,6 +38,12 @@ const requiredFiles = [
   ['apps/catalog-frontend/src/components/common/MarketingServicesModal.tsx', ['bg-[#fff3e0]', 'bg-[#7a0000]']],
   ['apps/catalog-frontend/src/components/merchant/CatalogImportPanel.tsx', ['from-[#3a0000]', 'bg-[#7a0000]']],
   ['apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx', ['from-[#3a0000]', 'bg-[#7a0000]', '#f6c04d']],
+  ['apps/catalog-frontend/src/components/admin/CommissionRulesManager.tsx', ['from-[#3a0000]', 'bg-[#7a0000]', 'border-[#ead5c5]']],
+  ['apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx', ['from-[#3a0000]', 'bg-[#fff3e0]', 'text-[#7a0000]']],
+  ['apps/catalog-frontend/src/components/common/QRCodeModal.tsx', ['bg-[#fff3e0]', 'bg-[#7a0000]']],
+  ['apps/catalog-frontend/src/components/ActivityShareDialog.tsx', ['bg-[#fff3e0]', 'bg-[#7a0000]']],
+  ['apps/catalog-frontend/src/components/common/FloatingAppInstallButton.tsx', ['bg-[#f6c04d]', 'bg-[#7a0000]']],
+  ['apps/catalog-frontend/src/components/ContactUsView.tsx', ['bg-[#7a0000]', 'focus:border-[#a00000]']],
 ];
 for (const [path, markers] of requiredFiles) {
   const source = read(path);
@@ -57,6 +63,10 @@ const cart = read('apps/catalog-frontend/src/components/cart/CartDrawer.tsx');
 expect('Paymob provider identity is retained while checkout uses the site palette', cart.includes('PAYMOB') && cart.includes("'bg-[#7a0000] hover:bg-[#5a0000] shadow-[#7a0000]/25'"));
 const importPanel = read('apps/catalog-frontend/src/components/merchant/CatalogImportPanel.tsx');
 expect('import readiness and result statuses remain semantic', importPanel.includes('notice.type===\'success\'') && importPanel.includes('text-emerald-800') && importPanel.includes('text-rose-800'));
+const finance = read('apps/catalog-frontend/src/components/admin/CommissionRulesManager.tsx');
+expect('commission workflow remains draft-only', finance.includes('حفظ كمسودة غير مفعّلة') && finance.includes('معاينة فقط'));
+const contact = read('apps/catalog-frontend/src/components/ContactUsView.tsx');
+expect('WhatsApp contact shortcut keeps its recognizable green identity', contact.includes('bg-emerald-50') && contact.includes('واتساب الإدارة'));
 
 const failures = checks.filter((check) => !check.pass);
 for (const check of checks) console.log(`[${check.pass ? 'PASS' : 'FAIL'}] ${check.label}`);
