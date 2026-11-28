@@ -8,7 +8,7 @@ on:
       - ".github/workflows/generate-rc932-mantigo-open-ride-confirmed-auth.yml"
   pull_request:
     branches:
-      - "docs/backup-restore-current-main-rebase-20261128"
+      - "main"
     paths:
       - ".github/workflows/generate-rc932-mantigo-open-ride-confirmed-auth.yml"
       - "supabase/migrations/20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql"
