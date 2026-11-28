@@ -32,6 +32,20 @@ INSERT INTO auth.users(id,email,email_confirmed_at,raw_user_meta_data) VALUES
 ('00000000-0000-0000-0000-000000000010','employee-update@example.test',now(),'{}'),
 ('00000000-0000-0000-0000-000000000011','finance-override-target@example.test',now(),'{}');
 
+DO $dashboard_seed_organizations$
+BEGIN
+  -- The full checkpoint has an organizations FK; the compact historical RBAC
+  -- fixture does not. Insert deterministic synthetic parents only when present.
+  IF pg_catalog.to_regclass('public.organizations') IS NOT NULL THEN
+    INSERT INTO public.organizations(id,tenant_id,name,code)
+    VALUES
+      ('org-a','tenant-a','RBAC Test Organization A','RBAC-ORG-A'),
+      ('org-b','tenant-b','RBAC Test Organization B','RBAC-ORG-B')
+    ON CONFLICT (id) DO NOTHING;
+  END IF;
+END
+$dashboard_seed_organizations$;
+
 DO $dashboard_seed_businesses$
 BEGIN
   -- The CI fixture exposes the compact businesses shape. The captured full schema
