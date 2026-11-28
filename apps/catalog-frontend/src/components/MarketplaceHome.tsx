@@ -53,7 +53,7 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
           </div>
           <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-slate-500">
             <span className="flex min-w-0 items-center gap-1 truncate"><MapPin className="h-3.5 w-3.5 shrink-0" />{[business.village, business.markaz, business.governorate].filter(Boolean).join('، ') || 'مصر'}</span>
-            <span className="shrink-0 font-bold text-emerald-700">عرض النشاط <ChevronLeft className="inline h-3.5 w-3.5" /></span>
+            <span className="shrink-0 font-bold text-[#a00000]">عرض النشاط <ChevronLeft className="inline h-3.5 w-3.5" /></span>
           </div>
         </div>
       </button>
@@ -92,12 +92,12 @@ const ProductCard: React.FC<{
           <h3 className="line-clamp-1 text-sm font-black text-slate-900">{product.name}</h3>
           <p className="mt-1 line-clamp-1 text-[11px] text-slate-500">{businessName}</p>
           <div className="mt-2 flex items-center gap-2">
-            <strong className="text-sm text-emerald-800">{product.requiresQuote ? 'السعر عند الطلب' : currency(product.price)}</strong>
+            <strong className="text-sm text-[#7a0000]">{product.requiresQuote ? 'السعر عند الطلب' : currency(product.price)}</strong>
             {hasDiscount && <span className="text-xs text-slate-400 line-through">{currency(Number(product.comparePrice))}</span>}
           </div>
         </div>
       </button>
-      <button type="button" onClick={onOpen} className="mx-3 mb-3 inline-flex min-h-10 w-[calc(100%-1.5rem)] items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-3 text-xs font-bold text-white transition hover:bg-emerald-800">
+      <button type="button" onClick={onOpen} className="mx-3 mb-3 inline-flex min-h-10 w-[calc(100%-1.5rem)] items-center justify-center gap-1.5 rounded-xl bg-[#7a0000] px-3 text-xs font-bold text-white transition hover:bg-[#5a0000]">
         افتح الكتالوج للطلب
       </button>
     </article>
@@ -108,13 +108,13 @@ const SectionHeading: React.FC<{ title: string; subtitle?: string; icon: React.R
   ({ title, subtitle, icon, action, actionLabel = 'عرض الكل' }) => (
     <div className="mb-4 flex items-end justify-between gap-3">
       <div className="flex min-w-0 items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800">{icon}</span>
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff3e0] text-[#7a0000]">{icon}</span>
         <div className="min-w-0">
           <h2 className="text-lg font-black text-slate-950 sm:text-xl">{title}</h2>
           {subtitle && <p className="mt-0.5 text-xs leading-5 text-slate-500">{subtitle}</p>}
         </div>
       </div>
-      {action && <button type="button" onClick={action} className="shrink-0 text-xs font-black text-emerald-800 hover:text-emerald-950">{actionLabel} <ArrowLeft className="inline h-3.5 w-3.5" /></button>}
+      {action && <button type="button" onClick={action} className="shrink-0 text-xs font-black text-[#7a0000] hover:text-[#a00000]">{actionLabel} <ArrowLeft className="inline h-3.5 w-3.5" /></button>}
     </div>
   );
 
@@ -184,21 +184,21 @@ export const MarketplaceHome: React.FC = () => {
 
   return (
     <div data-testid="marketplace-home" dir="rtl" className="min-h-screen bg-[#f5f7f6] pb-16 text-slate-800">
-      <section className="relative isolate overflow-hidden bg-slate-950 text-white">
+      <section className="relative isolate overflow-hidden bg-gradient-to-br from-[#3a0000] via-[#7a0000] to-[#3a0000] text-white">
         <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 15% 20%, #10b981 0, transparent 32%), radial-gradient(circle at 90% 80%, #0f766e 0, transparent 30%)' }} />
         <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1.15fr_.85fr] lg:items-center lg:px-8">
           <div className="space-y-5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-200">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#f6c04d]/35 bg-[#f6c04d]/10 px-3 py-1.5 text-xs font-bold text-[#ffe1a3]">
               <Sparkles className="h-4 w-4" /> اكتشف منطقتك… واختصر طريقك
             </div>
             <h1 className="max-w-3xl text-3xl font-black leading-tight sm:text-5xl">
-              كل الأنشطة والخدمات والعروض <span className="text-emerald-300">في مكان واحد</span>
+              كل الأنشطة والخدمات والعروض <span className="text-[#f6c04d]">في مكان واحد</span>
             </h1>
             <p className="max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
               اكتشف المشروعات الموثقة، قارن المنتجات والخدمات، وتعرّف على اختيارات جديدة في محافظات مصر.
             </p>
             <div className="flex flex-wrap gap-3">
-              <button type="button" data-testid="home-search-button" onClick={openSearch} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-slate-950 shadow-lg shadow-emerald-950/30 transition hover:bg-emerald-300">
+              <button type="button" data-testid="home-search-button" onClick={openSearch} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#f6c04d] px-5 py-3 text-sm font-black text-[#3a0000] shadow-lg shadow-black/20 transition hover:bg-[#ffe1a3]">
                 <Search className="h-4 w-4" /> ابحث عن نشاط أو خدمة
               </button>
               {joinUrl && <a href={joinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10">
@@ -211,23 +211,23 @@ export const MarketplaceHome: React.FC = () => {
               <span className="rounded-full bg-white/10 px-3 py-1.5">بحث على مستوى مصر</span>
             </div>
           </div>
-          <div className="relative min-h-64 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-900 via-slate-900 to-slate-800 p-5 shadow-2xl sm:min-h-80">
+          <div className="relative min-h-64 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#5a0000] via-[#3a0000] to-[#2b1714] p-5 shadow-2xl sm:min-h-80">
             {verifiedBusinesses[0] && <img src={isMantiqatiXBrandName(verifiedBusinesses[0].name) ? resolveDefaultImage({ name: verifiedBusinesses[0].name, kind: 'cover' }) : verifiedBusinesses[0].coverUrl || resolveDefaultImage({ name: verifiedBusinesses[0].name, description: verifiedBusinesses[0].bio, category: verifiedBusinesses[0].category, kind: 'cover' })} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />}
-            <div className="absolute -left-10 -top-10 h-44 w-44 rounded-full border border-emerald-300/20" />
-            <div className="absolute -bottom-20 -right-8 h-64 w-64 rounded-full border border-emerald-300/20" />
+            <div className="absolute -left-10 -top-10 h-44 w-44 rounded-full border border-[#f6c04d]/25" />
+            <div className="absolute -bottom-20 -right-8 h-64 w-64 rounded-full border border-[#f6c04d]/25" />
             <div className="relative flex h-full min-h-64 flex-col justify-between sm:min-h-72">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-bold text-emerald-200">دليل موثوق ومتجدد</p>
+                  <p className="text-xs font-bold text-[#ffe1a3]">دليل موثوق ومتجدد</p>
                   <p className="mt-2 text-2xl font-black">{verifiedBusinesses.length.toLocaleString('ar-EG')}</p>
                   <p className="text-xs text-slate-300">نشاط موثق ظاهر حاليًا</p>
                 </div>
-                <span className="rounded-2xl border border-white/15 bg-white/10 p-3"><BadgeCheck className="h-7 w-7 text-emerald-300" /></span>
+                <span className="rounded-2xl border border-white/15 bg-white/10 p-3"><BadgeCheck className="h-7 w-7 text-[#f6c04d]" /></span>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-950/65 p-4 backdrop-blur">
+              <div className="rounded-2xl border border-[#f6c04d]/20 bg-[#2b1714]/75 p-4 backdrop-blur">
                 <p className="text-sm font-black">ابحث بذكاء… واكتشف الأقرب والأنسب</p>
                 <p className="mt-1 text-xs leading-5 text-slate-300">يظل البحث شاملًا لمصر، مع إبراز الأنشطة الموثقة وترتيب الأقرب عند السماح بالموقع.</p>
-                <button type="button" onClick={openSearch} className="mt-3 inline-flex items-center gap-1 text-xs font-black text-emerald-300">افتح محرك البحث <ArrowLeft className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={openSearch} className="mt-3 inline-flex items-center gap-1 text-xs font-black text-[#f6c04d]">افتح محرك البحث <ArrowLeft className="h-3.5 w-3.5" /></button>
               </div>
             </div>
           </div>
@@ -236,16 +236,16 @@ export const MarketplaceHome: React.FC = () => {
 
       <div className="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <button type="button" onClick={openSearch} className="flex min-h-20 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-emerald-300 hover:shadow">
-            <span className="rounded-xl bg-emerald-50 p-2.5 text-emerald-800"><Search className="h-5 w-5" /></span><span className="text-sm font-black">ابحث عن نشاط</span>
+          <button type="button" onClick={openSearch} className="flex min-h-20 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-[#d9a5a5] hover:shadow">
+            <span className="rounded-xl bg-[#fff3e0] p-2.5 text-[#7a0000]"><Search className="h-5 w-5" /></span><span className="text-sm font-black">ابحث عن نشاط</span>
           </button>
-          <button type="button" onClick={openSearch} className="flex min-h-20 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-emerald-300 hover:shadow">
+          <button type="button" onClick={openSearch} className="flex min-h-20 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-[#d9a5a5] hover:shadow">
             <span className="rounded-xl bg-amber-50 p-2.5 text-amber-800"><Utensils className="h-5 w-5" /></span><span className="text-sm font-black">مطاعم ومشروبات</span>
           </button>
-          <button type="button" onClick={openSearch} className="flex min-h-20 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-emerald-300 hover:shadow">
+          <button type="button" onClick={openSearch} className="flex min-h-20 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-[#d9a5a5] hover:shadow">
             <span className="rounded-xl bg-rose-50 p-2.5 text-rose-800"><HeartPulse className="h-5 w-5" /></span><span className="text-sm font-black">خدمات طبية</span>
           </button>
-          <button type="button" onClick={openSearch} className="flex min-h-20 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-emerald-300 hover:shadow">
+          <button type="button" onClick={openSearch} className="flex min-h-20 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-[#d9a5a5] hover:shadow">
             <span className="rounded-xl bg-violet-50 p-2.5 text-violet-800"><BadgePercent className="h-5 w-5" /></span><span className="text-sm font-black">العروض والخصومات</span>
           </button>
         </div>
@@ -307,18 +307,18 @@ export const MarketplaceHome: React.FC = () => {
         </section>
 
         <section aria-label="برنامج المكافآت والاشتراكات" className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-950 to-slate-900 p-6 text-white shadow-lg">
+          <div className="rounded-3xl border border-[#f6c04d]/25 bg-gradient-to-br from-[#5a0000] to-[#2b1714] p-6 text-white shadow-lg">
             <div className="flex items-center justify-between gap-3">
-              <div><p className="text-xs font-bold text-emerald-200">MantiqatiX Rewards</p><h2 className="mt-1 text-xl font-black">نقاط وهدايا المنصة</h2></div>
-              <span className="rounded-2xl bg-white/10 p-3 text-emerald-200"><Gift className="h-7 w-7" /></span>
+              <div><p className="text-xs font-bold text-[#ffe1a3]">MantiqatiX Rewards</p><h2 className="mt-1 text-xl font-black">نقاط وهدايا المنصة</h2></div>
+              <span className="rounded-2xl bg-white/10 p-3 text-[#ffe1a3]"><Gift className="h-7 w-7" /></span>
             </div>
             <p className="mt-3 text-sm leading-6 text-slate-200">برنامج النقاط المجانية قيد التجهيز. ستكون النقاط غير قابلة للسحب أو التحويل، ومخصصة لشراء خدمات المنصة والاشتراكات المؤهلة فقط.</p>
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs leading-5 text-slate-300">لن يظهر رصيد أو كوبون قبل ربطه بسجل مكافآت موثوق حتى لا يتم عرض قيمة غير حقيقية.</div>
-            {!authSession.isAuthenticated && <button type="button" onClick={() => setIsLoginModalOpen(true)} className="mt-4 rounded-xl bg-emerald-300 px-4 py-2.5 text-sm font-black text-slate-950">سجّل الدخول</button>}
+            {!authSession.isAuthenticated && <button type="button" onClick={() => setIsLoginModalOpen(true)} className="mt-4 rounded-xl bg-[#f6c04d] px-4 py-2.5 text-sm font-black text-[#3a0000]">سجّل الدخول</button>}
           </div>
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3">
-              <div><p className="text-xs font-bold text-emerald-700">لأصحاب المشروعات</p><h2 className="mt-1 text-xl font-black text-slate-950">اشتراكك ومزايا نشاطك</h2></div>
+              <div><p className="text-xs font-bold text-[#7a0000]">لأصحاب المشروعات</p><h2 className="mt-1 text-xl font-black text-slate-950">اشتراكك ومزايا نشاطك</h2></div>
               <span className="rounded-2xl bg-amber-50 p-3 text-amber-700"><Wallet className="h-7 w-7" /></span>
             </div>
             {personalBusiness ? <>
@@ -327,7 +327,7 @@ export const MarketplaceHome: React.FC = () => {
             </> : <p className="mt-3 text-sm leading-6 text-slate-600">تابع حالة اشتراك نشاطك ومزاياه من حساب صاحب النشاط بعد تسجيل الدخول وربط العضوية.</p>}
             <div className="mt-4 flex flex-wrap gap-2">
               {personalBusiness && <button type="button" onClick={() => setCurrentView('merchant_admin')} className="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black text-white">لوحة نشاطي</button>}
-              {joinUrl && <a href={joinUrl} target="_blank" rel="noopener noreferrer" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-black text-emerald-900">اطلب الانضمام والاشتراك</a>}
+              {joinUrl && <a href={joinUrl} target="_blank" rel="noopener noreferrer" className="rounded-xl border border-[#ead5c5] bg-[#fff3e0] px-4 py-2.5 text-xs font-black text-[#7a0000]">اطلب الانضمام والاشتراك</a>}
               <span className="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-2.5 text-[11px] font-bold text-slate-600"><Gift className="h-3.5 w-3.5" /> كوبونات الاشتراك ستظهر بعد تفعيل نظام المكافآت</span>
             </div>
           </div>

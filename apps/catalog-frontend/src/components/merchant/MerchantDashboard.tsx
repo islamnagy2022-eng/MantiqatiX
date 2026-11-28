@@ -601,11 +601,11 @@ export const MerchantDashboard: React.FC = () => {
       )}
 
       {/* AI Studio v4 owner dashboard hero — production data and actions remain authoritative. */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-l from-slate-950 via-slate-900 to-slate-800 p-6 text-white shadow-xl sm:p-8">
+      <div className="rounded-3xl border border-[#f6c04d]/30 bg-gradient-to-l from-[#3a0000] via-[#7a0000] to-[#3a0000] p-6 text-white shadow-xl sm:p-8">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between" dir="rtl">
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-200">
+              <span className="rounded-full border border-[#f6c04d]/35 bg-[#f6c04d]/10 px-3 py-1 text-xs font-bold text-[#ffe1a3]">
                 لوحة تحكم صاحب النشاط
               </span>
               <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-slate-200">
@@ -629,16 +629,16 @@ export const MerchantDashboard: React.FC = () => {
             <button
               type="button"
               onClick={() => setCurrentView('public_storefront')}
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-black text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-black text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f6c04d]"
             >
-              <ExternalLink className="h-4 w-4 text-emerald-300" />
+              <ExternalLink className="h-4 w-4 text-[#f6c04d]" />
               معاينة صفحة النشاط المباشرة
             </button>
             <button
               type="button"
               onClick={openAddModal}
               disabled={productsCount >= maxLimit}
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-black text-slate-950 shadow-md transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#f6c04d] px-4 py-2 text-xs font-black text-[#3a0000] shadow-md transition hover:bg-[#ffe1a3] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f6c04d]"
             >
               <Plus className="h-4 w-4" />
               إضافة منتج / خدمة جديدة
@@ -649,7 +649,7 @@ export const MerchantDashboard: React.FC = () => {
         <div className="mt-6 border-t border-white/10 pt-5">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs font-black text-slate-100">
             <span>استهلاك حد الكتالوج</span>
-            <span><strong className="text-emerald-300">{productsCount}</strong> من {maxLimit} منتج / خدمة</span>
+            <span><strong className="text-[#f6c04d]">{productsCount}</strong> من {maxLimit} منتج / خدمة</span>
           </div>
           <div
             className="h-2.5 w-full overflow-hidden rounded-full bg-white/15"
@@ -681,7 +681,7 @@ export const MerchantDashboard: React.FC = () => {
               type="button"
               onClick={handleCopyStoreUrl}
               disabled={!permanentStoreUrl}
-              className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-[#f6c04d]/30 bg-[#f6c04d]/10 px-3 py-2 text-xs font-black text-[#ffe1a3] transition hover:bg-[#f6c04d]/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               {storeUrlCopied ? 'تم نسخ رابط النشاط' : 'نسخ رابط متجرك المباشر'}
@@ -699,14 +699,14 @@ export const MerchantDashboard: React.FC = () => {
       <nav
         aria-label="أقسام لوحة صاحب النشاط"
         data-testid="merchant-dashboard-tabs"
-        className="flex w-full items-center gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-slate-50/90 p-2 shadow-inner no-scrollbar"
+        className="flex w-full items-center gap-2 overflow-x-auto rounded-2xl border border-[#ead5c5] bg-[#fff8f0] p-2 shadow-inner no-scrollbar"
       >
         <div className="flex shrink-0 items-center gap-1 rounded-xl border border-slate-200 bg-white p-1">
           <button
             type="button"
             onClick={() => setActiveTab('products')}
             aria-pressed={activeTab === 'products'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'products' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${activeTab === 'products' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'}`}
           >
             <Package className="h-4 w-4" />
             <span>الكتالوج ({productsCount})</span>
@@ -715,7 +715,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('branding')}
             aria-pressed={activeTab === 'branding'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'branding' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${activeTab === 'branding' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'}`}
           >
             <ImageIcon className="h-4 w-4" />
             <span>الهوية البصرية</span>
@@ -724,7 +724,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('profile')}
             aria-pressed={activeTab === 'profile'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'profile' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${activeTab === 'profile' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'}`}
           >
             <Phone className="h-4 w-4" />
             <span>بيانات النشاط</span>
@@ -739,7 +739,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('import')}
             aria-pressed={activeTab === 'import'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'import' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${activeTab === 'import' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'}`}
           >
             <Upload className="h-4 w-4" />
             <span>استيراد CSV</span>
@@ -748,7 +748,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('employees')}
             aria-pressed={activeTab === 'employees'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'employees' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${activeTab === 'employees' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'}`}
           >
             <Briefcase className="h-4 w-4" />
             <span>الموظفون والتوظيف</span>
@@ -757,7 +757,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('qr')}
             aria-pressed={activeTab === 'qr'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'qr' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${activeTab === 'qr' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'}`}
           >
             <QrCode className="h-4 w-4" />
             <span>QR كود النشاط الدائم</span>
@@ -766,7 +766,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('functional_engine')}
             aria-pressed={activeTab === 'functional_engine'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'functional_engine' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${activeTab === 'functional_engine' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'}`}
           >
             <Layers className="h-4 w-4" />
             <span>التصنيف الوظيفي ومسار التطوير</span>
@@ -797,7 +797,7 @@ export const MerchantDashboard: React.FC = () => {
               <button
                 disabled={productsCount >= maxLimit}
                 onClick={openAddModal}
-                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-[#7a0000] hover:bg-[#5a0000] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-md shadow-[#7a0000]/20 transition-all cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>إضافة منتج أو خدمة جديدة</span>
@@ -1022,7 +1022,7 @@ export const MerchantDashboard: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleApplyFacebookProfile}
-                    className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2.5"
+                    className="w-full rounded-xl bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-4 py-2.5"
                   >
                     استخدام البيانات في نموذج النشاط
                   </button>
@@ -1146,7 +1146,7 @@ export const MerchantDashboard: React.FC = () => {
                 <button
                   type="submit"
                   disabled={profileSaving}
-                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
+                  className="bg-[#7a0000] hover:bg-[#5a0000] disabled:opacity-50 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-[#7a0000]/20 flex items-center gap-2 cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   <span>{profileSaving ? 'جارٍ حفظ الهوية...' : 'حفظ هوية النشاط'}</span>
@@ -1370,7 +1370,7 @@ export const MerchantDashboard: React.FC = () => {
                 <button
                   type="submit"
                   disabled={profileSaving}
-                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
+                  className="bg-[#7a0000] hover:bg-[#5a0000] disabled:opacity-50 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-[#7a0000]/20 flex items-center gap-2 cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   <span>{profileSaving ? 'جارٍ حفظ التعديلات...' : 'حفظ التعديلات'}</span>
@@ -1491,7 +1491,7 @@ export const MerchantDashboard: React.FC = () => {
 
             <button
               onClick={() => setIsQrModalOpen(true)}
-              className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs px-5 py-3 rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer transition-all"
+              className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-5 py-3 rounded-xl shadow-md shadow-[#7a0000]/20 flex items-center gap-2 cursor-pointer transition-all"
             >
               <QrCode className="w-4 h-4" />
               <span>عرض و طباعة الكود بالكامل</span>
@@ -1668,7 +1668,7 @@ export const MerchantDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 cursor-pointer"
+                  className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-md shadow-[#7a0000]/20 cursor-pointer"
                 >
                   {editingProduct ? 'حفظ التعديلات' : 'إضافة للكتالوج'}
                 </button>
