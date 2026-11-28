@@ -2,7 +2,22 @@
 -- Runs only against a disposable PostgreSQL 16 database seeded by the companion fixture.
 \set ON_ERROR_STOP on
 
-INSERT INTO public.tenants(id) VALUES ('tenant-a'), ('tenant-b');
+DO $dashboard_seed_tenants$
+BEGIN
+  -- The minimal RBAC fixture has only tenants.id. The full production-checkpoint
+  -- schema also requires tenant name and code; seed valid synthetic values there.
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='tenants' AND column_name='name'
+  ) THEN
+    INSERT INTO public.tenants(id,name,code,status,settings) VALUES
+      ('tenant-a','RBAC Test Tenant A','RBAC-TEST-A','ACTIVE','{}'::jsonb),
+      ('tenant-b','RBAC Test Tenant B','RBAC-TEST-B','ACTIVE','{}'::jsonb);
+  ELSE
+    INSERT INTO public.tenants(id) VALUES ('tenant-a'), ('tenant-b');
+  END IF;
+END
+$dashboard_seed_tenants$;
 
 INSERT INTO auth.users(id,email,email_confirmed_at,raw_user_meta_data) VALUES
 ('00000000-0000-0000-0000-000000000001','owner-a@example.test',now(),'{}'),
@@ -17,12 +32,41 @@ INSERT INTO auth.users(id,email,email_confirmed_at,raw_user_meta_data) VALUES
 ('00000000-0000-0000-0000-000000000010','employee-update@example.test',now(),'{}'),
 ('00000000-0000-0000-0000-000000000011','finance-override-target@example.test',now(),'{}');
 
-INSERT INTO public.businesses(id,tenant_id,organization_id,name) VALUES
-('10000000-0000-0000-0000-000000000001','tenant-a','org-a','Business A'),
-('10000000-0000-0000-0000-000000000002','tenant-b','org-b','Business B');
+DO $dashboard_seed_businesses$
+BEGIN
+  -- The CI fixture exposes the compact businesses shape. The captured full schema
+  -- requires code and settings/status values as well; keep both layouts supported.
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='businesses' AND column_name='code'
+  ) THEN
+    INSERT INTO public.businesses(id,tenant_id,organization_id,name,code,status,settings) VALUES
+    ('10000000-0000-0000-0000-000000000001','tenant-a','org-a','Business A','RBAC-BIZ-A','ACTIVE','{}'::jsonb),
+    ('10000000-0000-0000-0000-000000000002','tenant-b','org-b','Business B','RBAC-BIZ-B','ACTIVE','{}'::jsonb);
+  ELSE
+    INSERT INTO public.businesses(id,tenant_id,organization_id,name) VALUES
+    ('10000000-0000-0000-0000-000000000001','tenant-a','org-a','Business A'),
+    ('10000000-0000-0000-0000-000000000002','tenant-b','org-b','Business B');
+  END IF;
+END
+$dashboard_seed_businesses$;
 
-INSERT INTO public.branches(id,tenant_id,business_id) VALUES
-('branch-a-1','tenant-a','10000000-0000-0000-0000-000000000001');
+DO $dashboard_seed_branches$
+BEGIN
+  -- Branch names/codes are mandatory in the full schema but absent from the
+  -- compact historical RBAC fixture.
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='branches' AND column_name='name'
+  ) THEN
+    INSERT INTO public.branches(id,tenant_id,business_id,name,code,status) VALUES
+      ('branch-a-1','tenant-a','10000000-0000-0000-0000-000000000001','RBAC Test Branch','RBAC-BRANCH-A1','ACTIVE');
+  ELSE
+    INSERT INTO public.branches(id,tenant_id,business_id) VALUES
+      ('branch-a-1','tenant-a','10000000-0000-0000-0000-000000000001');
+  END IF;
+END
+$dashboard_seed_branches$;
 
 INSERT INTO public.user_memberships(id,user_id,tenant_id,organization_id,business_id,branch_id,role,permissions,status) VALUES
 ('owner-a','00000000-0000-0000-0000-000000000001','tenant-a','org-a','10000000-0000-0000-0000-000000000001',null,'OWNER','{}','ACTIVE'),
