@@ -3,7 +3,7 @@ import { RefreshCw, Search, Save, PauseCircle, RotateCcw, Users, Store, PencilLi
 import { supabase } from '../../lib/production';
 import { resolveDefaultActivityImages } from '../../utils/defaultImages';
 
-type Membership = { id:string; user_id:string; role:string; status:string; email:string; full_name:string; branch_id?:string|null };
+type Membership = { id:string; user_id:string; role:string; status:string; email:string; full_name:string; branch_id?:string|null; is_platform_account?:boolean };
 const membershipRoleOptions = [
   { value: 'CUSTOMER', label: 'عميل' },
   { value: 'OWNER', label: 'مالك' },
@@ -204,10 +204,12 @@ export const BusinessSubscriberAdmin: React.FC = () => {
         <h4 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-800"><Users className="h-4 w-4"/>المشتركون والعضويات ({b.memberships?.length||0})</h4>
         {!b.memberships?.length&&<p className="text-xs text-slate-500">لا توجد عضويات مرتبطة بهذا النشاط.</p>}
         <div className="space-y-2">{(b.memberships||[]).map(m=><div key={m.id} className="flex flex-col gap-2 rounded-xl bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
-          <div><div className="text-sm font-bold text-slate-800">{m.full_name||m.email||m.user_id}</div><div className="text-xs text-slate-500">{m.email} · {m.role} · {m.status}</div></div>
+          <div><div className="text-sm font-bold text-slate-800">{m.full_name||m.email||m.user_id}</div><div className="text-xs text-slate-500">{m.email} · {m.role} · {m.status}{m.branch_id?' · نطاق فرع':''}</div></div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" disabled={!!saving} onClick={()=>setRoleEdit({membership:m,role:membershipRoleOptions.some((option)=>option.value===String(m.role||'').toUpperCase())?String(m.role).toUpperCase():'CUSTOMER'})} className={buttonClass}>تعديل الدور</button>
-            {m.status==='ACTIVE'?<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'SUSPEND')} className={buttonClass}>إنهاء العضوية</button>:<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'RESTORE')} className={buttonClass}><RotateCcw className="h-3.5 w-3.5"/>إعادة التفعيل</button>}
+            {m.is_platform_account?<span className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">حساب منصة محمي · غير قابل للتعديل هنا</span>:<>
+              <button type="button" disabled={!!saving} onClick={()=>setRoleEdit({membership:m,role:membershipRoleOptions.some((option)=>option.value===String(m.role||'').toUpperCase())?String(m.role).toUpperCase():'CUSTOMER'})} className={buttonClass}>تعديل الدور</button>
+              {m.status==='ACTIVE'?<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'SUSPEND')} className={buttonClass}>إنهاء العضوية</button>:<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'RESTORE')} className={buttonClass}><RotateCcw className="h-3.5 w-3.5"/>إعادة التفعيل</button>}
+            </>}
           </div>
         </div>)}</div>
       </div>
