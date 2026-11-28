@@ -49,9 +49,23 @@ Deno.serve(async (req: Request) => {
       )
     : [];
 
-  // The database RPC returns only paths proven unreferenced after scanning
-  // persisted application content. Keep this list bounded and delete through Storage.
-  const safeToDelete = paths;
+  // Re-scan all deletion candidates in one database pass per public table.
+  // If a reference appeared after the hourly scan, its timer is reset and the file is retained.
+  const { data: confirmedCandidates, error: confirmationError } = await service.rpc(
+    "mnty_confirm_catalog_media_deletion",
+    { p_object_paths: paths },
+  );
+  if (confirmationError) {
+    console.error("Catalog media final batch reference check failed", confirmationError.code || confirmationError.message);
+    return reply({ error: "cleanup_reference_check_failed" }, 503);
+  }
+
+  const safeToDelete = Array.isArray(confirmedCandidates)
+    ? confirmedCandidates.map((row: any) => String(row?.object_path || "")).filter((path: string) =>
+        paths.includes(path) &&
+        /^businesses\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/owner-uploads\/(activity|cover|product|service)\/[A-Za-z0-9._-]+$/.test(path)
+      )
+    : [];
 
   let deleted = 0;
   for (let offset = 0; offset < safeToDelete.length; offset += MAX_DELETE_BATCH) {
@@ -61,19 +75,29 @@ Deno.serve(async (req: Request) => {
       console.error("Catalog media Storage removal failed", error.name || error.message);
       return reply({ error: "cleanup_storage_remove_failed", deleted, remaining: safeToDelete.length - deleted }, 502);
     }
+
+    const { error: stateClearError } = await service.rpc(
+      "mnty_clear_catalog_media_retention_state",
+      { p_object_paths: batch },
+    );
+    if (stateClearError) {
+      // Storage already removed the files; a later scan will garbage-collect
+      // their stale state rows. Do not turn a successful deletion into a retry.
+      console.warn("Catalog media retention state cleanup deferred", stateClearError.code || stateClearError.message);
+    }
     deleted += batch.length;
   }
 
   console.log("CATALOG_MEDIA_RETENTION_RUN", JSON.stringify({
-    expiredCandidates: paths.length,
-    retainedAsReferencedOrUnconfirmed: 0,
+    unreferencedForFiveDays: paths.length,
+    retainedAsReferencedOrUnconfirmed: paths.length - safeToDelete.length,
     deleted,
   }));
   return reply({
     success: true,
     retentionDays: 5,
     examined: paths.length,
-    retained: 0,
+    retained: paths.length - safeToDelete.length,
     deleted,
   });
 });
