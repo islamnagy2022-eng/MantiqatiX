@@ -6,6 +6,7 @@
 - It adds the existing history-protected `mnty_platform_admin_delete_business` RPC as `SECURITY INVOKER`, with empty `search_path` and `service_role` EXECUTE only. Its referenced tables/columns and service-role privileges were checked through read-only DEMO catalog queries.
 - `catalog-platform-admin` now rejects direct `activityModuleOverrides` writes with HTTP 409 before touching the settings table. This remains disabled until an atomic settings+audit backend is verified; the UI read-only guard is not treated as the only security boundary.
 - These additions remain source-only in the Draft PR. They have not been applied to DEMO and no Edge Function has been deployed.
+- The compatibility migration now begins with a hard preflight: it refuses to run unless the shared platform-admin helper is registry-backed, SECURITY DEFINER with empty `search_path`, and `private.platform_admins` has RLS plus FORCE RLS. The current DEMO baseline does not satisfy this preflight, so direct application stops before any DDL.
 
 ## Scope and isolation
 
