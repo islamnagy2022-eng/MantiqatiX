@@ -80,7 +80,7 @@ export const FloatingAppInstallButton: React.FC<FloatingAppInstallButtonProps> =
         type="button"
         onClick={handleInstall}
         disabled={isInstalled}
-        className="inline-flex items-center gap-1 rounded-lg border border-emerald-400/50 bg-emerald-500 px-2 py-1.5 text-[10px] sm:text-xs font-black text-slate-950 shadow-sm transition-colors hover:bg-emerald-400 active:scale-95 whitespace-nowrap disabled:cursor-default disabled:opacity-80"
+        className="inline-flex items-center gap-1 rounded-lg border border-[#f6c04d] bg-[#f6c04d] px-2 py-1.5 text-[10px] sm:text-xs font-black text-[#3a0000] shadow-sm transition-colors hover:bg-[#ffe1a3] active:scale-95 whitespace-nowrap disabled:cursor-default disabled:opacity-80"
         aria-label={isInstalled ? 'التطبيق مثبت بالفعل' : 'تثبيت منطقتي X على الهاتف'}
         title={isInstalled ? 'التطبيق مثبت بالفعل' : 'تثبيت الموقع كتطبيق على الموبايل'}
       >
@@ -97,7 +97,7 @@ export const FloatingAppInstallButton: React.FC<FloatingAppInstallButtonProps> =
               <li>اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».</li>
               <li>على iPhone: افتح الرابط في Safari ثم «مشاركة» وبعدها «إضافة إلى الشاشة الرئيسية».</li>
             </ol>
-            <button type="button" onClick={() => setShowHelp(false)} className="mt-4 w-full rounded-xl bg-emerald-700 px-4 py-2.5 font-black text-white">حسنًا</button>
+            <button type="button" onClick={() => setShowHelp(false)} className="mt-4 w-full rounded-xl bg-[#7a0000] px-4 py-2.5 font-black text-white hover:bg-[#5a0000]">حسنًا</button>
           </div>
         </div>
       )}
