@@ -51,6 +51,11 @@ BEGIN
   VALUES (v_captain),(v_customer)
   ON CONFLICT (id) DO NOTHING;
 
+  -- The schema-only production checkpoint omits config rows; seed the trigger prerequisite transactionally.
+  INSERT INTO public.mantigo_rate_limit_config(action,max_events,window_minutes)
+  VALUES ('CREATE_RIDE',10,60)
+  ON CONFLICT (action) DO NOTHING;
+
   INSERT INTO public.mantigo_captain_profiles(
     captain_id,status,verification_status,availability_status,vehicle_category
   ) VALUES (v_captain,'ACTIVE','VERIFIED','AVAILABLE','SEDAN')
