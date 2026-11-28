@@ -1287,6 +1287,9 @@ export const DirectoryView: React.FC = () => {
                               image.src = fallback || BUSINESS_PLACEHOLDER;
                             } else if (!image.src.endsWith('/business-placeholder.svg')) {
                               image.src = BUSINESS_PLACEHOLDER;
+                            } else {
+                              image.onerror = null;
+                              image.style.visibility = 'hidden';
                             }
                           }}
                         />
