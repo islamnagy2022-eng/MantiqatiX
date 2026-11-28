@@ -1,3 +1,17 @@
+## 2026-11-28 — RC931 provider-profile privacy hardening on fresh mainline branch
+
+- [x] Current main at start of this work was c32bdb47ff3db2cebf19e38fd3e97f880b8e1f74; new branch: fix/rc931-provider-profile-read-retirement-mainline-20261128.
+- [x] Added RC115 and RC931 to the canonical required release set, strict gate, verifier and manifest: 90 ordered versions; Production still has 310 ledger rows through 20261110150618, with 0/90 exact-ID matches (identity gap only).
+- [x] RC931 now fails closed unless RC479, RC926, RC115 and RC484's registry-backed platform helper meet preflight; the provider CRM reader uses public.is_platform_admin() plus tenant/business membership scope, not MNTY-PLATFORM membership metadata.
+- [x] Added disposable PostgreSQL 17 workflow, synthetic fixture and adversarial tests for raw anon, anonymous/missing Auth claims, owner reads/updates, tenant/business isolation, unregistered global-role denial, registered platform-root access and trusted service-role discovery.
+- [ ] Exact-head dedicated PG17 suite, full 90-version chronological replay and companion checks are pending; no test result is claimed until GitHub Actions returns a conclusion.
+- **Production:** read-only. RC115/RC931 are source-only. No migration, DDL/DML, Auth/RLS/GRANT, Storage, Edge, payment, wallet or settlement mutation.
+- **Other release blockers:** full 90-source physical-effect/alias reconciliation; RC464 → RC469 → RC471 → RC484 coordinated platform-root release; Edge/RPC parity; encrypted DB + separate Storage backup; Auth/Vault recovery; independent restore/rollback and measured RPO/RTO.
+- **Scope:** Menoufia catalog/OSM work remains cancelled; keep the existing Activity → Specialty structure and unverified entries hidden as DRAFT / UNVERIFIED.
+- **Status:** FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED.
+
+---
+
 ## 2026-11-26 — Current execution checkpoint after PR #1148
 
 - [x] Confirmed current `main` is `111db15e30182e6f21ef9d91630a187d73601c36`; PR #1148 merged the direct RC117 image-provenance prerequisite read-back and refreshed the 87-source source-to-live disposition.
