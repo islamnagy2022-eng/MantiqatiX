@@ -33,6 +33,7 @@ import {
   Palette,
   GraduationCap,
   Utensils,
+  X,
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
@@ -101,6 +102,15 @@ const DIRECTORY_PLATFORM_PROMOS = [
   { id: 'platform-growth', image: (import.meta.env.BASE_URL || '/') + 'assets/mnty-cover-ad-1.svg', title: 'حوّل نشاطك إلى عملاء جدد' },
   { id: 'platform-registration', image: (import.meta.env.BASE_URL || '/') + 'assets/mnty-cover-ad-2.svg', title: 'سجّل نشاطك على MantiqatiX' },
   { id: 'platform-provider', image: (import.meta.env.BASE_URL || '/') + 'assets/mnty-cover-ad-3.svg', title: 'فرصتك تبدأ هنا' },
+] as const;
+
+const PLATFORM_SERVICE_ITEMS = [
+  { id: 'catalog', title: 'كتالوج ذكي لنشاطك', description: 'اعرض نشاطك ومنتجاتك وخدماتك بصورة منظمة وسهلة الوصول للعملاء.' },
+  { id: 'identity', title: 'تصميم وهوية بصرية', description: 'شعارات وهويات ومنشورات إعلانية متناسقة مع طبيعة نشاطك.' },
+  { id: 'social', title: 'إدارة صفحات التواصل', description: 'إعداد المحتوى وتنظيم النشر وتحسين حضور نشاطك على المنصات الاجتماعية.' },
+  { id: 'campaigns', title: 'حملات إعلانية ممولة', description: 'تخطيط حملات موجهة حسب الجمهور والمنطقة والهدف التسويقي.' },
+  { id: 'production', title: 'تصوير وفيديو إعلاني', description: 'إنتاج محتوى مرئي للمنتجات والخدمات ومقر النشاط.' },
+  { id: 'strategy', title: 'خطة تسويقية', description: 'تحديد الجمهور والرسائل والقنوات المناسبة لنمو نشاطك.' },
 ] as const;
 
 // Resolve category-aware covers locally when an activity has no uploaded cover.
@@ -206,8 +216,17 @@ export const DirectoryView: React.FC = () => {
   const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
   const [coverAdvertisements, setCoverAdvertisements] = useState<TargetedAdvertisement[]>([]);
   const [coverAdvertisementsLoading, setCoverAdvertisementsLoading] = useState(false);
+  const [isPlatformServicesOpen, setIsPlatformServicesOpen] = useState(false);
   const [locationBusy, setLocationBusy] = useState(false);
   const [locationMessage, setLocationMessage] = useState('');
+  useEffect(() => {
+    if (!isPlatformServicesOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsPlatformServicesOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [isPlatformServicesOpen]);
   const [unconfirmedListings, setUnconfirmedListings] = useState<PublicDirectoryListing[]>([]);
   const [directoryListingsLoaded, setDirectoryListingsLoaded] = useState(false);
   const [directoryListingsHasMore, setDirectoryListingsHasMore] = useState(false);
@@ -1099,9 +1118,13 @@ export const DirectoryView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      if (slide.advertisementId || slide.platformPromoId) {
+                      if (slide.advertisementId) {
                         const safeTarget = isSafeHttpsUrl(slide.targetUrl);
                         if (safeTarget) window.open(safeTarget, '_blank', 'noopener,noreferrer');
+                        return;
+                      }
+                      if (slide.platformPromoId) {
+                        setIsPlatformServicesOpen(true);
                         return;
                       }
                       if (!slide.businessId) return;
@@ -1555,6 +1578,68 @@ export const DirectoryView: React.FC = () => {
           activityName={shareActivity.name}
           onClose={() => setShareActivity(null)}
         />
+      )}
+      {isPlatformServicesOpen && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-slate-950/75 p-3 backdrop-blur-sm sm:p-6"
+          onClick={() => setIsPlatformServicesOpen(false)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="platform-services-title"
+            data-testid="platform-services-dialog"
+            className="my-auto w-full max-w-3xl rounded-3xl border border-[#ead5c5] bg-white p-5 text-right shadow-2xl sm:p-7"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#fff3e0] px-3 py-1 text-[10px] font-black text-[#7a0000]">
+                  <Sparkles className="h-3 w-3" /> خدمات MantiqatiX
+                </span>
+                <h2 id="platform-services-title" className="mt-2 text-xl font-black text-slate-950 sm:text-2xl">
+                  خدمات لأصحاب الأنشطة في {selectedAdAreaLabel}
+                </h2>
+                <p className="mt-2 text-xs leading-6 text-slate-600">
+                  اختر الخدمة المناسبة لنشاطك. يتم تحديد التفاصيل والتكلفة بعد مراجعة احتياجات النشاط، دون عرض أسعار ثابتة غير معتمدة.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPlatformServicesOpen(false)}
+                aria-label="إغلاق خدمات المنصة"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {PLATFORM_SERVICE_ITEMS.map((service) => (
+                <article key={service.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <h3 className="text-sm font-black text-[#7a0000]">{service.title}</h3>
+                  <p className="mt-1 text-xs leading-5 text-slate-600">{service.description}</p>
+                </article>
+              ))}
+            </div>
+
+            {catalogRequestPhone ? (
+              <a
+                data-testid="platform-services-whatsapp-request"
+                href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد معرفة خدمات منصة MantiqatiX لأصحاب الأنشطة في ' + selectedAdAreaLabel + '.')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#7a0000] px-5 py-3 text-xs font-black text-white transition hover:bg-[#5a0000] sm:w-auto"
+              >
+                <MessageCircle className="h-4 w-4" /> اطلب التواصل عبر واتساب
+              </a>
+            ) : (
+              <p role="status" className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                رقم التواصل الرسمي لإدارة المنصة غير مضبوط بعد. أضفه من إعدادات المنصة لتفعيل طلب الخدمة عبر واتساب.
+              </p>
+            )}
+          </section>
+        </div>
       )}
     </div>
   );
