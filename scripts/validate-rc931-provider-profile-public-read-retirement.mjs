@@ -49,7 +49,7 @@ assert.match(migration, /RC931_PROVIDER_PROFILE_RLS_REQUIRED/);
 assert.match(migration, /RC931_PROVIDER_PROFILE_FORCE_RLS_REQUIRED/);
 assert.match(migration, /RC931_RC479_RAW_ANON_REVOKE_REQUIRED/);
 assert.match(migration, /RC931_RC926_STRICT_CONFIRMED_AUTH_GUARD_REQUIRED/);
-assert.match(migration, /v_confirmed_qual not ilike '\\(NOT \\(%IS DISTINCT FROM%false%\\)'/i,
+assert.match(migration, /v_confirmed_qual not ilike '\(NOT \(%IS DISTINCT FROM%false%\)'/i,
   "RC931 preflight must recognize PostgreSQL's normalized NOT (claim IS DISTINCT FROM false) form");
 assert.match(migration, /RC931_RC115_TENANT_AND_BUSINESS_SCOPED_CRM_POLICY_REQUIRED/);
 assert.match(migration, /DROP POLICY IF EXISTS "Public can view active marketing providers"/i);
