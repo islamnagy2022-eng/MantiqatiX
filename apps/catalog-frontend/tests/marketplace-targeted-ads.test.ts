@@ -216,10 +216,10 @@ test('describes paid cover ads using the actual geographic match level', () => {
   assert.equal(getTargetedAdvertisementAudienceLabel('CENTER', 'المنوفية', 'بركة السبع'), 'موجه لمركز بركة السبع');
   assert.equal(getTargetedAdvertisementAudienceLabel('GOVERNORATE', 'المنوفية'), 'موجه لمحافظة المنوفية');
   assert.equal(getTargetedAdvertisementAudienceLabel('COUNTRY', 'المنوفية'), 'حملة عامة على مستوى مصر');
-  assert.equal(getTargetedAdvertisementAudienceLabel('NEAREST', 'المنوفية'), 'أقرب نطاق إعلاني متاح لموقعك');
+  assert.equal(getTargetedAdvertisementAudienceLabel('NEAREST', 'المنوفية'), 'أقرب نطاق إعلاني متاح');
 });
 
 test('does not invent a precise region when the ad RPC returns no match level', () => {
-  assert.equal(getTargetedAdvertisementAudienceLabel(null, 'المنوفية'), 'إعلان متاح ضمن نطاق المنوفية');
-  assert.equal(getTargetedAdvertisementAudienceLabel(undefined, 'all'), 'إعلان متاح داخل مصر');
+  assert.equal(getTargetedAdvertisementAudienceLabel(null, 'المنوفية'), 'نطاق الاستهداف غير محدد');
+  assert.equal(getTargetedAdvertisementAudienceLabel(undefined, 'all'), 'نطاق الاستهداف غير محدد');
 });
