@@ -111,7 +111,7 @@ begin
   if v_confirmed_qual is null
      or v_confirmed_qual not ilike '%IS NOT DISTINCT FROM%'
      or v_confirmed_qual not ilike '%is_anonymous%' then
-    raise exception 'RC931_RC926_STRICT_CONFIRMED_AUTH_GUARD_REQUIRED';
+    raise exception 'RC931_RC926_STRICT_CONFIRMED_AUTH_GUARD_REQUIRED: policy qual=%', coalesce(v_confirmed_qual, '<missing>');
   end if;
 
   select p.qual into v_crm_qual
