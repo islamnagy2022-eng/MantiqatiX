@@ -12,7 +12,7 @@
 
 Project status is `ACTIVE_HEALTHY` (PostgreSQL 17.11.0.003).
 
-Migration ledger contains eight DEMO-specific versions. Edge inventory contains eight active functions:
+Migration ledger contains eight DEMO-specific versions. The current Edge inventory lists ten active functions:
 - `demo-membership-manage`
 - `demo-appointment-create`
 - `demo-order-create`
@@ -35,7 +35,7 @@ The existing source migrations RC113–RC116 contain the core role registry, emp
 
 The `20261029041815_professional_dashboard_dependencies_forward_repair.sql` migration consolidates RC113/RC114/RC115 and later permission-ceiling corrections, but it is a large mixed migration (83 KB), has a separate dependency on the membership scope uniqueness fix, and does not create `bizcatalog_platform_settings` or the activity-module settings audit table. It is not safe to apply as a whole to DEMO without splitting and replaying its dependency graph.
 
-The current control-center source uses `mnty_can_platform_admin()` for the platform Edge gate, while the role/employee SQL source uses the `private.platform_admins` registry. Keep those authorities aligned and test non-admin denial explicitly; never seed a platform admin by copying a production identity.
+Two different platform-root contracts are present in the current source: the shared Edge/RLS gate `mnty_can_platform_admin()` still reads the legacy active `MNTY-PLATFORM` membership, while the new control-center RPCs query `private.platform_admins`. Their authority must be converged through the coordinated RC464/RC469/RC471/RC484/RC485 chain and tested together. Never provision a privileged user by copying a Production identity.
 
 ## Supabase Advisor snapshot
 
@@ -49,13 +49,13 @@ Performance notices include unindexed foreign keys and multiple permissive polic
 
 ## Next safe implementation sequence
 
-1. Build an additive, DEMO-only admin compatibility migration. Start with RC113/RC114/RC115/RC116 source objects, exclude RC117 image alterations, and split the null-safe membership index as an explicit prerequisite.
-2. Reconcile migration dependencies and all referenced columns/types against actual DEMO schema before applying.
-3. Apply migration only to DEMO. Verify RLS enabled and forced on privileged tables, no direct browser table grants, SECURITY DEFINER functions have empty search_path, anon EXECUTE is revoked, and authenticated EXECUTE is limited to guarded RPCs.
-4. Create only synthetic fixture identities and demo tenant/business/branch rows. Do not copy or expose production accounts or customer data.
-5. Deploy compatible `catalog-admin` and `catalog-platform-admin` bundles to DEMO only after verifying each imported dependency and secret contract. Keep `verify_jwt` and handler authentication aligned with the source.
-6. Run positive and negative API tests: unauthenticated denial, non-platform-admin denial, tenant/business/branch isolation, role revocation, employee suspension, audit creation, and catalog-only scope.
-7. Do not claim full admin readiness until runtime HTTP tests and the above authorization tests pass.
+1. Keep the newly prepared control-center compatibility migration isolated in its Draft PR. It is source-only and is not yet safe to apply by itself.
+2. Resolve and test the null-safe user/business/branch membership uniqueness prerequisite and every missing object/column/type against the actual DEMO schema. Keep RC117 image/default changes out of this slice.
+3. Rehearse the ordered platform-root source chain RC464 → RC469 → RC471 → RC484 → RC485 together, including the eight shared helper callers and five dependent RLS policies.
+4. Replay the resulting chronological migration set on disposable PostgreSQL 17 from the exact DEMO schema baseline, then run the added SQL ACL/RLS contract and targeted positive/negative authorization tests.
+5. Only after replay passes, use a trusted operator bootstrap to create a synthetic DEMO-only platform-admin identity and synthetic tenant/business/branch fixtures. Do not copy Production user or customer data.
+6. Deploy compatible `catalog-admin` and `catalog-platform-admin` bundles to DEMO only after verifying imports, secret contracts, `verify_jwt`, and handler authentication.
+7. Run HTTP and browser tests for anonymous denial, authenticated non-admin denial, registry-admin success/revocation, tenant/business/branch isolation, employee suspension, permission ceilings, and audit creation. Do not claim admin readiness before these gates pass.
 
 ## Verified in this checkpoint
 
@@ -64,9 +64,10 @@ Performance notices include unindexed foreign keys and multiple permissive polic
 - [x] PR #1215 is merged.
 - [x] DEMO status, migration ledger, Edge inventory, Advisor snapshot retrieved.
 - [x] Exact admin object preflight run read-only against DEMO.
-- [ ] Admin compatibility migration implemented and applied.
+- [x] DEMO-only admin compatibility migration source prepared in Draft PR #1216; not applied.
+- [ ] Ordered root-authority chain and membership uniqueness prerequisite rehearsed against exact DEMO schema.
 - [ ] Admin Edge Functions deployed to DEMO.
-- [ ] Synthetic admin fixtures and negative authorization tests complete.
+- [ ] Trusted synthetic admin/business fixtures and negative authorization tests complete.
 
 ## Follow-up exact-signature ACL and root-authority audit
 
@@ -99,9 +100,11 @@ The canonical source sequence is RC464 → RC469 → RC471 → RC484 → RC485, 
 - [x] Two missing internal-helper client revokes added to the migration source.
 - [x] Live DEMO root-helper implementation, registry counts, table ACL, helper callers, and dependent RLS policies read back without mutation.
 - [x] Static validation source added for RPC ACLs, internal-helper ACLs, forced RLS, and absence of a seeded platform administrator.
-- [ ] Run the static validation command in a checked-out repository/CI environment.
-- [ ] Replay the full migration against a disposable PostgreSQL 17 database initialized from the exact DEMO schema baseline.
-- [ ] Run positive and negative authorization tests for anon, authenticated non-admin, registry-admin, tenant/business/branch boundaries, and employee permission ceilings.
+- [x] SQL integration contract added to the chronological PostgreSQL 17 replay workflow; exact-head result pending.
+- [x] Source-level static contract checked in this session: 50/50 assertions passed.
+- [ ] Run `npm run validate:demo-admin-compatibility` on the exact PR head in GitHub Actions; the step is wired into Pages PR validation.
+- [ ] Complete the isolated PostgreSQL 17 forward replay from the captured Production schema checkpoint and its newly added admin ACL/RLS SQL contract; this is not an exact DEMO baseline replay.
+- [ ] Replay against the exact DEMO schema baseline and run positive/negative authorization tests for anon, authenticated non-admin, registry-admin, tenant/business/branch boundaries, and employee permission ceilings.
 - [ ] Reconcile and rehearse the ordered RC464/RC469/RC471/RC484/RC485 authority chain with dependent caller/policy tests.
 - [ ] Deploy compatible admin Edge Functions to DEMO only, then run HTTP and browser smoke tests.
 
