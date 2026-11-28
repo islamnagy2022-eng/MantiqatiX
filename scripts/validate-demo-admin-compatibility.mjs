@@ -11,6 +11,11 @@ const postgresTest = readFileSync(
   'utf8',
 ).toLowerCase();
 
+const platformAdminEdge = readFileSync(
+  'supabase/functions/catalog-platform-admin/index.ts',
+  'utf8',
+).toLowerCase();
+
 const externalRpcSignatures = [
   'mnty_platform_admin_list_custom_roles()',
   'mnty_platform_admin_upsert_custom_role(text,text,text,text,jsonb,uuid,boolean)',
@@ -106,6 +111,13 @@ assert.ok(
 );
 
 assert.ok(migration.includes('create table if not exists public.bizcatalog_platform_settings'), 'BizCatalog settings dependency is missing.');
+const settingsSaveStart = platformAdminEdge.indexOf('if (action === "save_settings")');
+const activityWriteGuard = platformAdminEdge.indexOf('activity_module_settings_not_ready', settingsSaveStart);
+const settingsUpsert = platformAdminEdge.indexOf('service.from("bizcatalog_platform_settings").upsert', settingsSaveStart);
+assert.ok(settingsSaveStart >= 0 && activityWriteGuard > settingsSaveStart && settingsUpsert > activityWriteGuard,
+  'Platform Edge handler must reject activity-module settings before touching the settings table.');
+assert.ok(platformAdminEdge.includes('const activity_module_settings_write_enabled = false'),
+  'Activity-module platform settings must remain server-side disabled until atomic audit is proven.');
 assert.ok(migration.includes('revoke all on table public.bizcatalog_platform_settings from public, anon, authenticated;'), 'BizCatalog settings must remain closed to browser roles.');
 assert.ok(migration.includes('revoke all on function public.' + serviceOnlyRpcSignature) && migration.includes('to service_role;'), 'Business delete RPC must be service-role-only.');
 for (const marker of ['demo_admin_bizcatalog_settings_client_privilege_granted','demo_admin_delete_rpc_must_be_invoker','demo_admin_delete_rpc_acl_failed','demo_admin_delete_rpc_history_or_audit_guard_missing']) {
