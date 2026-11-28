@@ -273,6 +273,13 @@ assert.ok(directory.includes('const selectedAdAreaLabel = getPublicAreaDisplayLa
   directory.includes('selectedAdAreaLabel +') &&
   directory.includes('encodeURIComponent') &&
   directory.includes('selectedAdAreaLabel'), 'platform-owned cover promos and their request link must reflect the visitor-selected area');
+assert.ok(directory.includes('if (slide.platformPromoId) {') &&
+  directory.includes('setIsPlatformServicesOpen(true)') &&
+  directory.includes('data-testid="platform-services-dialog"') &&
+  directory.includes('PLATFORM_SERVICE_ITEMS.map'), 'platform cover promos must open an in-app service information dialog when selected');
+assert.ok(directory.includes('data-testid="platform-services-whatsapp-request"') &&
+  directory.includes('{catalogRequestPhone ? (') &&
+  directory.includes('رقم التواصل الرسمي لإدارة المنصة غير مضبوط بعد'), 'the service request link must use only configured official WhatsApp contact and explain when it is unavailable');
 assert.ok(directory.includes('const platformPromoCoverSlides: CoverSlide[] = DIRECTORY_PLATFORM_PROMOS.map((promo) => ({') && directory.includes('assets/mnty-cover-ad-1.svg') && directory.includes("badge: 'خدمات المنصة'"), 'Official platform service promos must fill the cover when no regional paid campaign exists');
 assert.ok(directoryCoverPromoAssets.length === 3 && directoryCoverPromoAssets.every((asset) => asset.startsWith('<svg') && asset.includes('MantiqatiX')), 'All three official platform promo creatives must ship inside the catalog app public assets'); 
 assert.ok(directory.includes('const coverSlides: CoverSlide[] = [...targetedCoverSlides, ...platformPromoCoverSlides, ...businessCoverSlides]'), 'Targeted paid cover campaigns must appear first, followed by official platform promos and local business fallback');
