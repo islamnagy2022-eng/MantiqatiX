@@ -715,6 +715,18 @@ export const AdminDashboard: React.FC = () => {
           <span>إعدادات وحدات الأنشطة</span>
         </button>
 
+        {/* Direct access to the platform roles, assignments, employees, and audit center. */}
+        <button
+          type="button"
+          aria-pressed={activeAdminTab === 'control_center'}
+          onClick={() => setActiveAdminTab('control_center')}
+          className={adminTabClass('control_center')}
+          data-testid="platform-admin-control-center-tab"
+        >
+          <UserCog className="w-4 h-4 text-amber-500" />
+          <span>مركز التحكم والصلاحيات</span>
+        </button>
+
         {/* Tab 5: Settings */}
         <button
           type="button"
