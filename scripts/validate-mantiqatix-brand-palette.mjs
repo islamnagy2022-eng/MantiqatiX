@@ -39,7 +39,7 @@ const requiredFiles = [
   ['apps/catalog-frontend/src/components/merchant/CatalogImportPanel.tsx', ['from-[#3a0000]', 'bg-[#7a0000]']],
   ['apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx', ['from-[#3a0000]', 'bg-[#7a0000]', '#f6c04d']],
   ['apps/catalog-frontend/src/components/admin/CommissionRulesManager.tsx', ['from-[#3a0000]', 'bg-[#7a0000]', 'border-[#ead5c5]']],
-  ['apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx', ['from-[#3a0000]', 'bg-[#fff3e0]', 'text-[#7a0000]']],
+  ['apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx', ['from-[#3a0000]', 'bg-[#fff3e0]', 'bg-[#7a0000]', 'text-[#7a0000]']],
   ['apps/catalog-frontend/src/components/common/QRCodeModal.tsx', ['bg-[#fff3e0]', 'bg-[#7a0000]']],
   ['apps/catalog-frontend/src/components/ActivityShareDialog.tsx', ['bg-[#fff3e0]', 'bg-[#7a0000]']],
   ['apps/catalog-frontend/src/components/common/FloatingAppInstallButton.tsx', ['bg-[#f6c04d]', 'bg-[#7a0000]']],
