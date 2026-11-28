@@ -130,8 +130,14 @@ begin
   -- pg_policies.qual may schema-qualify the referenced table after a full
   -- chronological replay. Normalize whitespace/case, but keep both the exact
   -- tenant equality and the business_id -> businesses.id join mandatory.
+  -- Remove explicit type casts, whitespace and syntactic parentheses before
+  -- comparing the parsed predicate. Full replay can deparse text-compatible
+  -- tenant_id columns as (um.tenant_id)::text = (b.tenant_id)::text.
   v_crm_qual_normalized := lower(
-    regexp_replace(coalesce(v_crm_qual, ''), '[[:space:]]+', '', 'g')
+    regexp_replace(
+      regexp_replace(coalesce(v_crm_qual, ''), '::[a-z0-9_." ]+', '', 'g'),
+      '[[:space:]()]', '', 'g'
+    )
   );
 
   if v_crm_qual is null
