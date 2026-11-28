@@ -399,6 +399,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       const action = String(body.action || '').toUpperCase();
       platformAdminRequests.push({
         action,
+        payload: body,
         settings: body.settings || null,
         authorization: request.headers().authorization || '',
       });
@@ -408,6 +409,20 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
         return json({ success: true, settings: platformSettingsState.settings, auditLogged: true });
       }
       if (action === 'LIST_SUBSCRIBERS') return json({ subscribers: [] });
+      if (action === 'LIST_BUSINESSES') return json({
+        businesses: Array.isArray(options.adminBusinesses) ? options.adminBusinesses : [],
+        ...(options.omitScopedRoleCapabilities ? {} : { capabilities: { branchScopedRoleEdits: true } }),
+      });
+      if (action === 'SAVE_MEMBERSHIP') {
+        const parent = (options.adminBusinesses || []).find((business) => String(business.id) === String(body.businessId));
+        const membership = parent?.memberships?.find((item) => String(item.id) === String(body.membershipId));
+        if (membership) {
+          membership.role = body.role;
+          membership.status = body.status;
+          membership.branch_id = body.branchId || null;
+        }
+        return json({ success: true, auditLogged: true, membership: membership || null });
+      }
       return json({ subscribers: [], settings: platformSettingsState.settings });
     }
     if (url.pathname.endsWith('/functions/v1/directory-listings')) {
@@ -1387,6 +1402,7 @@ try {
         await page.setViewportSize(viewport);
         await assertNoHorizontalOverflow(page, 'platform admin overview at ' + viewport.width + 'px');
       }
+
       results.push('platform-admin-overview-default-route-metrics-shortcuts-and-responsive-layout');
     } finally { await context.close(); }
   }
@@ -1447,6 +1463,135 @@ try {
         await assertNoHorizontalOverflow(page, 'V4 Super Admin control tabs at ' + viewport.width + 'px');
       }
       results.push('super-admin-control-center-v4-tabs-preserve-five-areas-and-url-state');
+    } finally { await context.close(); }
+  }
+
+  // Business subscriber administration: role edits preserve branch, membership status, and unrelated permission flags.
+  {
+    const adminMemberships = [
+      {
+        id: 'membership-suspended-branch-employee',
+        user_id: '30000000-0000-0000-0000-000000000021',
+        branch_id: branchId,
+        role: 'EMPLOYEE',
+        status: 'SUSPENDED',
+        email: 'branch.employee@example.test',
+        full_name: 'موظف فرع موقوف',
+      },
+      {
+        id: 'membership-legacy-role',
+        user_id: '30000000-0000-0000-0000-000000000022',
+        branch_id: null,
+        role: 'LEGACY_CUSTOM_ROLE',
+        status: 'ACTIVE',
+        email: 'legacy.role@example.test',
+        full_name: 'عضوية بدور قديم',
+      },
+      {
+        id: 'membership-protected-platform-owner',
+        user_id: roles.platformAdmin.id,
+        branch_id: null,
+        role: 'SUPER_ADMIN',
+        status: 'ACTIVE',
+        email: roles.platformAdmin.email,
+        full_name: 'مالك المنصة المحمي',
+        is_platform_account: true,
+      },
+    ];
+    const { context, page, platformAdminRequests } = await newScenario(browser, roles.platformAdmin, [], {
+      initialRoute: '?view=super_admin&tab=control_center&controlTab=management',
+      adminBusinesses: [{
+        id: businessId,
+        tenant_id: tenantId,
+        name: 'نشاط اختبار إدارة العضويات',
+        code: 'ADMIN-MEMBERSHIP-E2E',
+        status: 'ACTIVE',
+        settings: { catalog_profile: { category: 'خدمات عامة', logo_url: '', cover_url: '' } },
+        memberships: adminMemberships,
+      }],
+    });
+    try {
+      await page.getByText('المشتركون والعضويات (3)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByText('حساب منصة محمي · غير قابل للتعديل هنا', { exact: true }).waitFor({ state: 'visible' });
+      assert.equal(await page.getByText('مالك المنصة المحمي', { exact: true }).count(), 1,
+        'protected platform membership must be visible without ordinary edit actions');
+
+      const roleButtons = page.getByRole('button', { name: 'تعديل الدور', exact: true });
+      assert.equal(await roleButtons.count(), 2, 'only the ordinary membership rows should expose role editing');
+      await roleButtons.nth(1).click();
+      await page.getByRole('status').getByText('الدور الحالي غير موجود في قائمة الأدوار الآمنة؛ لم يتم فتح التعديل أو اقتراح دور بديل.', { exact: true })
+        .waitFor({ state: 'visible' });
+      assert.equal(await page.getByRole('dialog', { name: 'تعديل دور العضوية' }).count(), 0,
+        'an unsupported legacy role must not open with a CUSTOMER fallback');
+
+      await roleButtons.first().click();
+      const editor = page.getByRole('dialog', { name: 'تعديل دور العضوية' });
+      await editor.waitFor({ state: 'visible', timeout: 5000 });
+      await editor.locator('select').selectOption('MANAGER');
+      page.once('dialog', (dialog) => dialog.accept());
+      await editor.getByRole('button', { name: 'حفظ الدور', exact: true }).click();
+      await page.getByText('تم تغيير دور العضوية مع الحفاظ على نطاق النشاط والفرع.', { exact: true })
+        .waitFor({ state: 'visible', timeout: 10000 });
+      const saveRequest = platformAdminRequests.find((request) => request.action === 'SAVE_MEMBERSHIP');
+      assert.ok(saveRequest, 'changing an approved role must call the guarded membership endpoint');
+      assert.equal(saveRequest.payload.branchId, branchId, 'role update must retain the branch assignment');
+      assert.equal(saveRequest.payload.status, 'SUSPENDED', 'role update must retain suspended membership state');
+      assert.equal(saveRequest.payload.role, 'MANAGER', 'role update must send the selected allowlisted role');
+      for (const key of ['catalogEnabled', 'catalogWrite', 'accountRestricted']) {
+        assert.equal(Object.hasOwn(saveRequest.payload, key), false, 'role-only update must not modify ' + key);
+      }
+      await page.getByText('موظف فرع موقوف', { exact: true }).locator('xpath=ancestor::article[1]')
+        .getByText('MANAGER', { exact: false }).waitFor({ state: 'visible' });
+      results.push('business-subscriber-role-editor-preserves-branch-status-and-catalog-permissions');
+      results.push('legacy-and-platform-protected-memberships-fail-closed-in-business-admin');
+    } finally { await context.close(); }
+  }
+
+  // Role editing must remain unavailable while the live backend has not advertised branch-scope support.
+  {
+    const { context, page } = await newScenario(browser, roles.platformAdmin, [], {
+      initialRoute: '?view=super_admin&tab=control_center&controlTab=management',
+      omitScopedRoleCapabilities: true,
+      adminBusinesses: [{
+        id: businessId,
+        tenant_id: tenantId,
+        name: 'نشاط اختبار توافق خدمة الإدارة',
+        code: 'ADMIN-CAPABILITY-E2E',
+        status: 'ACTIVE',
+        settings: {},
+        memberships: [{
+          id: 'membership-awaiting-scoped-api',
+          user_id: '30000000-0000-0000-0000-000000000031',
+          branch_id: branchId,
+          role: 'EMPLOYEE',
+          status: 'ACTIVE',
+          email: 'capability.employee@example.test',
+          full_name: 'موظف بانتظار تحديث الخادم',
+        }],
+      }],
+    });
+    try {
+      await page.getByText('المشتركون والعضويات (1)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByText('تغيير أدوار العضويات موقوف مؤقتًا لأن نسخة خدمة الإدارة لم تؤكد دعم نطاق الفرع.', { exact: false })
+        .waitFor({ state: 'visible' });
+      assert.equal(await page.getByRole('button', { name: 'تعديل الدور', exact: true }).count(), 0,
+        'the UI must not submit branch-scoped role edits against an older Edge Function');
+      results.push('business-subscriber-role-editor-fails-closed-without-server-capability');
+    } finally { await context.close(); }
+  }
+
+  // Unverified backup/import tools must fail closed even when a legacy URL is opened directly.
+  {
+    const { context, page } = await newScenario(browser, roles.platformAdmin, [], {
+      initialRoute: '?view=super_admin&tab=backup',
+    });
+    try {
+      await page.getByTestId('platform-admin-overview').waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await page.getByRole('heading', { name: 'تصدير بيانات الإدارة (نسخة محدودة)', exact: true }).count(), 0,
+        'unverified backup and restore UI must not render for a direct URL');
+      assert.equal(await page.getByRole('button', { name: 'نسخ احتياطي فوري', exact: true }).count(), 0,
+        'the incomplete export must not be advertised as an immediate backup');
+      results.push('unverified-backup-import-route-and-header-action-fail-closed');
     } finally { await context.close(); }
   }
 

@@ -145,6 +145,8 @@ assert.ok(activityModuleE2E.includes("request.action === 'SAVE_SETTINGS'"), 'Bro
 assert.ok(!admin.includes('handleSavePaymobConfig') && !admin.includes('paymobMerchantApiKey') && !admin.includes('Integration ID'), 'Admin UI must not expose a fake Paymob credential-save path');
 assert.ok(!admin.includes("setActiveAdminTab('backup')"), 'Unverified backup/restore UI must not be exposed');
 assert.ok(!admin.includes("setActiveAdminTab('control_center')"), 'Unverified advanced control-center UI must not be exposed');
+assert.ok(!admin.includes("'backup'"), 'Unverified backup/import route must not be reachable by a direct tab URL');
+assert.ok(!admin.includes('downloadBackupFile'), 'Incomplete local export must not be exposed as a production backup action');
 
 assert.ok(report.status === 'BLOCKED' || report.status === 'PASS', 'Full platform gate status must remain explicit');
 assert.ok(pagesWorkflow.includes('Publish the catalog as the production root; preserve /legacy rollback and V6 preview'), 'Pages artifact must publish apps/catalog-frontend at the root, preserve its /legacy rollback alias, and retain V6 preview separately.');

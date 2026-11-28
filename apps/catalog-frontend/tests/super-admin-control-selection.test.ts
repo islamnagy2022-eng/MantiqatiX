@@ -33,3 +33,54 @@ assert.ok(assignHandler.indexOf('findVisiblePerson(selectedPersonId,people)') < 
 assert.match(source, /event\.key==='Enter'.*loadAll\(\)/, 'The people search must also run when the user presses Enter.');
 
 console.log('SUPER_ADMIN_PERSON_SEARCH_SELECTION=PASS');
+
+
+// Business subscriber role editor must stay aligned with the backend allowlist and retain branch scope.
+const businessSubscriberSource = readFileSync('src/components/admin/BusinessSubscriberAdmin.tsx', 'utf8');
+const platformAdminEndpointSource = readFileSync('../../supabase/functions/catalog-platform-admin/index.ts', 'utf8');
+const browserE2ESource = readFileSync('tests/professional-dashboard.browser.e2e.mjs', 'utf8');
+assert.ok(!businessSubscriberSource.includes('window.prompt('), 'Role changes must use the controlled role editor, not free-form text.');
+assert.ok(businessSubscriberSource.includes("branchId:m.branch_id||''"), 'Role changes must preserve the selected membership branch.');
+assert.ok(platformAdminEndpointSource.includes('select("id,user_id,tenant_id,business_id,branch_id,role,status,permissions")'), 'The protected admin list must expose the current branch scope to the UI.');
+const uiRoleBlock = businessSubscriberSource.split('const membershipRoleOptions = [')[1]?.split('] as const;')[0] || '';
+const apiRoleStart = platformAdminEndpointSource.indexOf('const allowedRoles = new Set([', platformAdminEndpointSource.indexOf('if (action === "SAVE_MEMBERSHIP")'));
+const apiRoleEnd = platformAdminEndpointSource.indexOf(']);', apiRoleStart);
+assert.ok(uiRoleBlock && apiRoleStart >= 0 && apiRoleEnd > apiRoleStart, 'Both the UI role options and backend allowlist must remain discoverable.');
+const uiRoles = [...uiRoleBlock.matchAll(/value: '([A-Z_]+)'/g)].map(match => match[1]).sort();
+const apiRoles = [...platformAdminEndpointSource.slice(apiRoleStart, apiRoleEnd).matchAll(/"([A-Z_]+)"/g)].map(match => match[1]).sort();
+assert.deepEqual(uiRoles, apiRoles, 'The UI role options must exactly match the server allowlist.');
+console.log('BUSINESS_SUBSCRIBER_ROLE_EDITOR_SCOPE_AND_ALLOWLIST=PASS');
+
+
+// A role-only update must not reset independent catalog permissions or change a suspended membership's state.
+assert.ok(businessSubscriberSource.includes("status:['ACTIVE','INACTIVE','SUSPENDED'].includes(String(m.status||'').toUpperCase())?String(m.status).toUpperCase():'INACTIVE'"), 'Role changes must preserve the exact supported membership state.');
+assert.ok(!businessSubscriberSource.includes('catalogEnabled:true,catalogWrite:true,accountRestricted:false'), 'Role changes must not silently grant catalog read/write permissions.');
+assert.ok(platformAdminEndpointSource.includes('typeof body.catalogEnabled === "boolean" ? body.catalogEnabled : previousPermissions.catalog !== false'), 'Omitted catalog settings must retain the existing membership permissions.');
+assert.ok(platformAdminEndpointSource.includes('typeof body.catalogWrite === "boolean" ? body.catalogWrite : previousPermissions.catalog_write !== false'), 'Omitted catalog write settings must retain the existing write permissions.');
+assert.ok(platformAdminEndpointSource.includes('typeof body.accountRestricted === "boolean"'), 'Omitted account restriction settings must retain the current restriction state.');
+console.log('BUSINESS_SUBSCRIBER_ROLE_UPDATE_PRESERVES_MEMBERSHIP_PERMISSIONS=PASS');
+
+
+// Legacy platform-owner memberships must be marked protected in the management view.
+assert.ok(platformAdminEndpointSource.includes('branch_id,role,status,permissions'), 'Business memberships must include permission metadata for protected-account detection.');
+assert.ok(platformAdminEndpointSource.includes('is_platform_account: String(m.role || "").toUpperCase() === "SUPER_ADMIN" || isProtectedPlatformMembership(m)'), 'Protected platform memberships must be explicitly marked in the read model.');
+assert.ok(businessSubscriberSource.includes('حساب منصة محمي · غير قابل للتعديل هنا'), 'The UI must not present ordinary membership controls for protected platform accounts.');
+console.log('BUSINESS_SUBSCRIBER_PROTECTED_PLATFORM_MEMBERSHIPS=PASS');
+
+
+// Unknown legacy roles must never silently default to CUSTOMER in the role editor.
+assert.ok(businessSubscriberSource.includes('const openRoleEditor=(membership:Membership)=>{'), 'Role editor must validate the current role before opening.');
+assert.ok(businessSubscriberSource.includes('if(!membershipRoleOptions.some((option)=>option.value===currentRole))'), 'Unsupported legacy roles must be rejected from the editor.');
+assert.ok(businessSubscriberSource.includes('الدور الحالي غير موجود في قائمة الأدوار الآمنة'), 'The UI must explain why an unsupported role cannot be edited.');
+assert.ok(businessSubscriberSource.includes('onClick={()=>openRoleEditor(m)}'), 'Membership role controls must use the guarded editor opener.');
+assert.ok(!businessSubscriberSource.includes("?String(m.role).toUpperCase():'CUSTOMER'"), 'No unknown membership role may be silently downgraded to CUSTOMER.');
+console.log('BUSINESS_SUBSCRIBER_UNKNOWN_ROLE_FAILS_CLOSED=PASS');
+
+
+// Branch-scoped role updates stay disabled until the deployed Edge Function advertises the required read contract.
+assert.ok(platformAdminEndpointSource.includes('capabilities: { branchScopedRoleEdits: true }'), 'The list endpoint must advertise branch-scoped role edit capability explicitly.');
+assert.ok(businessSubscriberSource.includes('data.capabilities?.branchScopedRoleEdits === true'), 'The UI must fail closed when the deployed list endpoint is old.');
+assert.ok(businessSubscriberSource.includes('    setRoleEditorSupported(false);'), 'Every refresh must clear stale server capability until the new response proves support.');
+assert.ok(businessSubscriberSource.includes('تغيير الدور متوقف مؤقتًا حتى تؤكد خدمة الإدارة دعم نطاق الفرع'), 'The UI must explain the deployment compatibility guard.');
+assert.ok(browserE2ESource.includes('omitScopedRoleCapabilities'), 'Browser E2E must exercise an older API response without the capability marker.');
+console.log('BUSINESS_SUBSCRIBER_ROLE_EDITOR_REQUIRES_SERVER_CAPABILITY=PASS');
