@@ -2,6 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const migration = fs.readFileSync("supabase/migrations/20261125140000_rc116_crm_business_scoped_writes.sql", "utf8");
+const brandingGuardMigration = fs.readFileSync("supabase/migrations/20261128010000_rc931_provider_profile_public_base_read_retirement.sql", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc116_crm_business_writes_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc116_crm_business_writes_integration.sql", "utf8");
 
@@ -21,12 +22,19 @@ assert.match(migration, /business_id cannot be changed because it[\s\S]*?is not 
 assert.match(migration, /revoke insert, update, delete[\s\S]*?from authenticated/i);
 assert.match(migration, /grant update \(profile_image_path, settings, updated_at\)/i);
 // RC116 is immutable historical SQL. The JSONB branding guard is introduced
-// by the forward-only RC931 migration and verified in its dedicated workflow.
+// by the forward-only RC931 migration and mirrored only in disposable fixtures.
 assert.doesNotMatch(migration, /mnty_guard_provider_profile_branding_only/);
+assert.match(brandingGuardMigration, /create or replace function public\\.mnty_guard_provider_profile_branding_only\\(\\)/i);
+assert.match(brandingGuardMigration, /current_user <> 'authenticated'/i);
+assert.match(brandingGuardMigration, /v_new_settings - 'branding'/);
+assert.match(brandingGuardMigration, /coalesce\\(v_new_settings->'branding', '\\{\\}'::jsonb\\) - 'logo_path'/);
+assert.match(brandingGuardMigration, /before update of settings on public\\.marketing_provider_profiles/i);
 assert.equal((migration.match(/auth\.jwt\(\)->>'is_anonymous'/g) || []).length, 4);
 
 assert.match(fixture, /create policy "Owners manage their marketing provider profile"/);
 assert.match(fixture, /grant select, insert, update, delete on public\.marketing_provider_profiles to authenticated/);
+assert.match(fixture, /create or replace function public\\.mnty_guard_provider_profile_branding_only\\(\\)/i);
+assert.match(fixture, /before update of settings on public\\.marketing_provider_profiles/i);
 assert.match(fixture, /'TENANT-A', 'Business A2'/);
 
 for (const marker of [
