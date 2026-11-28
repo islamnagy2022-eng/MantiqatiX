@@ -1,5 +1,19 @@
 # Production and Edge Read-only Recheck — 2026-11-28
 
+## Current release overlay — 2026-11-28 (after RC932 source addition)
+
+This overlay supersedes the 88-version source-count statements in the earlier 00:55 EET snapshot below. That earlier snapshot remains historical evidence; it is not the current source count.
+
+- The canonical source release contract now contains **89 unique, chronologically ordered required migration versions**, including RC932 `20261127235334`.
+- A fresh read-only Production migration inventory remains **310 rows through `20261110150618`**, with **0/89 exact source-version IDs present**. This is an identity mismatch, not proof every physical effect is absent; three known aliases and physical schema/function/ACL/RLS effects must be reconciled separately. Do not fabricate ledger rows or replay blindly.
+- RC932 is a source-only forward repair for the RC478 missing/null `is_anonymous` claim case. It requires the JWT claim to be explicitly `false`, retains the verified/available captain and vehicle-category filters, and rejects a caller-ID mismatch. The focused PostgreSQL 17 RC446 → RC477 → RC478 → RC932 integration and static source validators passed in disposable CI.
+- PR #1196 merged the read-only audit/runbook evidence as `c32bdb47ff3db2cebf19e38fd3e97f880b8e1f74`. Current RC932 work is draft PR #1199 against `main`; its complete 89-version chronological replay and remaining exact-head checks are still pending.
+- RC932, RC478, RC477 and the other required release migrations remain absent from the Production ledger. No Production database, migration, Auth, RLS, GRANT, Storage, Edge, payment, wallet, settlement or ride/customer/financial mutation occurred.
+- **Release decision remains `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.** Backup/restore and Auth/Vault recovery, physical-effect/alias reconciliation, platform-root authorization, full DB/Edge parity and coordinated payment/finance release evidence remain blockers.
+
+---
+
+
 ## Scope and method
 
 This report records a read-only verification of the connected Supabase Production project and selected deployed Edge Function entrypoints against the current GitHub source. No production migration, SQL write, Auth/RLS/GRANT mutation, Storage write, Edge deployment, payment, refund, wallet, payout, settlement, or customer/business-data mutation was performed.
