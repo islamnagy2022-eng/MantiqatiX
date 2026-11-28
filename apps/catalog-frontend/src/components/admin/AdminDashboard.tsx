@@ -20,11 +20,7 @@ import {
   Users,
   KeyRound,
   Share2,
-  Download,
-  Upload,
-  Database,
   RefreshCw,
-  FileJson,
   AlertTriangle,
   BadgeAlert,
   Coins,
@@ -101,17 +97,14 @@ export const AdminDashboard: React.FC = () => {
     addBusiness,
     updateBusiness,
     getStorePublicLink,
-    downloadBackupFile,
-    exportBackupJSON,
-    importBackupJSON,
     confirmAdminPayment,
     updateBillingSetting,
     updateBusinessLocation,
     deleteBusiness,
   } = useApp();
 
-  type AdminTab = 'overview' | 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'directory_listings' | 'activity_modules' | 'settings' | 'backup' | 'control_center';
-  const ADMIN_TABS: AdminTab[] = ['overview', 'billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'directory_listings', 'activity_modules', 'settings', 'backup', 'control_center'];
+  type AdminTab = 'overview' | 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'directory_listings' | 'activity_modules' | 'settings' | 'control_center';
+  const ADMIN_TABS: AdminTab[] = ['overview', 'billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'directory_listings', 'activity_modules', 'settings', 'control_center'];
   const readAdminTabFromUrl = (): AdminTab => {
     const requested = new URLSearchParams(window.location.search).get('tab') as AdminTab | null;
     return requested && ADMIN_TABS.includes(requested) ? requested : 'overview';
@@ -135,9 +128,6 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   // Backup & Restore State
-  const [backupFeedback, setBackupFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [backupPasteText, setBackupPasteText] = useState('');
-  const [isCopiedBackupJson, setIsCopiedBackupJson] = useState(false);
   const [showBackupPreview, setShowBackupPreview] = useState(false);
 
   // Subscriber Modal
@@ -495,14 +485,6 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={downloadBackupFile}
-            className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-amber-400/20 cursor-pointer"
-            title="تحميل نسخة احتياطية فورية لجميع البيانات"
-          >
-            <Download className="w-4 h-4" />
-            <span>نسخ احتياطي فوري</span>
-          </button>
 
           <button
             onClick={() => {
@@ -1928,109 +1910,6 @@ export const AdminDashboard: React.FC = () => {
             >
               {settingsSaving ? 'جارٍ حفظ الإعدادات...' : 'حفظ إعدادات المنصة'}
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================================
-          TAB: BACKUP & RESTORE
-         ========================================================================= */}
-      {activeAdminTab === 'backup' && (
-        <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-xs space-y-6">
-          <div>
-            <h3 className="font-extrabold text-lg text-slate-900">
-              تصدير بيانات الإدارة (نسخة محدودة)
-            </h3>
-            <p className="text-xs text-slate-500">
-              هذا التصدير لا يشمل قاعدة بيانات Supabase كاملة أو ملفات Storage أو ملفات الموقع. لا يُعد نسخة احتياطية كاملة ولا يصلح وحده لاستعادة المنصة.
-            </p>
-          </div>
-
-          {backupFeedback && (
-            <div
-              className={`p-4 rounded-2xl text-xs font-bold ${
-                backupFeedback.type === 'success'
-                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
-                  : 'bg-rose-50 text-rose-800 border border-rose-300'
-              }`}
-            >
-              {backupFeedback.message}
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-4">
-              <h4 className="font-black text-sm text-amber-950 flex items-center gap-2">
-                <Download className="w-4 h-4 text-amber-600" />
-                <span>تصدير نسخة احتياطية (Export JSON)</span>
-              </h4>
-              <p className="text-xs text-amber-900 leading-relaxed">
-                تنزيل ملف JSON بالبيانات المتاحة داخل لوحة الإدارة فقط. قد لا يشمل كل بيانات المنصة أو الملفات والصور.
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={downloadBackupFile}
-                  className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>تنزيل تصدير البيانات المحدودة (.json)</span>
-                </button>
-                <button
-                  onClick={() => {
-                    const text = exportBackupJSON();
-                    if (navigator.clipboard) {
-                      navigator.clipboard.writeText(text);
-                      setIsCopiedBackupJson(true);
-                      setTimeout(() => setIsCopiedBackupJson(false), 2000);
-                    }
-                  }}
-                  className="bg-white hover:bg-amber-100 text-amber-950 border border-amber-300 font-bold text-xs px-3 py-2.5 rounded-xl cursor-pointer"
-                >
-                  {isCopiedBackupJson ? 'تم النسخ!' : 'نسخ نص JSON'}
-                </button>
-              </div>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
-              <h4 className="font-black text-sm text-slate-900 flex items-center gap-2">
-                <Upload className="w-4 h-4 text-emerald-600" />
-                <span>استعادة نسخة احتياطية (Import JSON)</span>
-              </h4>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                أداة الاستيراد الحالية لا تستعيد قاعدة البيانات أو ملفات المنصة. استخدمها فقط بعد مراجعة محتوى الملف وتأكد من مصدره.
-              </p>
-              <textarea
-                rows={3}
-                value={backupPasteText}
-                onChange={(e) => setBackupPasteText(e.target.value)}
-                placeholder="الصق محتوى ملف JSON هنا..."
-                className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-[11px] font-mono"
-              />
-              <button
-                onClick={() => {
-                  if (!backupPasteText.trim()) {
-                    setBackupFeedback({ type: 'error', message: 'يرجى لصق كود النسخة الاحتياطية أولاً.' });
-                    return;
-                  }
-                  const res = importBackupJSON(backupPasteText);
-                  if (res.success && res.counts) {
-                    setBackupFeedback({
-                      type: 'success',
-                      message: `تمت الاستعادة بنجاح! (${res.counts.businesses} نشاط، ${res.counts.products} منتج، ${res.counts.subscribers} مشترك).`,
-                    });
-                    setBackupPasteText('');
-                  } else {
-                    setBackupFeedback({
-                      type: 'error',
-                      message: res.error || 'فشلت الاستعادة، الملف غير صالح.',
-                    });
-                  }
-                }}
-                className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-xs cursor-pointer"
-              >
-                تطبيق بيانات JSON المحدودة
-              </button>
-            </div>
           </div>
         </div>
       )}
