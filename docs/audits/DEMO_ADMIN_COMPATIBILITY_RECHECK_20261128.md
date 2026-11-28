@@ -105,7 +105,7 @@ On checked head `1dfcef0cab2725f70d19e5d1d2df35bec14e0e2b` all 15 workflow runs 
 - The V6 preview browser E2E passed in the isolated composed build, including desktop/mobile directory behavior, pagination (20 initial / 25 total), search, activity/specialty filters, image loading, and accessibility checks.
 - Production-scope smoke checks included Google OAuth initiation, selected existing Edge Function CORS preflights, public targeted-ad RPC output, and public directory/Qadam response.
 
-**Coverage distinction:** the browser E2E in `Primary Catalog Frontend Validation` currently exercises the Professional/Business Dashboard. The Super Admin Control Center has source-level selection/authorization regression coverage and SQL contract coverage, but this run does not constitute an authenticated end-to-end browser acceptance of the Super Admin Control Center. The DEMO HTTP smoke deliberately tests only anonymous and origin rejection, not an authenticated admin action.
+**Coverage detail:** the browser script `professional-dashboard.browser.e2e.mjs`, run by `Primary Catalog Frontend Validation`, covers the Professional Dashboard and also renders Super Admin scenarios with a seeded test-only platform-admin session and mocked Supabase Auth/RPC/Edge responses. The Super Admin scenarios verify the overview metrics/shortcuts, five control-center tabs and URL state, responsive layouts, fail-closed activity-module settings, and subscriber/membership management safeguards including protected platform identities. This is meaningful browser-level UI regression coverage, but it is not a login against the live DEMO Auth project or proof that a real DEMO registry identity can perform privileged actions. The direct DEMO HTTP smoke remains strictly negative-boundary coverage (CORS preflight, anonymous rejection, disallowed-origin rejection); it used no admin JWT.
 
 The Pages workflow `deploy` job was **skipped** because the workflow only publishes from `main`; this Draft PR only ran validation. The redirect smoke checked the already-deployed public origin. No GitHub Pages publication was performed from this PR.
  
@@ -133,8 +133,8 @@ Latest read of the Supabase Security Advisor reports:
 
 - Only the three listed migrations and the `catalog-platform-admin` Edge Function changes were applied to MantiqatiX-DEMO; the fourth ACL migration's effect is already present but its migration-history row is missing. No Production schema/data/Auth/Edge Function was changed.
 - The ACL helper preflight migration `20261128112652` is in source and passed chronological replay; its SQL effect is already verified in live DEMO, but the one missing history record still needs the explicit CLI repair above.
-- The DEMO HTTP/CORS negative-boundary smoke passed; authenticated platform-admin browser acceptance remains outstanding because no approved DEMO admin identity exists.
-- The Professional Dashboard browser E2E passed, but it is not a substitute for a dedicated authenticated Super Admin Control Center E2E.
+- The mocked Super Admin Control Center browser scenarios passed as part of Primary Catalog Frontend Validation. A live DEMO sign-in and privileged action test remains outstanding because no approved DEMO admin identity exists.
+- The Primary Catalog browser E2E covers Professional Dashboard plus Super Admin UI flows with mocked Auth/RPC/Edge responses; live DEMO Auth and registry-backed authorization still require an approved identity.
 - No GitHub Pages production publication occurred from this Draft PR.
 - No Auth identity or platform-admin registry row was created.
 - PR #1216 remains Draft. Remaining work: perform the documented DEMO-only migration-history repair, get explicit approval for an exact DEMO Auth identity and run a least-privilege authenticated Super Admin acceptance test, then separately close the Production release blockers before any full release.
