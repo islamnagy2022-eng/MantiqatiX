@@ -17,6 +17,9 @@ for (const marker of [
   "cp.status='ACTIVE'",
   "cp.verification_status='VERIFIED'",
   "cp.availability_status='AVAILABLE'",
+  "p_user_id IS NULL OR p_user_id IS DISTINCT FROM auth.uid()",
+  "r.status IN ('OPEN','OPEN_FOR_BIDS')",
+  "r.customer_id<>p_user_id",
   "r.vehicle_category=v_vehicle_category",
   "SET search_path = pg_catalog",
   "REVOKE ALL ON FUNCTION public.list_open_mantigo_rides_backend(uuid) FROM PUBLIC,anon",
@@ -39,6 +42,7 @@ for (const marker of [
   "RC932 missing is_anonymous claim was allowed",
   "RC932 null is_anonymous claim was allowed",
   "RC932 anonymous Auth identity was allowed",
+  "RC932 caller identity mismatch was allowed",
   "RC932 confirmed captain compatibility failed"
 ]) {
   assert.ok(integration.includes(marker), "RC932 integration missing: " + marker);
