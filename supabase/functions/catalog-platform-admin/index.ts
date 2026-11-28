@@ -803,7 +803,9 @@ Deno.serve(async (req: Request) => {
       previousPermissions.catalog = catalogEnabled;
       previousPermissions.catalog_write = catalogWrite;
       previousPermissions.catalog_read_only = catalogEnabled && !catalogWrite;
-      previousPermissions.account_restricted = body.accountRestricted === true;
+      previousPermissions.account_restricted = typeof body.accountRestricted === "boolean"
+        ? body.accountRestricted
+        : previousPermissions.account_restricted === true;
 
       if (status === "ACTIVE" && business && ["OWNER", "BUSINESS_OWNER"].includes(role)) {
         const billing = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object" ? business.settings.bizcatalog : {};
