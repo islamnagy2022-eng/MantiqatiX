@@ -8,7 +8,7 @@
 
 ## Applied migrations
 
-The DEMO migration ledger contains these three applied versions:
+The DEMO migration ledger contains these three applied versions. A fourth source migration (`20261128112652_demo_permission_helper_execute_acl.sql`) is now present in the PR to make the clean Production-checkpoint replay establish the authenticated helper ACL before the following search_path contract. It is not in the live DEMO ledger; the live ACL was verified independently and already satisfies the same contract. Do not edit the three applied migration files or apply the pending earlier-version migration without reconciling the migration ledger/order.
 
 | Ledger version | Migration file | Purpose |
 |---|---|---|
@@ -79,14 +79,14 @@ Latest security advisor findings to keep visible:
 
 On the most recent checked PR head:
 - Migration version uniqueness, migration-history immutability and cross-PR collision guard: passed.
-- Forward PostgreSQL 17 replay: running in a disposable local environment.
+- Forward PostgreSQL 17 replay on the current head: pending after the permission-helper ACL preflight was added; the prior replay failed at the old helper ACL contract, and the latest run must confirm the new preflight fixes it.
 - Primary catalog build and professional-dashboard browser checks: running.
 - Module Professionalization / platform-admin, Pages/V6 and related validation: running or queued.
 - PR deployment workflow is main-gated; no GitHub Pages production publication was performed from this Draft PR.
 
 ## Environment boundaries
 
-- Three migrations applied only to Supabase project `MantiqatiX-DEMO`.
+- Three migrations applied only to Supabase project `MantiqatiX-DEMO`; the new `20261128112652` replay-preflight migration is source-only and not recorded in the live ledger.
 - `catalog-platform-admin` deployed only to MantiqatiX-DEMO.
 - No Production schema/data/Auth/Edge Function was changed.
 - No GitHub Pages production publication occurred.
