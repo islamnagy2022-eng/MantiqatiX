@@ -23,12 +23,12 @@ const AD_CREATIVE_FALLBACK = publicAsset('ad-creative-placeholder.svg');
 const HOME_GEO_DISCOVERY_STORAGE_KEY = 'mantiqatix.geo-discovery.v1';
 
 const applyImageFallback = (image: HTMLImageElement, preferred: string, lastResort: string): void => {
-  if (image.dataset.fallbackStage !== 'preferred') {
+  if (!image.dataset.fallbackStage) {
     image.dataset.fallbackStage = 'preferred';
     image.src = preferred;
     return;
   }
-  if (image.dataset.fallbackStage !== 'last-resort') {
+  if (image.dataset.fallbackStage === 'preferred') {
     image.dataset.fallbackStage = 'last-resort';
     image.src = lastResort;
     return;
