@@ -1193,3 +1193,5 @@ end;
 $function$;
 revoke all on function public.mnty_business_employee_list(varchar,uuid) from public, anon;
 grant execute on function public.mnty_business_employee_list(varchar,uuid) to authenticated;
+revoke all on function public.mnty_business_employee_permission_ceiling_allows(jsonb,varchar,uuid,varchar) from public, anon, authenticated;
+revoke all on function public.mnty_business_employee_permissions_subset(jsonb,jsonb) from public, anon, authenticated;
