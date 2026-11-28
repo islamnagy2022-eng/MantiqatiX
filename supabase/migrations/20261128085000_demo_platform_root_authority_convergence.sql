@@ -826,7 +826,7 @@ BEGIN
          md5(string_agg(
            schemaname||'|'||tablename||'|'||policyname||'|'||cmd||'|'||
            array_to_string(roles,',')||'|'||coalesce(qual,'')||'|'||coalesce(with_check,''),
-           E'\\n' ORDER BY schemaname,tablename,policyname
+           E'\n' ORDER BY schemaname,tablename,policyname
          ))
     INTO v_policy_count,v_policy_table_count,v_policy_hash
   FROM pg_catalog.pg_policies
