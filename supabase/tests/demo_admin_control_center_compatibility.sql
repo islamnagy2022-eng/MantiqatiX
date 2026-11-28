@@ -152,6 +152,13 @@ BEGIN
   IF NOT FOUND OR NOT v_registry_rls OR NOT v_registry_force_rls THEN
     RAISE EXCEPTION 'DEMO_ADMIN_ROOT_REGISTRY_RLS_NOT_FORCED';
   END IF;
+
+  FOREACH v_privilege IN ARRAY v_table_privileges LOOP
+    IF pg_catalog.has_table_privilege('anon', 'private.platform_admins', v_privilege)
+       OR pg_catalog.has_table_privilege('authenticated', 'private.platform_admins', v_privilege) THEN
+      RAISE EXCEPTION 'DEMO_ADMIN_ROOT_REGISTRY_DIRECT_CLIENT_PRIVILEGE_GRANTED: %', v_privilege;
+    END IF;
+  END LOOP;
 END;
 $demo_admin_compatibility$;
 
