@@ -121,7 +121,7 @@
 }
 .mx-v4-storefront-primary:hover { color: #fff; background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
 .mx-v4-storefront-secondary { color: var(--mx-blue-900); background: var(--mx-blue-50); border-color: var(--mx-border); }
-.mx-v4-storefront-secondary:hover { background: #d5edff; }
+.mx-v4-storefront-secondary:hover { background: var(--mx-blue-50); }
 .mx-v4-storefront-primary:focus-visible,
 .mx-v4-storefront-secondary:focus-visible { outline: 2px solid var(--mx-cyan-500); outline-offset: 2px; }
 
