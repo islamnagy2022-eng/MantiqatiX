@@ -141,7 +141,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
       return <article key={b.id} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <img src={logo} alt={b.name} className="h-16 w-16 shrink-0 rounded-xl border border-slate-200 object-cover" onError={e=>{(e.currentTarget as HTMLImageElement).src=resolveDefaultActivityImages({name:b.name,category:d.category}).logoUrl;}}/>
+          <img src={logo} alt={b.name} loading="lazy" className="h-16 w-16 shrink-0 rounded-xl border border-slate-200 object-cover" onError={e=>{const image=e.currentTarget;if(image.dataset.fallbackApplied!=='true'){image.dataset.fallbackApplied='true';image.src=images.logoUrl;}else{image.onerror=null;image.style.visibility='hidden';}}}/>
           <div className="min-w-0"><h3 className="font-black text-slate-900">{b.name}</h3><p className="text-xs text-slate-600">{d.category}</p><p className="font-mono text-[11px] text-slate-500">{b.code||b.id} · {b.tenant_id}</p></div>
         </div>
         <span className={'rounded-lg px-2 py-1 text-xs font-bold '+(b.status==='ACTIVE'?'bg-emerald-50 text-emerald-800':'bg-slate-100 text-slate-600')}>{b.status==='ACTIVE'?'نشط':'متوقف'}</span>
@@ -160,13 +160,13 @@ export const BusinessSubscriberAdmin: React.FC = () => {
         <div className="grid gap-3 md:grid-cols-2">
           <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
             <div className="flex items-center justify-between text-xs font-bold text-slate-700"><span>صورة النشاط</span><button type="button" onClick={()=>setDrafts(prev=>({...prev,[b.id]:{...d,logoSource:'auto'}}))} className="text-indigo-700 underline">صورة تلقائية</button></div>
-            <img src={logo} alt="معاينة صورة النشاط" className="h-32 w-full rounded-lg object-cover"/>
+            <img src={logo} alt="معاينة صورة النشاط" loading="lazy" className="h-32 w-full rounded-lg object-cover" onError={e=>{const image=e.currentTarget;if(image.dataset.fallbackApplied!=='true'){image.dataset.fallbackApplied='true';image.src=images.logoUrl;}else{image.onerror=null;image.style.visibility='hidden';}}}/>
             <input value={d.logoUrl} onChange={e=>setDrafts(prev=>({...prev,[b.id]:{...d,logoUrl:e.target.value,logoSource:'owner'}}))} className={inputClass} placeholder="رابط الصورة أو اتركها تلقائية"/>
             <p className="text-[11px] text-slate-500">{d.logoSource==='auto'?'تتغير تلقائياً حسب الاسم والتصنيف':'صورة مخصصة من الإدارة'}</p>
           </div>
           <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
             <div className="flex items-center justify-between text-xs font-bold text-slate-700"><span>صورة الغلاف</span><button type="button" onClick={()=>setDrafts(prev=>({...prev,[b.id]:{...d,coverSource:'auto'}}))} className="text-indigo-700 underline">غلاف تلقائي</button></div>
-            <img src={cover} alt="معاينة غلاف النشاط" className="h-32 w-full rounded-lg object-cover"/>
+            <img src={cover} alt="معاينة غلاف النشاط" loading="lazy" className="h-32 w-full rounded-lg object-cover" onError={e=>{const image=e.currentTarget;if(image.dataset.fallbackApplied!=='true'){image.dataset.fallbackApplied='true';image.src=images.coverUrl;}else{image.onerror=null;image.style.visibility='hidden';}}}/>
             <input value={d.coverUrl} onChange={e=>setDrafts(prev=>({...prev,[b.id]:{...d,coverUrl:e.target.value,coverSource:'owner'}}))} className={inputClass} placeholder="رابط الغلاف أو اتركه تلقائياً"/>
             <p className="text-[11px] text-slate-500">{d.coverSource==='auto'?'يتغير تلقائياً حسب الاسم والتصنيف':'غلاف مخصص من الإدارة'}</p>
           </div>
