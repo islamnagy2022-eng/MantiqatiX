@@ -68,13 +68,41 @@ Performance notices include unindexed foreign keys and multiple permissive polic
 - [ ] Admin Edge Functions deployed to DEMO.
 - [ ] Synthetic admin fixtures and negative authorization tests complete.
 
-## Follow-up static ACL audit
+## Follow-up exact-signature ACL and root-authority audit
 
-A second static pass found an important deployment blocker in the generated migration: it defines 19 unique function names, but only 15 function names have an explicit `REVOKE ... FROM PUBLIC, anon` statement. Several mutating/permission-related RPCs are not covered by the explicit ACL statements in this migration. PostgreSQL's default function EXECUTE grant can be PUBLIC unless revoked, so counting SECURITY DEFINER functions with an empty search_path is not sufficient.
+### Function ACL result
 
-- [x] Identified ACL coverage gap in the migration source.
-- [ ] Enumerate every exact function signature and define least-privilege EXECUTE grants.
-- [ ] Run ACL verification in disposable PostgreSQL 17 replay.
-- [ ] Do not apply this migration to DEMO until the ACL gap is closed and tests pass.
+The first name-only scan overstated the gap. A signature-level pass found **19 CREATE/REPLACE FUNCTION occurrences and 16 distinct function signatures**; two employee RPCs are replaced later in the migration and the employee-list RPC is defined twice. Of the 16 signatures:
 
-The previous static check statement in the PR description should be read as a search_path check only, not proof that function EXECUTE privileges are safe. This migration remains unapproved and unapplied.
+- **14 client-callable administrative RPCs** have exact `REVOKE ALL ... FROM PUBLIC, anon` statements followed by explicit `GRANT EXECUTE ... TO authenticated`.
+- **2 internal helpers** were missing a client-side revoke:
+  - `mnty_business_employee_permission_ceiling_allows(jsonb, varchar, uuid, varchar)`
+  - `mnty_business_employee_permissions_subset(jsonb, jsonb)`
+
+Both helper revokes are now appended to this DEMO migration and revoke execution from `PUBLIC`, `anon`, and `authenticated`. Neither helper is granted to a browser role. This follows the ACL contract in the original RC457 source migration. No broad schema-wide grant/revoke was introduced.
+
+### Live DEMO root-authority mismatch
+
+A new read-only catalog check confirms:
+
+- `private.platform_admins` exists, is owned by `postgres`, has RLS enabled but **FORCE RLS is disabled**. No direct table grants are present for `anon` or `authenticated`; the recorded table ACL retains `service_role` access.
+- The registry currently contains **0 rows**; the active `MNTY-PLATFORM` / `SUPER_ADMIN` / `scope=PLATFORM` / `full_control=true` membership count is also **0**.
+- DEMO's current `mnty_can_platform_admin()` still authorizes through that legacy platform membership predicate, while the new control-center RPCs authorize through `private.platform_admins`.
+- **Eight SECURITY DEFINER routines** call the legacy helper, and **five RLS policies** use it across `digital_pages`, `mantigo_financial_config`, and `mantigo_rate_limit_config`.
+- Four shared helper callers have non-empty `search_path=public, pg_temp`; changing the helper alone would alter multiple RLS and RPC authorization paths without completing their hardened dependency chain.
+
+The canonical source sequence is RC464 → RC469 → RC471 → RC484 → RC485, with its migration prerequisites and positive/negative policy and caller regression tests. This sequence must be rehearsed together against the exact DEMO baseline before deployment. Do not hot-patch the helper independently, do not manufacture a privileged identity, and do not copy a Production identity into DEMO. A verified DEMO Auth user must be provisioned through an explicitly trusted operator bootstrap after the rehearsal.
+
+### Verification and deployment state
+
+- [x] Exact SQL signatures enumerated.
+- [x] Two missing internal-helper client revokes added to the migration source.
+- [x] Live DEMO root-helper implementation, registry counts, table ACL, helper callers, and dependent RLS policies read back without mutation.
+- [x] Static validation source added for RPC ACLs, internal-helper ACLs, forced RLS, and absence of a seeded platform administrator.
+- [ ] Run the static validation command in a checked-out repository/CI environment.
+- [ ] Replay the full migration against a disposable PostgreSQL 17 database initialized from the exact DEMO schema baseline.
+- [ ] Run positive and negative authorization tests for anon, authenticated non-admin, registry-admin, tenant/business/branch boundaries, and employee permission ceilings.
+- [ ] Reconcile and rehearse the ordered RC464/RC469/RC471/RC484/RC485 authority chain with dependent caller/policy tests.
+- [ ] Deploy compatible admin Edge Functions to DEMO only, then run HTTP and browser smoke tests.
+
+No migration was applied, no Edge Function was deployed, and no DEMO or Production data/configuration was mutated in this checkpoint. PR #1216 remains Draft and must not be merged or applied until the replay, authority-bootstrap, and runtime gates pass.
