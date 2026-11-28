@@ -57,10 +57,12 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261124150000", // RC925 — deny catalog RPC calls unless is_anonymous is explicitly false
   "20261125110000", // RC926 — require explicitly confirmed identity for provider-profile SELECT
   "20261125120000", // RC927 — isolate public digital-page reads from anonymous Auth sessions
+  "20261125130000", // RC115 — enforce tenant/business-scoped marketing CRM reads
   "20261126010000", // RC928 — atomically persist promotional gallery and catalog-profile metadata
   "20261126020000", // RC117 forward repair — preserve existing marketing-service image URLs and provenance
   "20261126030000", // RC929 — require explicit confirmed Auth identity for orders and order history
   "20261127010000", // RC930 — serialize job applications against concurrent deactivation
+  "20261128010000", // RC931 — retire global provider-profile base-table public reads
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
