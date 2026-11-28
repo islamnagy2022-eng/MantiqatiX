@@ -126,17 +126,17 @@ export const ActivityShareDialog: React.FC<ActivityShareDialogProps> = ({
           type="button"
           onClick={onClose}
           aria-label="إغلاق نافذة مشاركة النشاط"
-          className="absolute left-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+          className="absolute left-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d]"
         >
           <X className="h-5 w-5" />
         </button>
 
         <div className="mb-5 flex items-center gap-3 pl-12">
-          <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-700">
+          <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#ead5c5] bg-[#fff3e0] text-[#7a0000]">
             <QrCode className="h-6 w-6" />
           </span>
           <div>
-            <p className="text-[11px] font-black text-emerald-700">رابط مستقل للنشاط</p>
+            <p className="text-[11px] font-black text-[#7a0000]">رابط مستقل للنشاط</p>
             <h2 id="activity-share-title" className="mt-1 text-lg font-black text-slate-950">{activityName}</h2>
           </div>
         </div>
@@ -157,7 +157,7 @@ export const ActivityShareDialog: React.FC<ActivityShareDialogProps> = ({
             target="_blank"
             rel="noopener noreferrer"
             dir="ltr"
-            className="mt-3 block break-all rounded-xl border border-slate-200 bg-white p-3 text-[11px] font-semibold text-slate-700 hover:text-emerald-700"
+            className="mt-3 block break-all rounded-xl border border-slate-200 bg-white p-3 text-[11px] font-semibold text-slate-700 hover:text-[#7a0000]"
           >
             {activityUrl}
           </a>
@@ -167,7 +167,7 @@ export const ActivityShareDialog: React.FC<ActivityShareDialogProps> = ({
           <button
             type="button"
             onClick={shareLink}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-3 py-3 text-xs font-black text-white transition hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#7a0000] px-3 py-3 text-xs font-black text-white transition hover:bg-[#5a0000] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] focus-visible:ring-offset-2"
           >
             <Share2 className="h-4 w-4" />
             مشاركة الرابط
@@ -175,7 +175,7 @@ export const ActivityShareDialog: React.FC<ActivityShareDialogProps> = ({
           <button
             type="button"
             onClick={copyLink}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-black text-slate-800 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-black text-slate-800 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d]"
           >
             {copied ? <Check className="h-4 w-4 text-emerald-700" /> : <Copy className="h-4 w-4" />}
             {copied ? 'تم النسخ' : 'نسخ الرابط'}
@@ -187,7 +187,7 @@ export const ActivityShareDialog: React.FC<ActivityShareDialogProps> = ({
           download={`mantiqatix-${activityId}-qr.png`}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-xs font-black text-emerald-800 transition hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+          className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#ead5c5] bg-[#fff8f0] px-3 py-3 text-xs font-black text-[#7a0000] transition hover:bg-[#fff3e0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d]"
         >
           <ExternalLink className="h-4 w-4" />
           فتح / تحميل رمز QR
