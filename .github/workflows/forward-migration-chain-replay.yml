@@ -65,6 +65,7 @@ on:
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
       - "supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql"
+      - "supabase/tests/catalog_media_unreferenced_five_day_window_integration.sql"
       - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_resources_anon_select_acl_overlay_fixture.sql"
@@ -178,6 +179,7 @@ on:
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
       - "supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql"
+      - "supabase/tests/catalog_media_unreferenced_five_day_window_integration.sql"
       - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_resources_anon_select_acl_overlay_fixture.sql"
@@ -554,6 +556,9 @@ jobs:
 
           echo "RC470_DIGITAL_PAGE_WEBHOOK_FORWARD_REPAIR"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc470_digital_page_webhook_forward_repair.sql
+
+          echo "CATALOG_MEDIA_CONTINUOUS_FIVE_DAY_RETENTION"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/catalog_media_unreferenced_five_day_window_integration.sql
 
           psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
