@@ -13,13 +13,29 @@ The root-convergence migration makes `private.platform_admins` the only source o
 ## Preconditions
 
 1. PR #1216 has been reviewed and intentionally applied to the DEMO project only.
-2. The DEMO migration ledger shows all three applied versions:
+2. The DEMO migration ledger shows all four versions, in timestamp order:
    - `20261128112058_demo_platform_root_authority_convergence`
    - `20261128112119_demo_admin_control_center_compatibility`
+   - `20261128112652_demo_permission_helper_execute_acl`
    - `20261128112653_demo_mnty_permission_helper_empty_search_path`
 3. An authorized project owner has approved the exact DEMO account that should receive platform-root authority.
 4. The chosen user is an Auth account in this DEMO project with a confirmed email.
 5. The operator has verified the Auth UUID from the DEMO Auth Users view. Do not identify a target from a display name alone.
+
+## DEMO migration-history alignment
+
+The live DEMO database already has the ACL effect introduced by migration `20261128112652`: both `mnty_active_membership` and `mnty_can` deny EXECUTE to `PUBLIC`/`anon`, grant it to `authenticated`, and use an empty `search_path`. The source migration also passed chronological forward replay. Its timestamp is earlier than the already-applied `20261128112653`, so do not apply it out of order through a direct SQL migration call.
+
+An authorized operator should first mark this already-present effect as applied in the DEMO migration history using the Supabase CLI. This changes the history record only; it does not re-run the SQL:
+
+```bash
+supabase link --project-ref lkijdgqanbqjudiducjt
+supabase migration list --remote
+supabase migration repair 20261128112652 --status applied --remote
+supabase migration list --remote
+```
+
+Before confirming, verify the command targets **MantiqatiX-DEMO**. Let the CLI show its hosted-database confirmation prompt; do not use `--yes`. Verify the remote migration list shows all four versions in timestamp order. The CLI's current remote syntax is `--remote`; the old `--linked` flag is deprecated. Never perform this operation against Production, and never edit `supabase_migrations.schema_migrations` manually.
 
 ## Bootstrap
 
@@ -104,4 +120,4 @@ Do not disable RLS, widen grants, or add a tenant membership as a substitute for
 
 ## Current state
 
-The three migrations listed in the preconditions are applied to MantiqatiX-DEMO, and `catalog-platform-admin` is deployed there as ACTIVE version 1. The registry currently contains **zero** platform-admin identities; this runbook has not been executed and no user has been promoted. Direct HTTP/browser authorization smoke tests remain outstanding; the most recent direct HTTP attempt could not resolve the Supabase hostname from the execution environment and did not reach the function. Production and GitHub Pages production have not been changed.
+The three administrative migrations (`112058`, `112119`, and `112653`) are applied to MantiqatiX-DEMO, and `catalog-platform-admin` is deployed there as ACTIVE version 1. The ACL effect of source migration `112652` is already present and its chronological replay passed; its single migration-history record still requires the explicit CLI repair above. The registry currently contains **zero** platform-admin identities; this runbook has not been executed and no user has been promoted. The direct DEMO HTTP smoke test passed for allowed-origin preflight, anonymous 401 rejection, and disallowed-origin 403 rejection; no authenticated admin action was attempted. Production and GitHub Pages production have not been changed.
