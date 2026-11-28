@@ -357,8 +357,8 @@ export const MarketplaceHome: React.FC = () => {
               const href = isSafeHttpsUrl(ad.target_url);
               const adFallback = AD_CREATIVE_FALLBACK;
               const card = <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
-                <div className="relative aspect-[16/7] min-h-36 overflow-hidden bg-gradient-to-br from-[#3a0000] via-[#7a0000] to-[#3a0000]">
-                  <img src={ad.creative_url || adFallback} alt={ad.title || 'إعلان المنصة'} className="h-full w-full object-cover" loading="lazy" decoding="async"
+                <div className="relative aspect-[16/5] min-h-36 overflow-hidden bg-[#f5eee7]">
+                  <img src={ad.creative_url || adFallback} alt={ad.title || 'إعلان المنصة'} className="h-full w-full object-contain" loading="lazy" decoding="async"
                     onError={(event) => applyImageFallback(event.currentTarget, adFallback, BUSINESS_CARD_IMAGE_FALLBACK)} />
                   <span className="absolute right-3 top-3 rounded-full bg-[#7a0000]/90 px-3 py-1 text-[10px] font-black text-white shadow">إعلان ممول</span>
                 </div>
