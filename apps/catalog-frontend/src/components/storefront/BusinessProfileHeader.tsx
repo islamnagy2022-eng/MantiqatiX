@@ -46,13 +46,20 @@ export const BusinessProfileHeader: React.FC = () => {
     ? currentBusiness.promotionalImages.filter((url) => typeof url === 'string' && url.startsWith('https://')).slice(0, 10)
     : [];
   const [selectedPromotionalImageIndex, setSelectedPromotionalImageIndex] = useState<number | null>(null);
+  const [failedPromotionalImages, setFailedPromotionalImages] = useState<Record<number, boolean>>({});
   const galleryTriggerRef = useRef<HTMLButtonElement | null>(null);
   const galleryDialogRef = useRef<HTMLDivElement | null>(null);
   const galleryCloseButtonRef = useRef<HTMLButtonElement | null>(null);
   const isPromotionalGalleryOpen = selectedPromotionalImageIndex !== null;
   const activePromotionalImage = selectedPromotionalImageIndex === null
     ? null
-    : promotionalImages[selectedPromotionalImageIndex] || null;
+    : failedPromotionalImages[selectedPromotionalImageIndex]
+      ? defaultCover
+      : promotionalImages[selectedPromotionalImageIndex] || null;
+
+  useEffect(() => {
+    setFailedPromotionalImages({});
+  }, [currentBusiness?.id]);
 
   useEffect(() => {
     if (!isPromotionalGalleryOpen) return;
@@ -272,6 +279,7 @@ export const BusinessProfileHeader: React.FC = () => {
                     const imageElement = event.currentTarget;
                     if (imageElement.dataset.fallbackApplied !== 'true') {
                       imageElement.dataset.fallbackApplied = 'true';
+                      setFailedPromotionalImages((current) => ({ ...current, [index]: true }));
                       imageElement.src = defaultCover;
                     } else {
                       imageElement.onerror = null;
@@ -470,7 +478,20 @@ export const BusinessProfileHeader: React.FC = () => {
                 <img
                   src={activePromotionalImage}
                   alt={`صورة ترويجية لنشاط ${currentBusiness.name} — رقم ${(selectedPromotionalImageIndex ?? 0) + 1}`}
+                  data-fallback-applied={selectedPromotionalImageIndex !== null && failedPromotionalImages[selectedPromotionalImageIndex] ? 'true' : undefined}
                   className="max-h-[68dvh] max-w-full rounded-xl object-contain sm:max-h-[74dvh]"
+                  onError={(event) => {
+                    const image = event.currentTarget;
+                    const failedIndex = selectedPromotionalImageIndex;
+                    if (image.dataset.fallbackApplied !== 'true' && failedIndex !== null) {
+                      image.dataset.fallbackApplied = 'true';
+                      setFailedPromotionalImages((current) => ({ ...current, [failedIndex]: true }));
+                      image.src = defaultCover;
+                    } else {
+                      image.onerror = null;
+                      image.style.visibility = 'hidden';
+                    }
+                  }}
                 />
               </div>
               <button
@@ -487,14 +508,18 @@ export const BusinessProfileHeader: React.FC = () => {
             </div>
 
             <div className="flex shrink-0 justify-center border-t border-white/10 px-4 py-3">
-              <a
-                href={activePromotionalImage}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-xl border border-white/20 px-4 py-2 text-xs font-bold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-              >
-                فتح الصورة الأصلية
-              </a>
+              {selectedPromotionalImageIndex !== null && failedPromotionalImages[selectedPromotionalImageIndex] ? (
+                <span className="rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-slate-300">الصورة الأصلية غير متاحة — تظهر صورة بديلة</span>
+              ) : (
+                <a
+                  href={activePromotionalImage}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-xl border border-white/20 px-4 py-2 text-xs font-bold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                >
+                  فتح الصورة الأصلية
+                </a>
+              )}
             </div>
           </div>
         </div>
