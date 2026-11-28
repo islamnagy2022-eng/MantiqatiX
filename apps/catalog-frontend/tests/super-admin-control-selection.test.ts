@@ -33,3 +33,19 @@ assert.ok(assignHandler.indexOf('findVisiblePerson(selectedPersonId,people)') < 
 assert.match(source, /event\.key==='Enter'.*loadAll\(\)/, 'The people search must also run when the user presses Enter.');
 
 console.log('SUPER_ADMIN_PERSON_SEARCH_SELECTION=PASS');
+
+
+// Business subscriber role editor must stay aligned with the backend allowlist and retain branch scope.
+const businessSubscriberSource = readFileSync('src/components/admin/BusinessSubscriberAdmin.tsx', 'utf8');
+const platformAdminEndpointSource = readFileSync('../../supabase/functions/catalog-platform-admin/index.ts', 'utf8');
+assert.doesNotMatch(businessSubscriberSource, /window\\.prompt\\(/, 'Role changes must use the controlled role editor, not free-form text.');
+assert.match(businessSubscriberSource, /branchId:m\\.branch_id\\|\\|''/, 'Role changes must preserve the selected membership branch.');
+assert.match(platformAdminEndpointSource, /select\\("id,user_id,tenant_id,business_id,branch_id,role,status"\\)/, 'The protected admin list must expose the current branch scope to the UI.');
+const uiRoleBlock = businessSubscriberSource.match(/const membershipRoleOptions = \\[([\\s\\S]*?)\\] as const;/)?.[1] || '';
+const apiRoleStart = platformAdminEndpointSource.indexOf('const allowedRoles = new Set([', platformAdminEndpointSource.indexOf('if (action === "SAVE_MEMBERSHIP")'));
+const apiRoleEnd = platformAdminEndpointSource.indexOf(']);', apiRoleStart);
+assert.ok(uiRoleBlock && apiRoleStart >= 0 && apiRoleEnd > apiRoleStart, 'Both the UI role options and backend allowlist must remain discoverable.');
+const uiRoles = [...uiRoleBlock.matchAll(/value: '([A-Z_]+)'/g)].map(match => match[1]).sort();
+const apiRoles = [...platformAdminEndpointSource.slice(apiRoleStart, apiRoleEnd).matchAll(/"([A-Z_]+)"/g)].map(match => match[1]).sort();
+assert.deepEqual(uiRoles, apiRoles, 'The UI role options must exactly match the server allowlist.');
+console.log('BUSINESS_SUBSCRIBER_ROLE_EDITOR_SCOPE_AND_ALLOWLIST=PASS');
