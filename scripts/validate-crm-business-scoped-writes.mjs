@@ -24,17 +24,19 @@ assert.match(migration, /grant update \(profile_image_path, settings, updated_at
 // RC116 is immutable historical SQL. The JSONB branding guard is introduced
 // by the forward-only RC931 migration and mirrored only in disposable fixtures.
 assert.doesNotMatch(migration, /mnty_guard_provider_profile_branding_only/);
-assert.match(brandingGuardMigration, /create or replace function public\\.mnty_guard_provider_profile_branding_only\\(\\)/i);
-assert.match(brandingGuardMigration, /current_user <> 'authenticated'/i);
-assert.match(brandingGuardMigration, /v_new_settings - 'branding'/);
-assert.match(brandingGuardMigration, /coalesce\\(v_new_settings->'branding', '\\{\\}'::jsonb\\) - 'logo_path'/);
-assert.match(brandingGuardMigration, /before update of settings on public\\.marketing_provider_profiles/i);
+assert.ok(brandingGuardMigration.includes("create or replace function public.mnty_guard_provider_profile_branding_only()"));
+assert.ok(brandingGuardMigration.includes("current_user <> 'authenticated'"));
+assert.ok(brandingGuardMigration.includes("v_new_settings - 'branding'"));
+assert.ok(brandingGuardMigration.includes("coalesce(v_new_settings->'branding', '{}'::jsonb) - 'logo_path'"));
+assert.ok(brandingGuardMigration.includes("before update of settings on public.marketing_provider_profiles"));
 assert.equal((migration.match(/auth\.jwt\(\)->>'is_anonymous'/g) || []).length, 4);
 
 assert.match(fixture, /create policy "Owners manage their marketing provider profile"/);
 assert.match(fixture, /grant select, insert, update, delete on public\.marketing_provider_profiles to authenticated/);
-assert.match(fixture, /create or replace function public\\.mnty_guard_provider_profile_branding_only\\(\\)/i);
-assert.match(fixture, /before update of settings on public\\.marketing_provider_profiles/i);
+assert.ok(fixture.includes("create or replace function public.mnty_guard_provider_profile_branding_only()"));
+assert.ok(fixture.includes("current_user <> 'authenticated'"));
+assert.ok(fixture.includes("coalesce(v_new_settings->'branding', '{}'::jsonb) - 'logo_path'"));
+assert.ok(fixture.includes("before update of settings on public.marketing_provider_profiles"));
 assert.match(fixture, /'TENANT-A', 'Business A2'/);
 
 for (const marker of [
