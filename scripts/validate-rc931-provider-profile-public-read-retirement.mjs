@@ -62,6 +62,17 @@ assert.match(migration, /v_confirmed_qual not ilike '\(NOT \(%IS DISTINCT FROM%f
 assert.match(migration, /RC931_RC115_TENANT_AND_BUSINESS_SCOPED_CRM_POLICY_REQUIRED/);
 assert.ok(migration.includes("position('um.tenant_id=b.tenant_id' in v_crm_qual_normalized) = 0"),
   "RC931 preflight must retain exact tenant equality after normalizing pg_policies output");
+assert.ok(migration.includes("'::[a-z0-9_.\\" ]+'") && migration.includes("'[[:space:]()]'"),
+  "RC931 preflight must strip PostgreSQL type casts, whitespace and syntactic parentheses before exact predicate checks");
+const replayPolicyExample = "((um.tenant_id)::text = (b.tenant_id)::text) AND (b.id = marketing_provider_profiles.business_id)";
+const normalizedReplayPolicy = replayPolicyExample
+  .toLowerCase()
+  .replace(/::[a-z0-9_." ]+/g, "")
+  .replace(/[\\s()]+/g, "");
+assert.ok(normalizedReplayPolicy.includes("um.tenant_id=b.tenant_id"),
+  "RC931 preflight normalization must retain the equality when PostgreSQL emits text casts");
+assert.match(normalizedReplayPolicy, /b\\.id=(public\\.)?marketing_provider_profiles\\.business_id/,
+  "RC931 preflight normalization must retain the exact business_id join after casts are removed");
 assert.ok(migration.includes(String.raw`v_crm_qual_normalized !~ 'b\.id=(public\.)?marketing_provider_profiles\.business_id'`),
   "RC931 preflight must accept optional public schema qualification but require the exact business_id join");
 assert.match(migration, /b\.tenant_id <> 'MNTY-PLATFORM'/,
