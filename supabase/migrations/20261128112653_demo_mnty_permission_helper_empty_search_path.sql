@@ -7,13 +7,6 @@ ALTER FUNCTION public.mnty_active_membership(character varying,uuid,character va
   SET search_path = '';
 ALTER FUNCTION public.mnty_can(text,character varying,uuid,character varying)
   SET search_path = '';
--- Preserve the intended caller contract on a fresh checkpoint as well as DEMO:
--- authenticated users may call these tenant-scoped permission helpers; anon may not.
-REVOKE ALL ON FUNCTION public.mnty_active_membership(character varying,uuid,character varying) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.mnty_active_membership(character varying,uuid,character varying) TO authenticated;
-REVOKE ALL ON FUNCTION public.mnty_can(text,character varying,uuid,character varying) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.mnty_can(text,character varying,uuid,character varying) TO authenticated;
-
 
 DO $demo_permission_helper_search_path_contract$
 DECLARE
