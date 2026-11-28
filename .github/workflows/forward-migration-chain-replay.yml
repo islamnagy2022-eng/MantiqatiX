@@ -64,6 +64,7 @@ on:
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
+      - "supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql"
       - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_resources_anon_select_acl_overlay_fixture.sql"
@@ -176,6 +177,7 @@ on:
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
+      - "supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql"
       - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_resources_anon_select_acl_overlay_fixture.sql"
@@ -424,6 +426,9 @@ jobs:
 
           echo "RESTORE_SCHEMA_ONLY_CHECKPOINT_DATA_PREREQUISITES"
           psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/production_data_prerequisites_fixture.sql
+
+          echo "RESTORE_TEST_ONLY_CATALOG_MEDIA_CLEANUP_VAULT_PLACEHOLDERS"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql
 
           migration_count=0
           while IFS= read -r migration; do
