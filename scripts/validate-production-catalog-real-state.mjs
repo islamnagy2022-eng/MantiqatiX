@@ -277,6 +277,7 @@ assert.ok(directory.includes('if (slide.platformPromoId) {') &&
   directory.includes('setIsPlatformServicesOpen(true)') &&
   directory.includes('data-testid="platform-services-dialog"') &&
   directory.includes('PLATFORM_SERVICE_ITEMS.map'), 'platform cover promos must open an in-app service information dialog when selected');
+assert.match(directory, /if \(isPlatformServicesOpen \|\| activeCoverSlides\.length <= 1\) return;/, 'cover autoplay must pause while the platform services dialog is open');
 assert.ok(directory.includes('data-testid="platform-services-whatsapp-request"') &&
   directory.includes('{catalogRequestPhone ? (') &&
   directory.includes('رقم التواصل الرسمي لإدارة المنصة غير مضبوط بعد'), 'the service request link must use only configured official WhatsApp contact and explain when it is unavailable');
