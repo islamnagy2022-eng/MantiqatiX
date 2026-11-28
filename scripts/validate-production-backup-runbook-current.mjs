@@ -18,7 +18,7 @@ const runbookRequirements = [
   "UNKNOWN / NOT EVIDENCED",
   "Restore to a new project",
   "Storage object bytes",
-  "91 exact migration versions",
+  "91 unique, chronologically ordered migration versions",
   "0/91 exact required version identifiers",
   "20261125120000",
   "20261125130000",
@@ -28,6 +28,11 @@ const runbookRequirements = [
   "20261126020000",
   "RC117",
   "20261126030000",
+  "20261127010000",
+  "20261127235334",
+  "20261128010000",
+  "RC931",
+  "RC932",
   "RC929",
   "20261127010000",
   "RC930",
@@ -49,8 +54,8 @@ const currentRunbook = currentRunbookEnd > currentRunbookStart
   : runbook.slice(currentRunbookStart);
 for (const required of [
   "310 rows through",
-  "89 unique, chronologically ordered migration versions",
-  "0/89",
+  "91 unique, chronologically ordered migration versions",
+  "0/91",
   "79 canonical core/payment/control-center objects",
   "matched 37",
   "42 absent or non-matching",
@@ -128,7 +133,7 @@ for (const required of [
   assert.ok(currentRunbook.includes(required), "Current Production backup overlay is missing: " + required);
 }
 assert.ok(!currentRunbook.includes("87-source"), "Current Production backup overlay must not retain a superseded 87-source gate.");
-assert.ok(runbook.includes("exact ordered 91-source migration effects"), "Production release gate must reconcile the current 89-source migration chain.");
+assert.ok(runbook.includes("exact ordered 91-source migration effects"), "Production release gate must reconcile the current 91-source migration chain.");
 
 
 const backlogRequirements = [
@@ -137,6 +142,8 @@ const backlogRequirements = [
   "20261125110000",
   "RC926",
   "20261125120000",
+  "20261125130000",
+  "RC115",
   "RC927",
   "20261126010000",
   "RC928",
@@ -148,7 +155,7 @@ const backlogRequirements = [
   "RC927 is merged source-only",
 ];
 for (const required of backlogRequirements) {
-  assert.ok(backlog.includes(required), "Release backlog is missing current 88-version gate text: " + required);
+  assert.ok(backlog.includes(required), "Release backlog is missing current 91-version gate text: " + required);
 }
 assert.ok(!backlog.includes("76 required migration IDs"), "Release backlog still describes 76 as the current required migration count.");
 assert.ok(!backlog.includes("0/76 present") && !backlog.includes("0/78 exact required identifiers"), "Release backlog still uses a superseded migration status.");
