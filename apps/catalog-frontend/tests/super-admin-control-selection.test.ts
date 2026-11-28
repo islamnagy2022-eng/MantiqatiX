@@ -49,3 +49,11 @@ const uiRoles = [...uiRoleBlock.matchAll(/value: '([A-Z_]+)'/g)].map(match => ma
 const apiRoles = [...platformAdminEndpointSource.slice(apiRoleStart, apiRoleEnd).matchAll(/"([A-Z_]+)"/g)].map(match => match[1]).sort();
 assert.deepEqual(uiRoles, apiRoles, 'The UI role options must exactly match the server allowlist.');
 console.log('BUSINESS_SUBSCRIBER_ROLE_EDITOR_SCOPE_AND_ALLOWLIST=PASS');
+
+
+// A role-only update must not reset independent catalog permissions or change a suspended membership's state.
+assert.ok(businessSubscriberSource.includes("status:['ACTIVE','INACTIVE','SUSPENDED'].includes(String(m.status||'').toUpperCase())?String(m.status).toUpperCase():'INACTIVE'"), 'Role changes must preserve the exact supported membership state.');
+assert.ok(!businessSubscriberSource.includes('catalogEnabled:true,catalogWrite:true,accountRestricted:false'), 'Role changes must not silently grant catalog read/write permissions.');
+assert.ok(platformAdminEndpointSource.includes('typeof body.catalogEnabled === "boolean" ? body.catalogEnabled : previousPermissions.catalog !== false'), 'Omitted catalog settings must retain the existing membership permissions.');
+assert.ok(platformAdminEndpointSource.includes('typeof body.catalogWrite === "boolean" ? body.catalogWrite : previousPermissions.catalog_write !== false'), 'Omitted catalog write settings must retain the existing write permissions.');
+console.log('BUSINESS_SUBSCRIBER_ROLE_UPDATE_PRESERVES_MEMBERSHIP_PERMISSIONS=PASS');
