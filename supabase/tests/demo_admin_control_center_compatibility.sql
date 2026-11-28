@@ -16,6 +16,8 @@ DECLARE
   v_function_is_definer boolean;
   v_registry_rls boolean;
   v_registry_force_rls boolean;
+  v_membership_index_unique boolean;
+  v_membership_index_definition text;
 
   v_rpc_signatures text[] := ARRAY[
     'public.mnty_platform_admin_list_custom_roles()',
@@ -115,6 +117,21 @@ BEGIN
       END IF;
     END LOOP;
   END LOOP;
+
+  -- The business-wide membership idempotency prerequisite is installed by RC472.
+  SELECT i.indisunique, pg_catalog.pg_get_indexdef(i.indexrelid)
+    INTO v_membership_index_unique, v_membership_index_definition
+  FROM pg_catalog.pg_index i
+  JOIN pg_catalog.pg_class idx ON idx.oid = i.indexrelid
+  JOIN pg_catalog.pg_class tbl ON tbl.oid = i.indrelid
+  JOIN pg_catalog.pg_namespace n ON n.oid = tbl.relnamespace
+  WHERE n.nspname = 'public'
+    AND tbl.relname = 'user_memberships'
+    AND idx.relname = 'ux_user_memberships_user_business_branch_nullsafe';
+  IF NOT FOUND OR NOT v_membership_index_unique
+     OR position('COALESCE' IN upper(coalesce(v_membership_index_definition,''))) = 0 THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_MEMBERSHIP_SCOPE_INDEX_MISSING_OR_INVALID: %', v_membership_index_definition;
+  END IF;
 
   -- The full replay must include the canonical registry-backed root helper,
   -- with its execution path pinned. A standalone helper hot patch is not enough.
