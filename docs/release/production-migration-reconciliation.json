@@ -119,10 +119,10 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-11-28",
-    "method": "Direct read-only Supabase migration inventory rechecked on 2026-11-28: 310 live ledger rows through 20261110150618. The canonical source contract contains 91 unique, ordered required versions including RC115 20261125130000, RC931 20261128010000 and the previously merged RC932 20261127235334. Exact-ID matches are 0/91 and missing exact IDs are 91/91. This is a migration-identity gap, not proof that every physical effect is absent. RC115, RC931 and RC932 remain source-only and unapplied. Three previously recorded aliases remain separate and must not be replayed or fabricated as ledger rows. No Production migration or ledger write occurred.",
+    "method": "Direct read-only Supabase migration inventory rechecked on 2026-11-28: 310 live ledger rows through 20261110150618. The canonical source contract contains 92 unique, ordered required versions including RC115 20261125130000, RC116 20261125140000, RC931 20261128010000 and merged source-only RC932 20261127235334. Exact-ID matches are 0/92 and missing exact IDs are 92/92. This is a migration-identity gap, not proof that every physical effect is absent. RC115, RC116, RC931 and RC932 remain source-only and unapplied. Three previously recorded aliases remain separate and must not be replayed or fabricated as ledger rows. No Production migration or ledger write occurred.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 91,
+    "expected_migration_versions": 92,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -210,6 +210,7 @@
       "20261125110000",
       "20261125120000",
       "20261125130000",
+      "20261125140000",
       "20261126010000",
       "20261126020000",
       "20261126030000",
@@ -303,6 +304,7 @@
       "20261125110000",
       "20261125120000",
       "20261125130000",
+      "20261125140000",
       "20261126010000",
       "20261126020000",
       "20261126030000",
@@ -311,7 +313,7 @@
       "20261128010000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "None of the 91 exact required source-version identifiers is recorded in the 310-row live ledger. This is an identity gap, not proof every corresponding physical effect is absent. Reconcile the three exact aliases and physical schema/function/ACL/RLS/Edge effects separately. Never fabricate ledger rows or blindly replay migrations against Production. RC115, RC928, RC931, RC932, RC117 forward repair, RC929 and RC930 remain source-only and are not applied to Production."
+    "interpretation": "None of the 92 exact required source-version identifiers is recorded in the 310-row live ledger. This is an identity gap, not proof every corresponding physical effect is absent. Reconcile the three exact aliases and physical schema/function/ACL/RLS/Edge effects separately. Never fabricate ledger rows or blindly replay migrations against Production. RC115, RC116, RC928, RC931, RC932, RC117 forward repair, RC929 and RC930 remain source-only and are not applied to Production."
   },
   "critical_edge_function_source_parity_check": {
     "status": "BLOCKED",
