@@ -107,7 +107,8 @@ const requiredReleaseMigrations=[
   "20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql",
   "20261126020000_preserve_marketing_service_image_provenance.sql",
   "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql",
-  "20261127010000_rc930_serialize_job_deactivation_and_application.sql"
+  "20261127010000_rc930_serialize_job_deactivation_and_application.sql",
+  "20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
