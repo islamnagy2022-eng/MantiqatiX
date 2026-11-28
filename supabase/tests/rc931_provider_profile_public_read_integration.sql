@@ -35,11 +35,18 @@ BEGIN
     SELECT 1 FROM pg_policies
      WHERE schemaname='public'
        AND tablename='marketing_provider_profiles'
-       AND policyname='Owners manage their marketing provider profile'
-       AND cmd='ALL'
+       AND policyname='Owners view own marketing provider profile'
+       AND cmd='SELECT'
+       AND 'authenticated'=ANY(roles)
+  ) OR NOT EXISTS (
+    SELECT 1 FROM pg_policies
+     WHERE schemaname='public'
+       AND tablename='marketing_provider_profiles'
+       AND policyname='Owners update own provider profile branding'
+       AND cmd='UPDATE'
        AND 'authenticated'=ANY(roles)
   ) THEN
-    RAISE EXCEPTION 'RC931_OWNER_POLICY_MISSING';
+    RAISE EXCEPTION 'RC931_RC116_OWNER_READ_OR_BRANDING_POLICY_MISSING';
   END IF;
 END;
 $acl$;
