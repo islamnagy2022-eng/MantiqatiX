@@ -24,6 +24,10 @@ const permissionHelperPathMigration = readFileSync(
   'supabase/migrations/20261128112653_demo_mnty_permission_helper_empty_search_path.sql',
   'utf8',
 ).toLowerCase();
+const permissionHelperAclMigration = readFileSync(
+  'supabase/migrations/20261128112652_demo_permission_helper_execute_acl.sql',
+  'utf8',
+).toLowerCase();
 const demoPlatformRootMigration = readFileSync(
   'supabase/migrations/20261128112058_demo_platform_root_authority_convergence.sql',
   'utf8',
@@ -49,6 +53,11 @@ const externalRpcSignatures = [
 const serviceOnlyRpcSignature = 'mnty_platform_admin_delete_business';
 assert.ok(permissionHelperPathMigration.includes('alter function public.mnty_active_membership(character varying,uuid,character varying)') && permissionHelperPathMigration.includes('alter function public.mnty_can(text,character varying,uuid,character varying)'), 'Legacy membership helpers must be hardened.');
 assert.ok(permissionHelperPathMigration.includes('set search_path = \'\';'), 'Legacy membership helper search paths must be empty.');
+assert.ok(permissionHelperAclMigration.includes('revoke all on function public.mnty_active_membership(character varying,uuid,character varying) from public, anon;'), 'Clean replay must deny anonymous membership-helper execution.');
+assert.ok(permissionHelperAclMigration.includes('grant execute on function public.mnty_active_membership(character varying,uuid,character varying) to authenticated;'), 'Clean replay must grant authenticated membership-helper execution.');
+assert.ok(permissionHelperAclMigration.includes('revoke all on function public.mnty_can(text,character varying,uuid,character varying) from public, anon;'), 'Clean replay must deny anonymous mnty_can execution.');
+assert.ok(permissionHelperAclMigration.includes('grant execute on function public.mnty_can(text,character varying,uuid,character varying) to authenticated;'), 'Clean replay must grant authenticated mnty_can execution.');
+assert.ok('20261128112652_demo_permission_helper_execute_acl.sql' < '20261128112653_demo_mnty_permission_helper_empty_search_path.sql', 'ACL preflight must run before the helper search_path contract.');
 
 const catalogRpcSignatures = [
   'adjust_catalog_stock_backend(character varying,uuid,character varying,character varying,uuid,numeric,numeric,character varying,text)',
