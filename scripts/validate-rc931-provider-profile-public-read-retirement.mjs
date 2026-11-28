@@ -121,8 +121,8 @@ assert.match(webApp, /\.from\(['"]marketing_provider_profiles['"]\)[^\n]*\.eq\([
 const required = contract.match(/REQUIRED_RELEASE_MIGRATION_VERSIONS\s*=\s*\[([\s\S]*?)\n\];/);
 assert.ok(required, "canonical migration contract array must exist");
 const versions = [...required[1].matchAll(/"([0-9]{14})"/g)].map((match) => match[1]);
-assert.equal(versions.length, 90, "canonical contract must include RC115 and RC931 as 90 total source versions");
-assert.equal(new Set(versions).size, 90, "required migration version list must be unique");
+assert.equal(versions.length, 91, "canonical contract must include RC115 and RC931 as 90 total source versions");
+assert.equal(new Set(versions).size, 91, "required migration version list must be unique");
 assert.deepEqual(versions, [...versions].sort(), "required migration versions must be strictly timestamp ordered");
 for (const version of ["20261125130000", "20261128010000"]) {
   assert.ok(versions.includes(version), "canonical contract missing " + version);
@@ -131,12 +131,12 @@ for (const version of ["20261125130000", "20261128010000"]) {
   assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes(version), "manifest required_versions missing " + version);
   assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes(version), "manifest must keep " + version + " unapplied to Production");
 }
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 90);
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 91);
 assert.equal(manifest.required_release_migration_ledger_check.found_in_live_ledger, 0);
-assert.equal(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=90"), true);
+assert.equal(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=91"), true);
 assert.match(backupValidator, /20261128010000/);
 assert.match(backupValidator, /20261125130000/);
 
 console.log("RC931_PROVIDER_PROFILE_PUBLIC_READ_RETIREMENT_STATIC=PASS");
 console.log("RC931_PUBLIC_EDGE_PROJECTION_AND_OWNER_CRM_COMPATIBILITY=PASS");
-console.log("RC931_90_VERSION_RELEASE_CONTRACT=PASS");
+console.log("RC931_91_VERSION_RELEASE_CONTRACT=PASS");
