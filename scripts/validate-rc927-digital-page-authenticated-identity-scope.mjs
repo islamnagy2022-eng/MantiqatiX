@@ -104,16 +104,16 @@ assert.match(migrationGate, /required\.length,\s*89/, "strict release gate must 
 assert.ok(forwardReplay.includes("node scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"),
   "forward replay must execute RC927 source validation");
 assert.ok(forwardReplay.includes(testPath), "forward replay must execute RC927 PostgreSQL integration");
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 91,
-  "live reconciliation manifest must use the 91-source contract");
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 92,
+  "live reconciliation manifest must use the 92-source contract");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261125120000"),
   "manifest must list RC927 as required");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261125120000"),
   "RC927 must remain unapplied in Production until the coordinated release");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261126010000"), "manifest must require RC928");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261126010000"), "manifest must keep RC928 unapplied until coordinated release");
-assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=91"),
-  "backup validator must use the 91-source contract");
+assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=92"),
+  "backup validator must use the 92-source contract");
 assert.ok(crosswalk.includes("20261125120000") && crosswalk.includes("RC927"),
   "the 87-source source-to-live crosswalk must include RC927");
 
