@@ -7,6 +7,7 @@ const library = readFileSync('apps/catalog-frontend/src/lib/production.ts', 'utf
 const dashboard = readFileSync('apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx', 'utf8');
 const migration = readFileSync('supabase/migrations/20261128070000_mnty_catalog_media_library_retention.sql', 'utf8');
 const optimizedMigration = readFileSync('supabase/migrations/20261128071000_optimize_catalog_media_reference_scan.sql', 'utf8');
+const allTextMigration = readFileSync('supabase/migrations/20261128072000_include_all_text_catalog_media_references.sql', 'utf8');
 const config = readFileSync('supabase/config.toml', 'utf8');
 
 assert.ok(proxy.includes('action === "list_catalog_images"'), 'the authenticated image proxy must expose image-library listing');
@@ -30,6 +31,13 @@ assert.ok(optimizedMigration.includes('unnest($1::text[])') && optimizedMigratio
 assert.ok(optimizedMigration.includes("a.attname ilike any (array[") &&
   optimizedMigration.includes("'%image%'") && optimizedMigration.includes("'%url%'") && optimizedMigration.includes("'pg_catalog.jsonb'::regtype"),
   'batched reference scan must cover media-named text fields and every JSON/JSONB field');
+assert.ok(allTextMigration.includes("'pg_catalog.text'::regtype") &&
+  allTextMigration.includes("'pg_catalog.varchar'::regtype") &&
+  allTextMigration.includes("'pg_catalog.bpchar'::regtype") &&
+  allTextMigration.includes("'pg_catalog.jsonb'::regtype"),
+  'the final cleanup scan must inspect every public text and JSON field, including generic page content');
+assert.ok(!allTextMigration.includes('a.attname ilike any'),
+  'generic text content must not be excluded based on column naming conventions');
 assert.ok(migration.includes('cron.schedule(') && migration.includes("'17 * * * *'"),
   'unused media cleanup must be scheduled automatically every hour');
 assert.ok(migration.includes('revoke all on function public.mnty_catalog_media_cleanup_token_valid(text) from public, anon, authenticated'),
