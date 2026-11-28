@@ -6,6 +6,7 @@ const cleanup = readFileSync('supabase/functions/cleanup-catalog-media/index.ts'
 const library = readFileSync('apps/catalog-frontend/src/lib/production.ts', 'utf8');
 const dashboard = readFileSync('apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx', 'utf8');
 const migration = readFileSync('supabase/migrations/20261128070000_mnty_catalog_media_library_retention.sql', 'utf8');
+const optimizedMigration = readFileSync('supabase/migrations/20261128071000_optimize_catalog_media_reference_scan.sql', 'utf8');
 const config = readFileSync('supabase/config.toml', 'utf8');
 
 assert.ok(proxy.includes('action === "list_catalog_images"'), 'the authenticated image proxy must expose image-library listing');
@@ -24,6 +25,11 @@ assert.ok(migration.includes("c.relname <> 'audit_logs'"), 'upload audit records
 assert.ok(migration.includes('mnty_catalog_media_object_is_referenced'), 'deletion candidates must be checked against persisted site references');
 assert.ok(migration.includes("'pg_catalog.jsonb'::regtype") && migration.includes("'pg_catalog.text'::regtype"),
   'reference detection must search plain text and JSON content');
+assert.ok(optimizedMigration.includes('unnest($1::text[])') && optimizedMigration.includes('array_agg(distinct ref.object_path)'),
+  'retention must scan all expired candidates in bounded batches rather than rescanning every column per file');
+assert.ok(optimizedMigration.includes("a.attname ilike any (array[") &&
+  optimizedMigration.includes("'%image%'") && optimizedMigration.includes("'%url%'") && optimizedMigration.includes("'pg_catalog.jsonb'::regtype"),
+  'batched reference scan must cover media-named text fields and every JSON/JSONB field');
 assert.ok(migration.includes('cron.schedule(') && migration.includes("'17 * * * *'"),
   'unused media cleanup must be scheduled automatically every hour');
 assert.ok(migration.includes('revoke all on function public.mnty_catalog_media_cleanup_token_valid(text) from public, anon, authenticated'),
@@ -33,7 +39,7 @@ assert.ok(migration.includes('grant execute on function public.mnty_list_expired
 
 assert.ok(cleanup.includes('mnty_catalog_media_cleanup_token_valid'), 'scheduled cleanup must authenticate with the Vault-backed token');
 assert.ok(cleanup.includes('mnty_list_expired_catalog_media'), 'scheduled cleanup must request only expired unreferenced objects');
-assert.ok(cleanup.includes('mnty_catalog_media_object_is_referenced'), 'cleanup must re-check use immediately before deletion');
+assert.ok(cleanup.includes('mnty_list_expired_catalog_media'), 'cleanup must request only expired unreferenced objects');
 assert.ok(cleanup.includes('.storage.from(IMAGE_BUCKET).remove(batch)'), 'files must be removed through the Storage API');
 assert.ok(config.includes('[functions.cleanup-catalog-media]') && /\[functions\.cleanup-catalog-media\][\s\S]*?verify_jwt = false/.test(config),
   'the isolated cleanup function must use its own high-entropy bearer validation');
