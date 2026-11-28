@@ -122,7 +122,7 @@ assert.match(webApp, /\.from\(['"]marketing_provider_profiles['"]\)[^\n]*\.eq\([
 const required = contract.match(/REQUIRED_RELEASE_MIGRATION_VERSIONS\s*=\s*\[([\s\S]*?)\n\];/);
 assert.ok(required, "canonical migration contract array must exist");
 const versions = [...required[1].matchAll(/"([0-9]{14})"/g)].map((match) => match[1]);
-assert.equal(versions.length, 92, "canonical contract must include RC115 and RC931 as 90 total source versions");
+assert.equal(versions.length, 92, "canonical contract must include RC115 and RC931 as 92 total source versions");
 assert.equal(new Set(versions).size, 92, "required migration version list must be unique");
 assert.deepEqual(versions, [...versions].sort(), "required migration versions must be strictly timestamp ordered");
 for (const version of ["20261125130000", "20261125140000", "20261128010000"]) {
