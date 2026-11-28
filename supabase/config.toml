@@ -40,6 +40,11 @@ verify_jwt = false
 [functions.catalog-admin]
 verify_jwt = false
 
+# The platform control-center validates the Bearer token and registry-backed root authority in-handler.
+# JWT gateway verification is disabled only so unauthenticated CORS OPTIONS requests can reach the handler.
+[functions.catalog-platform-admin]
+verify_jwt = false
+
 # Scheduled cleanup endpoint authenticates with a Vault-backed high-entropy bearer token.
 [functions.cleanup-catalog-media]
 verify_jwt = false
