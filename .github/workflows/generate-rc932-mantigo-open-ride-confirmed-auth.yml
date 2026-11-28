@@ -3,7 +3,7 @@ name: Generate and test RC932 MantiGO explicit confirmed-auth repair
 on:
   push:
     branches:
-      - "fix/rc932-mantigo-open-ride-explicit-confirmed-auth-20261128"
+      - "fix/rc932-mantigo-open-ride-explicit-confirmed-auth-rebased-20261128"
     paths:
       - ".github/workflows/generate-rc932-mantigo-open-ride-confirmed-auth.yml"
   pull_request:
@@ -11,6 +11,9 @@ on:
       - "docs/backup-restore-current-main-rebase-20261128"
     paths:
       - ".github/workflows/generate-rc932-mantigo-open-ride-confirmed-auth.yml"
+      - "supabase/migrations/20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql"
+      - "supabase/tests/rc932_mantigo_open_ride_explicit_confirmed_auth_integration.sql"
+      - "scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs"
   workflow_dispatch:
 
 permissions:
