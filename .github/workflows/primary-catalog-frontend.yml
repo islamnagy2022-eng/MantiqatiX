@@ -19,6 +19,7 @@ on:
       - "scripts/validate-category-aware-default-catalog-images.mjs"
       - "scripts/validate-navbar-business-logo.mjs"
       - "scripts/validate-mantiqatix-profile-branding.mjs"
+      - "scripts/validate-mantiqatix-brand-palette.mjs"
       - "scripts/validate-navbar-business-logo.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
       - "scripts/validate-business-create-inflight-guard.mjs"
@@ -76,6 +77,7 @@ on:
       - "scripts/validate-category-aware-default-catalog-images.mjs"
       - "scripts/validate-navbar-business-logo.mjs"
       - "scripts/validate-mantiqatix-profile-branding.mjs"
+      - "scripts/validate-mantiqatix-brand-palette.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
       - "scripts/validate-business-create-inflight-guard.mjs"
       - "scripts/validate-catalog-membership-bootstrap.mjs"
@@ -146,6 +148,8 @@ jobs:
       - name: TypeScript check
         working-directory: apps/catalog-frontend
         run: npm run lint
+      - name: Validate MantiqatiX red-gold brand palette and status semantics
+        run: node scripts/validate-mantiqatix-brand-palette.mjs
       - name: Test business creation identity and geographic validation
         working-directory: apps/catalog-frontend
         run: npx tsx tests/business-creation-validation.test.ts

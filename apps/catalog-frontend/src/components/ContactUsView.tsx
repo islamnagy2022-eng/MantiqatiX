@@ -102,7 +102,7 @@ export const ContactUsView: React.FC = () => {
                 <legend className="mb-2 text-xs font-black text-slate-700">نوع الرسالة</legend>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {CONTACT_KINDS.map((item) => (
-                    <button key={item.id} type="button" aria-pressed={kind === item.id} onClick={() => setKind(item.id)} className={`min-h-10 rounded-xl border px-3 py-2 text-xs font-black transition ${kind === item.id ? 'border-emerald-600 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'}`}>
+                    <button key={item.id} type="button" aria-pressed={kind === item.id} onClick={() => setKind(item.id)} className={`min-h-10 rounded-xl border px-3 py-2 text-xs font-black transition ${kind === item.id ? 'border-[#a00000] bg-[#fff3e0] text-[#7a0000]' : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'}`}>
                       {item.label}
                     </button>
                   ))}
@@ -111,22 +111,22 @@ export const ContactUsView: React.FC = () => {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block text-xs font-bold text-slate-700">الاسم الكامل *
-                  <input required value={senderName} onChange={(event) => setSenderName(event.target.value)} autoComplete="name" className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-medium outline-none focus:border-emerald-600" />
+                  <input required value={senderName} onChange={(event) => setSenderName(event.target.value)} autoComplete="name" className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-medium outline-none focus:border-[#a00000]" />
                 </label>
                 <label className="block text-xs font-bold text-slate-700">رقم الهاتف أو واتساب *
-                  <input required type="tel" value={senderPhone} onChange={(event) => setSenderPhone(event.target.value)} dir="ltr" autoComplete="tel" className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-medium text-right outline-none focus:border-emerald-600" />
+                  <input required type="tel" value={senderPhone} onChange={(event) => setSenderPhone(event.target.value)} dir="ltr" autoComplete="tel" className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-medium text-right outline-none focus:border-[#a00000]" />
                 </label>
               </div>
               <label className="block text-xs font-bold text-slate-700">البريد الإلكتروني (اختياري)
-                <input type="email" value={senderEmail} onChange={(event) => setSenderEmail(event.target.value)} dir="ltr" autoComplete="email" className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-medium text-right outline-none focus:border-emerald-600" />
+                <input type="email" value={senderEmail} onChange={(event) => setSenderEmail(event.target.value)} dir="ltr" autoComplete="email" className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-medium text-right outline-none focus:border-[#a00000]" />
               </label>
               <label className="block text-xs font-bold text-slate-700">الموضوع *
-                <input required value={subject} onChange={(event) => setSubject(event.target.value)} maxLength={140} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-medium outline-none focus:border-emerald-600" />
+                <input required value={subject} onChange={(event) => setSubject(event.target.value)} maxLength={140} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-medium outline-none focus:border-[#a00000]" />
               </label>
               <label className="block text-xs font-bold text-slate-700">تفاصيل الرسالة *
-                <textarea required rows={6} value={message} onChange={(event) => setMessage(event.target.value)} maxLength={3000} className="mt-1.5 w-full resize-y rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-medium outline-none focus:border-emerald-600" />
+                <textarea required rows={6} value={message} onChange={(event) => setMessage(event.target.value)} maxLength={3000} className="mt-1.5 w-full resize-y rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-medium outline-none focus:border-[#a00000]" />
               </label>
-              <button type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 text-xs font-black text-white shadow-md hover:bg-emerald-800">
+              <button type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#7a0000] px-6 py-3 text-xs font-black text-white shadow-md hover:bg-[#5a0000]">
                 <Send className="h-4 w-4" /> تجهيز الرسالة على واتساب
               </button>
             </form>
@@ -144,7 +144,7 @@ export const ContactUsView: React.FC = () => {
             <p className="mt-3 text-[11px] leading-5 text-slate-500">لن يتم تخزين الرسالة داخل الموقع في هذه الصفحة. الإرسال يتم من خلال حساب واتساب الخاص بك.</p>
           </div>
           <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-            <div className="flex items-center gap-2 font-black text-slate-900"><HelpCircle className="h-5 w-5 text-indigo-600" /> قبل الإرسال</div>
+            <div className="flex items-center gap-2 font-black text-slate-900"><HelpCircle className="h-5 w-5 text-[#b8862b]" /> قبل الإرسال</div>
             <p className="mt-2 text-xs leading-6 text-slate-600">راجع الاسم ورقم الهاتف والموضوع حتى تستطيع الإدارة الرجوع إليك.</p>
           </div>
         </aside>

@@ -119,11 +119,11 @@ const MainContent: React.FC = () => {
   ]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50/70 text-slate-800">
+    <div className="min-h-screen flex flex-col bg-[#fff8f0] text-[#2b1714]">
       <Navbar />
 
       {authLoading && !hasDirectPublicCatalogLink && (
-        <div role="status" aria-live="polite" className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-7xl rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-900">
+        <div role="status" aria-live="polite" className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-7xl rounded-xl border border-[#ead5c5] bg-[#fff3e0] px-4 py-3 text-sm font-semibold text-[#7a0000]">
           جارٍ التحقق من تسجيل الدخول وتجهيز الصلاحيات… يمكنك تصفح الأنشطة المنشورة أثناء ذلك.
         </div>
       )}
@@ -178,7 +178,7 @@ const MainContent: React.FC = () => {
       )}
 
       {/* Modern MantiqatiX Footer */}
-      <footer className="bg-white border-t border-slate-200 mt-auto py-8">
+      <footer className="bg-white border-t-2 border-[#ead5c5] mt-auto py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <div className="flex items-center gap-2">
@@ -190,9 +190,9 @@ const MainContent: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4 flex-wrap justify-center">
-              <button type="button" onClick={() => useFooterNavigate('site_map')} className="font-bold text-slate-600 hover:text-emerald-700">خريطة الموقع</button>
+              <button type="button" onClick={() => useFooterNavigate('site_map')} className="font-bold text-slate-600 hover:text-[#a00000]">خريطة الموقع</button>
               <span>•</span>
-              <button type="button" onClick={() => useFooterNavigate('contact_us')} className="font-bold text-slate-600 hover:text-emerald-700">تواصل معنا</button>
+              <button type="button" onClick={() => useFooterNavigate('contact_us')} className="font-bold text-slate-600 hover:text-[#a00000]">تواصل معنا</button>
               <span>•</span>
               <span>حد المنتجات: 150 منتج/خدمة لكل مشترك</span>
               <span>•</span>
@@ -203,7 +203,7 @@ const MainContent: React.FC = () => {
                   href={catalogRequestUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1"
+                  className="text-[#7a0000] hover:text-[#a00000] font-bold flex items-center gap-1"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
                   <span>واتساب إدارة MantiqatiX ({adminSettings.adminWhatsApp})</span>

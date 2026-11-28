@@ -145,12 +145,12 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
 
   return (
     <main dir="rtl" className="mx-auto min-h-[70vh] max-w-7xl space-y-5 px-3 py-5 sm:px-6 sm:py-8">
-      <header className="rounded-3xl bg-gradient-to-l from-slate-950 via-emerald-950 to-slate-900 p-5 text-white shadow-lg sm:p-8">
+      <header className="rounded-3xl bg-gradient-to-l from-[#3a0000] via-[#7a0000] to-[#3a0000] p-5 text-white shadow-lg sm:p-8">
         <button type="button" onClick={onBack} className="mb-5 inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-bold hover:bg-white/15"><ArrowRight className="h-4 w-4" /> {parentGroupName ? 'العودة إلى ' + parentGroupName : 'العودة إلى الأنشطة'}</button>
-        <p className="text-xs font-bold text-emerald-300">MantiqatiX / وحدة النشاط</p>
+        <p className="text-xs font-bold text-[#f6c04d]">MantiqatiX / وحدة النشاط</p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-black sm:text-4xl">{category.name}</h1>
-          {activityGovernorate && <span data-testid="activity-geographic-scope" className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-black text-emerald-100">دليل محافظة {activityGovernorate}</span>}
+          {activityGovernorate && <span data-testid="activity-geographic-scope" className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-black text-[#ffe1a3]">دليل محافظة {activityGovernorate}</span>}
         </div>
         <p className="mt-2 max-w-3xl text-sm leading-7 text-white/75">{category.description || `الوحدة المستقلة لنشاط ${category.name} وتخصصاته والجهات العاملة فيه.`}</p>
         {activityGovernorate && <p className="mt-2 text-xs leading-6 text-white/65">هذا كتالوج تصنيفي لنطاق المحافظة؛ لا يعني وجود منشآت مسجلة في كل تخصص. لا تُعرض أي جهة إلا بعد إدخال بياناتها من مصدر يجيز استخدامها أو من صاحب النشاط.</p>}
@@ -163,7 +163,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
 
       <nav aria-label="أقسام وحدة النشاط" className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
         {sections.map((item) => <button key={item.id} type="button" onClick={() => setActiveSection(item.id)} aria-current={activeSection === item.id ? 'page' : undefined}
-          className={`inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-black transition sm:px-4 ${activeSection === item.id ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>{item.icon}{item.label}</button>)}
+          className={`inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-black transition sm:px-4 ${activeSection === item.id ? 'bg-[#7a0000] text-white' : 'text-slate-600 hover:bg-[#fff8f0]'}`}>{item.icon}{item.label}</button>)}
       </nav>
 
       {activeSection === 'overview' && <section className="space-y-4">
@@ -177,7 +177,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
             { id: 'specialties' as const, title: 'التخصصات والجهات', description: 'افتح تخصصًا لاستعراض الجهات التابعة له.', icon: <Package className="h-6 w-6" /> },
             { id: 'marketing' as const, title: 'التسويق والإعلان', description: 'خطة تسويق موجهة لطبيعة المجال وجمهوره.', icon: <Megaphone className="h-6 w-6" /> },
             { id: 'operations' as const, title: 'إدارة المجال', description: 'وظائف التشغيل المرتبطة بطبيعة النشاط.', icon: <BriefcaseBusiness className="h-6 w-6" /> },
-          ].map((item) => <button key={item.id} type="button" onClick={() => setActiveSection(item.id)} className="rounded-2xl border border-slate-200 bg-white p-5 text-right transition hover:border-emerald-300 hover:bg-emerald-50/40"><span className="text-emerald-700">{item.icon}</span><span className="mt-3 block font-black text-slate-900">{item.title}</span><span className="mt-1 block text-xs leading-6 text-slate-500">{item.description}</span></button>)}
+          ].map((item) => <button key={item.id} type="button" onClick={() => setActiveSection(item.id)} className="rounded-2xl border border-slate-200 bg-white p-5 text-right transition hover:border-[#d9a5a5] hover:bg-[#fff8f0]"><span className="text-[#7a0000]">{item.icon}</span><span className="mt-3 block font-black text-slate-900">{item.title}</span><span className="mt-1 block text-xs leading-6 text-slate-500">{item.description}</span></button>)}
         </div>
       </section>}
 
@@ -191,17 +191,17 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
           </p>
         </div>
 
-        {selectedSpecialty && <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-          <div className="text-xs font-bold text-emerald-950">{parentGroupName ? parentGroupName + ' / ' : ''}{category.name} / {selectedSpecialty}</div>
-          <button type="button" onClick={closeSpecialtyFolder} className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-black text-emerald-900 hover:bg-emerald-100">العودة إلى التخصصات</button>
+        {selectedSpecialty && <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#ead5c5] bg-[#fff8f0] px-4 py-3">
+          <div className="text-xs font-bold text-[#7a0000]">{parentGroupName ? parentGroupName + ' / ' : ''}{category.name} / {selectedSpecialty}</div>
+          <button type="button" onClick={closeSpecialtyFolder} className="rounded-xl border border-[#ead5c5] bg-white px-3 py-2 text-xs font-black text-[#7a0000] hover:bg-[#fff3e0]">العودة إلى التخصصات</button>
         </div>}
 
         {!selectedSpecialty && specialties.length > 0 && <div className="order-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {specialties.map((specialty) => {
             const total = countForSpecialty(specialty);
             return <button key={specialty} type="button" onClick={() => openSpecialtyFolder(specialty)}
-              className="group flex min-h-32 flex-col items-start justify-between rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50/50">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><Package className="h-6 w-6" /></span>
+              className="group flex min-h-32 flex-col items-start justify-between rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-[#d9a5a5] hover:bg-[#fff8f0]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#fff3e0] text-[#7a0000]"><Package className="h-6 w-6" /></span>
               <span className="mt-3 block w-full font-black text-slate-900">{specialty}</span>
               <span className="mt-1 text-xs font-bold text-slate-500">{total.toLocaleString('ar-EG')} جهة ضمن النتائج المحمّلة</span>
             </button>;
@@ -214,7 +214,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
             <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={`ابحث داخل ${selectedSpecialty || `كل ${category.name}`} بالاسم أو الهاتف أو المنطقة`}
               aria-label={`البحث داخل ${selectedSpecialty || `كل ${category.name}`}`}
-              className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white py-3 pr-12 pl-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
+              className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white py-3 pr-12 pl-4 text-sm outline-none transition focus:border-[#a00000] focus:ring-2 focus:ring-[#f6c04d]/25" />
           </label>
           <div className="flex flex-wrap gap-2 text-xs font-bold">
             <span className="rounded-full bg-emerald-50 px-3 py-2 text-emerald-800">موثق (محمّل): {verifiedBusinesses.length.toLocaleString('ar-EG')}</span>
@@ -256,7 +256,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
                 if (hasMoreBusinesses) onLoadMoreBusinesses();
                 if (hasMoreListings) onLoadMoreListings();
               }} disabled={loadingMoreListings || loadingMoreBusinesses}
-                className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
+                className="min-h-11 rounded-xl border border-[#ead5c5] bg-white px-6 py-3 text-xs font-black text-[#7a0000] shadow-sm transition hover:bg-[#fff8f0] disabled:cursor-wait disabled:opacity-60">
                 {loadingMoreListings || loadingMoreBusinesses ? 'جارٍ تحميل المزيد…' : selectedSpecialty ? 'رؤية المزيد من هذا التخصص' : 'رؤية المزيد من النتائج'}
               </button>
             </div>
@@ -265,8 +265,8 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
       </section>}
 
       {activeSection === 'marketing' && <section className="space-y-5">
-        <header className="rounded-2xl border border-emerald-200 bg-gradient-to-l from-emerald-950 to-slate-900 p-5 text-white">
-          <div className="flex items-center gap-2"><Megaphone className="h-6 w-6 text-emerald-300" /><span className="text-xs font-black text-emerald-200">ADVANCED MARKETING WORKSPACE</span></div>
+        <header className="rounded-2xl border border-[#f6c04d]/25 bg-gradient-to-l from-[#3a0000] to-[#2b1714] p-5 text-white">
+          <div className="flex items-center gap-2"><Megaphone className="h-6 w-6 text-emerald-300" /><span className="text-xs font-black text-[#ffe1a3]">ADVANCED MARKETING WORKSPACE</span></div>
           <h2 className="mt-2 text-xl font-black">مركز التسويق المتقدم — {category.name}</h2>
           <p className="mt-2 text-sm leading-7 text-white/75">أنشئ خطة تسويقية مخصصة للنشاط، وحدد هدف الحملة وميزانيتها وقنواتها، ثم جهّز تقويم المحتوى ومؤشرات القياس.</p>
           <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold"><span className="rounded-full bg-white/10 px-3 py-2">خطة خاصة بالنشاط</span><span className="rounded-full bg-white/10 px-3 py-2">تسويق محلي وجغرافي</span><span className="rounded-full bg-white/10 px-3 py-2">قمع تحويل ومؤشرات أداء</span></div>
@@ -276,7 +276,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
           <Metric label="الجهات الموثقة (المحمّل)" value={confirmedCount} color="border-emerald-200 bg-emerald-50 text-emerald-800" />
           <Metric label="الجهات غير الموثقة (المحمّل)" value={unconfirmedCount} color="border-red-200 bg-red-50 text-red-700" />
           <Metric label="محاور المحتوى" value={marketing.contentPillars.length} color="border-slate-200 bg-slate-50 text-slate-800" />
-          <Metric label="أفكار الحملات" value={marketing.campaignIdeas.length} color="border-blue-200 bg-blue-50 text-blue-800" />
+          <Metric label="أفكار الحملات" value={marketing.campaignIdeas.length} color="border-[#ead5c5] bg-[#fff3e0] text-[#7a0000]" />
         </div>
 
         <div className="grid gap-3 lg:grid-cols-2">
@@ -289,37 +289,37 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
             </div>
           </article>
           <article className="rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="flex items-center gap-2"><Target className="h-5 w-5 text-emerald-700" /><h3 className="font-black text-slate-900">أفكار الحملات المقترحة</h3></div>
+            <div className="flex items-center gap-2"><Target className="h-5 w-5 text-[#a00000]" /><h3 className="font-black text-slate-900">أفكار الحملات المقترحة</h3></div>
             <ul className="mt-3 space-y-2">{marketing.campaignIdeas.map((item) => <li key={item} className="rounded-xl bg-slate-50 p-3 text-sm leading-6 text-slate-700">{item}</li>)}</ul>
           </article>
           <article className="rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="flex items-center gap-2"><Package className="h-5 w-5 text-emerald-700" /><h3 className="font-black text-slate-900">أعمدة المحتوى</h3></div>
-            <div className="mt-3 space-y-2">{marketing.contentPillars.map((item, index) => <div key={item} className="flex items-center gap-3 rounded-xl bg-slate-50 p-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-xs font-black text-emerald-800">{index + 1}</span><span className="text-sm leading-6 text-slate-700">{item}</span></div>)}</div>
+            <div className="flex items-center gap-2"><Package className="h-5 w-5 text-[#a00000]" /><h3 className="font-black text-slate-900">أعمدة المحتوى</h3></div>
+            <div className="mt-3 space-y-2">{marketing.contentPillars.map((item, index) => <div key={item} className="flex items-center gap-3 rounded-xl bg-slate-50 p-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#fff3e0] text-xs font-black text-[#7a0000]">{index + 1}</span><span className="text-sm leading-6 text-slate-700">{item}</span></div>)}</div>
           </article>
         </div>
 
         <article className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="flex items-center gap-2"><CalendarDays className="h-5 w-5 text-emerald-700" /><div><h3 className="font-black text-slate-900">منشئ الحملة التسويقية</h3><p className="mt-1 text-xs text-slate-500">كوّن مسودة خطة قابلة للمراجعة قبل اعتمادها.</p></div></div>
+          <div className="flex items-center gap-2"><CalendarDays className="h-5 w-5 text-[#a00000]" /><div><h3 className="font-black text-slate-900">منشئ الحملة التسويقية</h3><p className="mt-1 text-xs text-slate-500">كوّن مسودة خطة قابلة للمراجعة قبل اعتمادها.</p></div></div>
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-xs font-bold text-slate-600">هدف الحملة<select value={campaignGoal} onChange={(event) => { setCampaignGoal(event.target.value); setCampaignPrepared(false); }} className="mt-2 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-900"><option>زيادة الطلبات والاستفسارات</option><option>زيادة الزيارات للمقر أو الفرع</option><option>إطلاق منتج أو خدمة جديدة</option><option>زيادة الوعي والانتشار المحلي</option><option>استعادة العملاء الحاليين</option><option>جمع عملاء محتملين</option></select></label>
             <label className="text-xs font-bold text-slate-600">الميزانية التقديرية بالجنيه المصري<input type="number" min="0" value={campaignBudget} onChange={(event) => { setCampaignBudget(event.target.value); setCampaignPrepared(false); }} className="mt-2 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-900" /></label>
             <label className="text-xs font-bold text-slate-600">مدة الحملة<select value={campaignDuration} onChange={(event) => { setCampaignDuration(event.target.value); setCampaignPrepared(false); }} className="mt-2 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-900"><option value="7">7 أيام</option><option value="14">14 يومًا</option><option value="30">30 يومًا</option><option value="60">60 يومًا</option><option value="90">90 يومًا</option></select></label>
           </div>
-          <div><p className="mb-2 text-xs font-black text-slate-700">قنوات التسويق</p><div className="flex flex-wrap gap-2">{['فيسبوك', 'إنستجرام', 'واتساب', 'تيك توك', 'Google', 'موقع النشاط', 'التسويق الميداني'].map((channel) => <button key={channel} type="button" aria-pressed={selectedChannels.includes(channel)} onClick={() => { setSelectedChannels((current) => current.includes(channel) ? current.filter((item) => item !== channel) : [...current, channel]); setCampaignPrepared(false); }} className={`rounded-xl border px-3 py-2 text-xs font-bold ${selectedChannels.includes(channel) ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-slate-200 bg-white text-slate-700'}`}>{channel}</button>)}</div></div>
-          <button type="button" disabled={selectedChannels.length === 0 || !campaignBudget || Number(campaignBudget) < 0} onClick={() => setCampaignPrepared(true)} className="w-full rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40">إعداد الخطة التسويقية</button>
+          <div><p className="mb-2 text-xs font-black text-slate-700">قنوات التسويق</p><div className="flex flex-wrap gap-2">{['فيسبوك', 'إنستجرام', 'واتساب', 'تيك توك', 'Google', 'موقع النشاط', 'التسويق الميداني'].map((channel) => <button key={channel} type="button" aria-pressed={selectedChannels.includes(channel)} onClick={() => { setSelectedChannels((current) => current.includes(channel) ? current.filter((item) => item !== channel) : [...current, channel]); setCampaignPrepared(false); }} className={`rounded-xl border px-3 py-2 text-xs font-bold ${selectedChannels.includes(channel) ? 'border-[#7a0000] bg-[#7a0000] text-white' : 'border-slate-200 bg-white text-slate-700'}`}>{channel}</button>)}</div></div>
+          <button type="button" disabled={selectedChannels.length === 0 || !campaignBudget || Number(campaignBudget) < 0} onClick={() => setCampaignPrepared(true)} className="w-full rounded-xl bg-[#7a0000] px-4 py-3 text-sm font-black text-white transition hover:bg-[#5a0000] disabled:cursor-not-allowed disabled:opacity-40">إعداد الخطة التسويقية</button>
           {campaignPrepared && <div className="space-y-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="font-black text-emerald-950">مسودة خطة {category.name}</h4><span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-emerald-800">غير منشورة — للمراجعة</span></div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4"><div className="rounded-xl bg-white p-3"><p className="text-[10px] text-slate-500">الهدف</p><p className="mt-1 text-xs font-black text-slate-800">{campaignGoal}</p></div><div className="rounded-xl bg-white p-3"><p className="text-[10px] text-slate-500">الميزانية</p><p className="mt-1 text-sm font-black text-slate-800">{Number(campaignBudget).toLocaleString('ar-EG')} ج.م</p></div><div className="rounded-xl bg-white p-3"><p className="text-[10px] text-slate-500">المدة</p><p className="mt-1 text-sm font-black text-slate-800">{campaignDuration} يوم</p></div><div className="rounded-xl bg-white p-3"><p className="text-[10px] text-slate-500">القنوات</p><p className="mt-1 text-sm font-black text-slate-800">{selectedChannels.length} قنوات</p></div></div>
-            <div><h5 className="text-sm font-black text-emerald-950">توزيع الميزانية المقترح</h5><div className="mt-2 space-y-2">{selectedChannels.map((channel, index) => { const share = getChannelShare(index); return <div key={channel} className="flex items-center gap-2 text-xs"><span className="w-28 font-bold text-slate-700">{channel}</span><div className="h-2 flex-1 overflow-hidden rounded-full bg-white"><div className="h-full rounded-full bg-emerald-600" style={{ width: share + '%' }} /></div><span className="w-20 text-left font-bold text-slate-700">{share}% · {Math.round(Number(campaignBudget) * share / 100).toLocaleString('ar-EG')} ج.م</span></div>; })}</div></div>
-            <div><h5 className="text-sm font-black text-emerald-950">تقويم المحتوى المقترح</h5><div className="mt-2 grid gap-2 sm:grid-cols-2">{Array.from({ length: campaignPeriodCount }, (_, index) => <div key={index} className="rounded-xl bg-white p-3"><p className="text-[10px] font-black text-emerald-700">الأيام {index * campaignPeriodLength + 1} – {Math.min((index + 1) * campaignPeriodLength, Number(campaignDuration))}</p><p className="mt-1 text-xs font-bold text-slate-800">{marketing.contentPillars[index % marketing.contentPillars.length] || 'محتوى تعريفي بالنشاط'}</p><p className="mt-1 text-[11px] leading-5 text-slate-500">{marketing.campaignIdeas[index % marketing.campaignIdeas.length] || 'منشور تعريفي ودعوة لاتخاذ إجراء'}</p></div>)}</div></div>
+            <div><h5 className="text-sm font-black text-emerald-950">توزيع الميزانية المقترح</h5><div className="mt-2 space-y-2">{selectedChannels.map((channel, index) => { const share = getChannelShare(index); return <div key={channel} className="flex items-center gap-2 text-xs"><span className="w-28 font-bold text-slate-700">{channel}</span><div className="h-2 flex-1 overflow-hidden rounded-full bg-white"><div className="h-full rounded-full bg-[#f6c04d]" style={{ width: share + '%' }} /></div><span className="w-20 text-left font-bold text-slate-700">{share}% · {Math.round(Number(campaignBudget) * share / 100).toLocaleString('ar-EG')} ج.م</span></div>; })}</div></div>
+            <div><h5 className="text-sm font-black text-emerald-950">تقويم المحتوى المقترح</h5><div className="mt-2 grid gap-2 sm:grid-cols-2">{Array.from({ length: campaignPeriodCount }, (_, index) => <div key={index} className="rounded-xl bg-white p-3"><p className="text-[10px] font-black text-[#7a0000]">الأيام {index * campaignPeriodLength + 1} – {Math.min((index + 1) * campaignPeriodLength, Number(campaignDuration))}</p><p className="mt-1 text-xs font-bold text-slate-800">{marketing.contentPillars[index % marketing.contentPillars.length] || 'محتوى تعريفي بالنشاط'}</p><p className="mt-1 text-[11px] leading-5 text-slate-500">{marketing.campaignIdeas[index % marketing.campaignIdeas.length] || 'منشور تعريفي ودعوة لاتخاذ إجراء'}</p></div>)}</div></div>
             <div><h5 className="text-sm font-black text-emerald-950">قمع التحويل ومؤشرات الأداء</h5><div className="mt-2 grid gap-2 sm:grid-cols-4">{[{ label: 'الوصول', metric: 'عدد الأشخاص الذين شاهدوا المحتوى' }, { label: 'التفاعل', metric: 'النقرات والحفظ والرسائل' }, { label: 'العملاء المحتملون', metric: 'استفسارات مؤهلة ومكالمات' }, { label: 'التحويل', metric: 'طلبات أو حجوزات أو زيارات فعلية' }].map((item) => <div key={item.label} className="rounded-xl bg-white p-3"><p className="text-xs font-black text-emerald-800">{item.label}</p><p className="mt-1 text-[11px] leading-5 text-slate-600">{item.metric}</p></div>)}</div></div>
             <div className="rounded-xl border border-emerald-200 bg-white p-3"><p className="text-xs font-black text-slate-800">مسودة رسالة إعلانية</p><p className="mt-2 text-sm leading-7 text-slate-700">بتدور على {category.name} في منطقتك؟ تعرّف على خدماتنا وتفاصيلنا، وتواصل معنا لمعرفة الخيارات المتاحة والعرض المناسب ليك.</p></div>
           </div>}
         </article>
 
         <div className="grid gap-3 lg:grid-cols-2">
-          <article className="rounded-2xl border border-slate-200 bg-white p-5"><div className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-emerald-700" /><h3 className="font-black text-slate-900">لوحة مؤشرات الأداء</h3></div><div className="mt-3 grid grid-cols-2 gap-2">{['الوصول والانطباعات','معدل التفاعل','تكلفة العميل المحتمل','معدل التحويل','الطلبات الناتجة','العائد على الإنفاق'].map((item) => <div key={item} className="rounded-xl bg-slate-50 p-3 text-xs font-bold text-slate-700">{item}<p className="mt-1 text-[10px] font-normal text-slate-400">بانتظار ربط مصدر بيانات</p></div>)}</div></article>
-          <article className="rounded-2xl border border-slate-200 bg-white p-5"><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-emerald-700" /><h3 className="font-black text-slate-900">متطلبات الجاهزية التسويقية</h3></div><div className="mt-3 space-y-2">{marketing.requiredAssets.map((item) => <div key={item} className="flex items-start gap-2 rounded-xl bg-slate-50 p-3 text-xs leading-6 text-slate-700"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-500" />{item}</div>)}</div></article>
+          <article className="rounded-2xl border border-slate-200 bg-white p-5"><div className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-[#a00000]" /><h3 className="font-black text-slate-900">لوحة مؤشرات الأداء</h3></div><div className="mt-3 grid grid-cols-2 gap-2">{['الوصول والانطباعات','معدل التفاعل','تكلفة العميل المحتمل','معدل التحويل','الطلبات الناتجة','العائد على الإنفاق'].map((item) => <div key={item} className="rounded-xl bg-slate-50 p-3 text-xs font-bold text-slate-700">{item}<p className="mt-1 text-[10px] font-normal text-slate-400">بانتظار ربط مصدر بيانات</p></div>)}</div></article>
+          <article className="rounded-2xl border border-slate-200 bg-white p-5"><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#a00000]" /><h3 className="font-black text-slate-900">متطلبات الجاهزية التسويقية</h3></div><div className="mt-3 space-y-2">{marketing.requiredAssets.map((item) => <div key={item} className="flex items-start gap-2 rounded-xl bg-slate-50 p-3 text-xs leading-6 text-slate-700"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-500" />{item}</div>)}</div></article>
         </div>
         <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-6 text-amber-900">هذه أداة إعداد وتخطيط داخلية. لا يتم نشر إعلانات أو إرسال رسائل أو صرف ميزانيات، ولا تُعرض نتائج أداء فعلية قبل ربط حسابات القنوات ومصادر القياس ومنح الصلاحيات اللازمة.</p>
       </section>}

@@ -475,7 +475,7 @@ export const AdminDashboard: React.FC = () => {
     return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Admin Header */}
-      <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div className="bg-gradient-to-l from-[#3a0000] via-[#7a0000] to-[#3a0000] text-white rounded-3xl border border-[#f6c04d]/25 p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
             <span className="bg-amber-400 text-slate-950 text-xs font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
@@ -508,7 +508,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => {
               setIsSubModalOpen(true);
             }}
-            className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer"
+            className="bg-[#f6c04d] hover:bg-[#ffe1a3] text-[#3a0000] font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-black/15 cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             <span>تعيين مشترك</span>
@@ -518,7 +518,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setIsBizModalOpen(true)}
             className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer"
           >
-            <Building2 className="w-4 h-4 text-emerald-400" />
+            <Building2 className="w-4 h-4 text-[#f6c04d]" />
             <span>إضافة نشاط تجاري</span>
           </button>
         </div>
@@ -568,7 +568,7 @@ export const AdminDashboard: React.FC = () => {
                   alert('تم نسخ تعليمات الدخول باستخدام Google!');
                 }
               }}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
+              className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md shadow-[#7a0000]/20 cursor-pointer"
             >
               <Copy className="w-3.5 h-3.5" />
               <span>نسخ تعليمات الدخول للواتساب</span>
@@ -580,7 +580,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Quick KPI Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+          <div className="w-12 h-12 rounded-2xl bg-[#fff3e0] flex items-center justify-center text-[#7a0000]">
             <Layers className="w-6 h-6" />
           </div>
           <div>
@@ -590,7 +590,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+          <div className="w-12 h-12 rounded-2xl bg-[#fff3e0] flex items-center justify-center text-[#a00000]">
             <Store className="w-6 h-6" />
           </div>
           <div>
@@ -600,7 +600,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+          <div className="w-12 h-12 rounded-2xl bg-[#fff8f0] flex items-center justify-center text-[#a00000]">
             <Users className="w-6 h-6" />
           </div>
           <div>
@@ -631,7 +631,7 @@ export const AdminDashboard: React.FC = () => {
           className={adminTabClass('overview')}
           data-testid="platform-admin-overview-tab"
         >
-          <ShieldCheck className="w-4 h-4 text-indigo-500" />
+          <ShieldCheck className="w-4 h-4 text-[#f6c04d]" />
           <span>الرئيسية</span>
         </button>
 
@@ -667,7 +667,7 @@ export const AdminDashboard: React.FC = () => {
           onClick={() => setActiveAdminTab('taxonomy')}
           className={adminTabClass('taxonomy')}
         >
-          <Layers className="w-4 h-4 text-indigo-400" />
+          <Layers className="w-4 h-4 text-[#f6c04d]" />
           <span>التصنيف الوظيفي والأنشطة ({functionalGroups.length} قطاعات)</span>
         </button>
 
@@ -1024,7 +1024,7 @@ export const AdminDashboard: React.FC = () => {
                                     setBillingActionMsg('تعذر تعديل موعد السداد: ' + (error instanceof Error ? error.message : 'خطأ غير معروف'));
                                   } finally { setBillingActionBusyId(null); }
                                 }}
-                                className="bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold text-[10px] px-2 py-1 rounded-lg cursor-pointer"
+                                className="bg-[#fff3e0] hover:bg-[#ffe1a3] text-[#7a0000] font-bold text-[10px] px-2 py-1 rounded-lg cursor-pointer"
                                 title="تعديل موعد الاستحقاق دون تأكيد الدفع"
                               >
                                 تعديل موعد السداد
@@ -1053,24 +1053,24 @@ export const AdminDashboard: React.FC = () => {
          ========================================================================= */}
       {activeAdminTab === 'taxonomy' && (
         <div className="space-y-6">
-          <div className="bg-indigo-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="bg-gradient-to-r from-[#3a0000] via-[#7a0000] to-[#3a0000] border border-[#f6c04d]/25 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="bg-indigo-400 text-indigo-950 text-xs font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                <span className="bg-[#f6c04d] text-[#3a0000] text-xs font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
                   <Layers className="w-3.5 h-3.5" />
                   منظومة التصنيف الوظيفي (Functional Groups & Taxonomy)
                 </span>
-                <span className="text-indigo-200 text-xs">مهيأة للتطوير والتوسعة لكل قطاع</span>
+                <span className="text-[#ffe1a3] text-xs">مهيأة للتطوير والتوسعة لكل قطاع</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-black">
                 تقسيم الأنشطة إلى مجموعات وظيفية متخصصة
               </h2>
-              <p className="text-indigo-200 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
+              <p className="text-[#ffe1a3] text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
                 تقوم هذه المنظومة بفصل وتجميع الأنشطة (مطاعم، سوبرماركت، صيدليات، أزياء، ورش صيانة...) في قطاعات وظيفية ذكية، لتسهيل إضافة خصائص برمجية متخصصة لكل قطاع في المستقبل (مثل إضافات الوجبات للمطاعم، الروشتات للصيدليات، حجز المواعيد للخدمات).
               </p>
             </div>
 
-            <div className="rounded-xl border border-indigo-300/30 bg-indigo-800/70 px-4 py-3 text-xs font-bold text-indigo-100 self-start md:self-auto">
+            <div className="rounded-xl border border-[#f6c04d]/25 bg-[#3a0000]/40 px-4 py-3 text-xs font-bold text-[#ffe1a3] self-start md:self-auto">
               اكتمل التقسيم المعتمد: 10 مجموعات، وبحد أقصى 5 أنشطة رئيسية لكل مجموعة. التخصصات تُحدد داخل النشاط المناسب ولا تُنشأ كمجموعات أو تصنيفات موازية.
             </div>
           </div>
@@ -1217,7 +1217,7 @@ export const AdminDashboard: React.FC = () => {
                       <tr key={cat.id} className="hover:bg-slate-50/70">
                         <td className="py-3 px-4 font-bold text-slate-900">
                           <div>{cat.name}</div>
-                          <span className="inline-flex mt-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-700">
+                          <span className="inline-flex mt-1 rounded-md bg-[#fff3e0] px-2 py-0.5 text-[10px] font-black text-[#7a0000]">
                             نشاط رئيسي
                           </span>
                           {cat.specialties?.length ? <small className="block mt-1 text-slate-400 font-normal">{cat.specialties.length} تخصصات دقيقة</small> : null}
@@ -1281,7 +1281,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
             <button
               onClick={() => setIsBizModalOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
+              className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <Building2 className="w-4 h-4" />
               <span>إضافة نشاط تجاري</span>
@@ -1457,7 +1457,7 @@ export const AdminDashboard: React.FC = () => {
 
                     <button
                       onClick={() => handleCopyStoreLink(b)}
-                      className="text-xs text-slate-700 hover:text-emerald-700 font-bold flex items-center gap-1 cursor-pointer"
+                      className="text-xs text-slate-700 hover:text-[#7a0000] font-bold flex items-center gap-1 cursor-pointer"
                     >
                       {copiedId === b.id ? (
                         <>
@@ -1477,7 +1477,7 @@ export const AdminDashboard: React.FC = () => {
                         setSelectedBusinessId(b.id);
                         setCurrentView('public_storefront');
                       }}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-xs cursor-pointer"
+                      className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-xs cursor-pointer"
                     >
                       <span>معاينة</span>
                       <ExternalLink className="w-3 h-3" />
@@ -1534,7 +1534,7 @@ export const AdminDashboard: React.FC = () => {
                 onClick={() => {
                   setIsSubModalOpen(true);
                 }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
+                className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>تعيين مشترك جديد</span>
@@ -1548,7 +1548,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
           )}
           {subscribersLoading && (
-            <p role="status" aria-live="polite" className="text-xs font-semibold text-sky-700">
+            <p role="status" aria-live="polite" className="text-xs font-semibold text-[#7a625c]">
               جاري تحميل سجل المشتركين في الخلفية؛ يمكنك متابعة استخدام المنصة أثناء التحميل.
             </p>
           )}
@@ -1602,7 +1602,7 @@ export const AdminDashboard: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => openSubscriberAccessEditor(sub)}
-                              className="mt-1 inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[10px] font-black text-indigo-800 hover:bg-indigo-100"
+                              className="mt-1 inline-flex items-center gap-1 rounded-lg border border-[#ead5c5] bg-[#fff8f0] px-2.5 py-1 text-[10px] font-black text-[#7a0000] hover:bg-[#fff3e0]"
                             >
                               <UserCog className="h-3 w-3" />
                               <span>{sub.isAccountOnly ? 'تعيين دور ونشاط' : 'إدارة الصلاحيات'}</span>
@@ -2018,7 +2018,7 @@ export const AdminDashboard: React.FC = () => {
                     });
                   }
                 }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-xs cursor-pointer"
+                className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-xs cursor-pointer"
               >
                 تطبيق بيانات JSON المحدودة
               </button>
@@ -2116,7 +2116,7 @@ export const AdminDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md shadow-emerald-600/20 cursor-pointer"
+                  className="px-5 py-2 text-xs font-black bg-[#7a0000] hover:bg-[#5a0000] text-white rounded-xl shadow-md shadow-[#7a0000]/20 cursor-pointer"
                 >
                   حفظ الاشتراك وربطه بحساب Google
                 </button>
@@ -2302,15 +2302,15 @@ export const AdminDashboard: React.FC = () => {
                   <h4 className="text-sm font-black text-slate-800">طريقة التفعيل والنشر</h4>
                   <p className="mt-1 text-[11px] leading-5 text-slate-500">اختر هل يظهر الكتالوج للزوار فورًا أم ينتظر موافقة النشر من الإدارة.</p>
                 </div>
-                <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${newBizActivationMode === 'activate_now' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
-                  <input type="radio" name="newBizActivationMode" value="activate_now" checked={newBizActivationMode === 'activate_now'} onChange={() => setNewBizActivationMode('activate_now')} className="mt-1 accent-emerald-600" />
+                <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${newBizActivationMode === 'activate_now' ? 'border-[#a00000] bg-[#fff3e0]' : 'border-slate-200 bg-white'}`}>
+                  <input type="radio" name="newBizActivationMode" value="activate_now" checked={newBizActivationMode === 'activate_now'} onChange={() => setNewBizActivationMode('activate_now')} className="mt-1 accent-[#7a0000]" />
                   <span>
                     <span className="block text-xs font-black text-slate-800">إرسال النشاط للنشر بعد موافقة الإدارة</span>
                     <span className="mt-1 block text-[11px] leading-5 text-slate-500">لن يظهر النشاط للعامة إلا بعد اعتماد النشر من الإدارة. حالة الاشتراك مستقلة عن النشر.</span>
                   </span>
                 </label>
-                <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${newBizActivationMode === 'wait_for_confirmation' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white'}`}>
-                  <input type="radio" name="newBizActivationMode" value="wait_for_confirmation" checked={newBizActivationMode === 'wait_for_confirmation'} onChange={() => setNewBizActivationMode('wait_for_confirmation')} className="mt-1 accent-blue-600" />
+                <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${newBizActivationMode === 'wait_for_confirmation' ? 'border-[#a00000] bg-[#fff3e0]' : 'border-slate-200 bg-white'}`}>
+                  <input type="radio" name="newBizActivationMode" value="wait_for_confirmation" checked={newBizActivationMode === 'wait_for_confirmation'} onChange={() => setNewBizActivationMode('wait_for_confirmation')} className="mt-1 accent-[#7a0000]" />
                   <span>
                     <span className="block text-xs font-black text-slate-800">انتظار تأكيد النشر من الإدارة</span>
                     <span className="mt-1 block text-[11px] leading-5 text-slate-500">يُحفظ النشاط غير منشور ويظل مخفيًا عن الزوار حتى تفعّله الإدارة لاحقًا.</span>
@@ -2355,7 +2355,7 @@ export const AdminDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md shadow-emerald-600/20 cursor-pointer"
+                  className="px-5 py-2 text-xs font-black bg-[#7a0000] hover:bg-[#5a0000] text-white rounded-xl shadow-md shadow-[#7a0000]/20 cursor-pointer"
                 >
                   إضافة النشاط التجاري
                 </button>
@@ -2454,7 +2454,7 @@ export const AdminDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-black bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md cursor-pointer"
+                  className="px-5 py-2 text-xs font-black bg-[#f6c04d] hover:bg-[#ffe1a3] text-[#3a0000] rounded-xl shadow-md cursor-pointer"
                 >
                   حفظ التصنيف
                 </button>

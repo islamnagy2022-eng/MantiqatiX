@@ -46,7 +46,7 @@ export const MarketingServicesModal: React.FC<MarketingServicesModalProps> = ({
       title: 'طلب تصميم',
       englishTitle: 'Graphic Design & Visual Identity',
       description: 'تصميم شعارات، هويات بصرية متكاملة، بوسترات إعلانية، ومنشورات سوشيال ميديا احترافية تليق بنشاطك.',
-      icon: <Palette className="w-6 h-6 text-indigo-600" />,
+      icon: <Palette className="w-6 h-6 text-[#7a0000]" />,
       badge: 'هويات وبوسترات',
     },
     {
@@ -70,7 +70,7 @@ export const MarketingServicesModal: React.FC<MarketingServicesModalProps> = ({
       title: 'طلب إدارة صفحات السوشيال ميديا',
       englishTitle: 'Social Media Pages Management',
       description: 'إدارة كاملة لصفحاتك (النشر المنتظم، الرد على العملاء، كتابة المحتوى الجذاب، وزيادة التفاعل والعملاء المهتمين).',
-      icon: <Share2 className="w-6 h-6 text-blue-600" />,
+      icon: <Share2 className="w-6 h-6 text-[#a00000]" />,
       badge: 'إدارة وتفاعل',
     },
     {
@@ -130,11 +130,11 @@ export const MarketingServicesModal: React.FC<MarketingServicesModalProps> = ({
         </button>
 
         <div className="flex items-center gap-3.5 mb-5 pr-1">
-          <div className="p-3.5 bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-200 shadow-xs flex-shrink-0">
+          <div className="p-3.5 bg-[#fff3e0] text-[#7a0000] rounded-2xl border border-[#ead5c5] shadow-xs flex-shrink-0">
             <Megaphone className="w-7 h-7" />
           </div>
           <div className="min-w-0 pr-1">
-            <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200 inline-block mb-1">
+            <span className="text-[11px] font-bold text-[#7a0000] bg-[#fff3e0] px-3 py-1 rounded-full border border-[#ead5c5] inline-block mb-1">
               خدمات التسويق وإدارة النمو • MantiqatiX
             </span>
             <h3 className="text-lg sm:text-2xl font-black text-slate-900 truncate">
@@ -157,7 +157,7 @@ export const MarketingServicesModal: React.FC<MarketingServicesModalProps> = ({
             value={customNote}
             onChange={(e) => setCustomNote(e.target.value)}
             placeholder="مثال: أرغب في تركيز الحملة على منطقة المنصورة لزيادة مبيعات المنتجات الشتوية..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs sm:text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs sm:text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-[#f6c04d]/30 focus:border-[#a00000]"
           />
         </div>
 
@@ -166,14 +166,14 @@ export const MarketingServicesModal: React.FC<MarketingServicesModalProps> = ({
           {marketingServices.map((service) => (
             <div
               key={service.id}
-              className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-indigo-300 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3"
+              className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-[#d9a5a5] shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3"
             >
               <div>
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
                     {service.icon}
                   </div>
-                  <span className="text-[10px] font-black bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full border border-indigo-100">
+                  <span className="text-[10px] font-black bg-[#fff3e0] text-[#7a0000] px-2.5 py-1 rounded-full border border-[#ead5c5]">
                     {service.badge}
                   </span>
                 </div>
@@ -189,7 +189,7 @@ export const MarketingServicesModal: React.FC<MarketingServicesModalProps> = ({
                 <span className="text-[11px] font-bold text-slate-400">بدون سعر ثابت (إدارة المنصة)</span>
                 <button
                   onClick={() => handleRequestService(service)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <span>اطلب الخدمة</span>
                   <ExternalLink className="w-3.5 h-3.5" />

@@ -242,36 +242,36 @@ export const ProfessionalDashboard: React.FC = () => {
     <main className="mx-auto w-full max-w-[1500px] px-3 py-5 sm:px-6 lg:px-8" dir="rtl">
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[235px_minmax(0,1fr)]">
         <aside className="h-fit rounded-3xl border border-slate-200 bg-white p-3 shadow-sm lg:sticky lg:top-28">
-          <div className="rounded-2xl bg-slate-900 p-4 text-white">
-            <p className="text-[11px] font-bold tracking-wide text-emerald-300">MantiqatiX</p>
+          <div className="rounded-2xl bg-gradient-to-br from-[#3a0000] to-[#7a0000] p-4 text-white">
+            <p className="text-[11px] font-bold tracking-wide text-[#f6c04d]">MantiqatiX</p>
             <h2 className="mt-1 text-lg font-black">مركز التحكم</h2>
             <p className="mt-1 text-xs leading-5 text-slate-300">{isPlatformAdmin ? 'إدارة المنصة' : currentBusiness?.name || 'إدارة النشاط'}</p>
           </div>
           <nav aria-label="أقسام الداشبورد" className="mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-1">
             {visibleSectionItems.map((item) => (
               <button key={item.id} type="button" onClick={() => setSection(item.id)} aria-current={section === item.id ? 'page' : undefined}
-                className={`flex min-h-11 items-center gap-2 rounded-xl px-3 py-2.5 text-right text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${section === item.id ? 'bg-emerald-50 text-emerald-800' : 'text-slate-600 hover:bg-slate-50'}`}>
+                className={`flex min-h-11 items-center gap-2 rounded-xl px-3 py-2.5 text-right text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f6c04d] ${section === item.id ? 'bg-[#fff3e0] text-[#7a0000]' : 'text-slate-600 hover:bg-[#fff8f0]'}`}>
                 {item.icon}<span>{item.label}</span>
               </button>
             ))}
           </nav>
           <div className="mt-3 border-t border-slate-100 pt-3">
-            <button type="button" onClick={() => setCurrentView('directory')} className="flex min-h-11 w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-600">
+            <button type="button" onClick={() => setCurrentView('directory')} className="flex min-h-11 w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-bold text-slate-600 hover:bg-[#fff8f0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#f6c04d]">
               <span>العودة إلى الكتالوج</span><ArrowLeft className="h-4 w-4" />
             </button>
           </div>
         </aside>
 
         <div className="min-w-0">
-          <header className="mb-5 flex flex-col justify-between gap-4 rounded-3xl bg-slate-900 p-5 text-white sm:flex-row sm:items-center sm:p-7">
+          <header className="mb-5 flex flex-col justify-between gap-4 rounded-3xl bg-gradient-to-br from-[#3a0000] to-[#7a0000] p-5 text-white sm:flex-row sm:items-center sm:p-7">
             <div>
-              <p className="text-xs font-bold tracking-wide text-emerald-300">WORKSPACE / {isPlatformAdmin ? 'PLATFORM' : 'BUSINESS'}</p>
+              <p className="text-xs font-bold tracking-wide text-[#f6c04d]">WORKSPACE / {isPlatformAdmin ? 'PLATFORM' : 'BUSINESS'}</p>
               <h1 className="mt-2 text-2xl font-black sm:text-3xl">{visibleSectionItems.find((item) => item.id === activeSection)?.label || 'لوحة التحكم الاحترافية'}</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
                 {isPlatformAdmin ? 'ملخص للبيانات المحملة من النظام وروابط إلى أدوات الإدارة الحالية.' : `مساحة ${currentBusiness?.name || 'نشاطك'}، مع حصر العرض في النشاط المرتبط بحسابك.`}
               </p>
             </div>
-            {activeSection === 'activities' && isPlatformAdmin && <button onClick={() => openBusinessAdmin()} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400"><Building2 className="h-4 w-4" /> إدارة / إضافة نشاط</button>}
+            {activeSection === 'activities' && isPlatformAdmin && <button onClick={() => openBusinessAdmin()} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#f6c04d] px-4 py-2.5 text-sm font-black text-[#3a0000] transition hover:bg-[#ffe1a3]"><Building2 className="h-4 w-4" /> إدارة / إضافة نشاط</button>}
           </header>
 
           {activeSection === 'overview' && (
@@ -299,7 +299,7 @@ export const ProfessionalDashboard: React.FC = () => {
                                       {categoryDistribution.map(([category, count]) => (
                                         <div key={category}>
                                           <div className="mb-1.5 flex items-center justify-between gap-3 text-sm"><span className="truncate font-semibold text-slate-700">{category}</span><span className="shrink-0 font-black text-slate-900">{count}</span></div>
-                                          <div className="h-2.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`${category}: ${count} نشاط`}><div className="h-full rounded-full bg-emerald-600" style={{ width: `${Math.max(4, Math.round(count / Math.max(1, visibleBusinesses.length) * 100))}%` }} /></div>
+                                          <div className="h-2.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`${category}: ${count} نشاط`}><div className="h-full rounded-full bg-[#a00000]" style={{ width: `${Math.max(4, Math.round(count / Math.max(1, visibleBusinesses.length) * 100))}%` }} /></div>
                                         </div>
                                       ))}
                                     </div> : <p className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">لا توجد بيانات تصنيف لعرضها.</p>}
@@ -319,7 +319,7 @@ export const ProfessionalDashboard: React.FC = () => {
                 </>
               ) : (
                 <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="text-xs font-black text-emerald-700">مساحة عمل محدودة الصلاحيات</p>
+                  <p className="text-xs font-black text-[#7a0000]">مساحة عمل محدودة الصلاحيات</p>
                   <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
                     <h3 className="text-xl font-black text-slate-900">{currentBusiness?.name || 'النشاط المرتبط بالحساب'}</h3>
                     <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700">{authSession.membershipRole || 'عضوية نشاط'}</span>
@@ -332,12 +332,12 @@ export const ProfessionalDashboard: React.FC = () => {
                   <div className="mt-5">
                     <h4 className="text-sm font-black text-slate-900">الوحدات المصرح بها</h4>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {canViewCatalog && <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800">الكتالوج</span>}
-                      {canViewOrders && <span className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-800">الطلبات</span>}
+                      {canViewCatalog && <span className="rounded-full bg-[#fff3e0] px-3 py-1.5 text-xs font-bold text-[#7a0000]">الكتالوج</span>}
+                      {canViewOrders && <span className="rounded-full bg-[#fff8f0] px-3 py-1.5 text-xs font-bold text-[#7a625c]">الطلبات</span>}
                       {canViewCustomers && <span className="rounded-full bg-violet-50 px-3 py-1.5 text-xs font-bold text-violet-800">العملاء</span>}
-                      {canViewEmployees && <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800">الموظفون</span>}
-                      {canViewSettings && <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-800">الإعدادات</span>}
-                      {canViewReports && <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-800">التقارير</span>}
+                      {canViewEmployees && <span className="rounded-full bg-[#fff8f0] px-3 py-1.5 text-xs font-bold text-[#8a641b]">الموظفون</span>}
+                      {canViewSettings && <span className="rounded-full bg-[#fff8f0] px-3 py-1.5 text-xs font-bold text-[#5c4038]">الإعدادات</span>}
+                      {canViewReports && <span className="rounded-full bg-[#fff3e0] px-3 py-1.5 text-xs font-bold text-[#7a0000]">التقارير</span>}
                     </div>
                   </div>
                 </section>
@@ -351,10 +351,10 @@ export const ProfessionalDashboard: React.FC = () => {
                 <>
                   <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                                  <label className="relative block"><span className="mb-1.5 block text-xs font-bold text-slate-600">بحث النشاط</span><Search className="pointer-events-none absolute right-3 top-10 h-4 w-4 text-slate-400" /><input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="الاسم أو التصنيف أو المنطقة" className="min-h-11 w-full rounded-xl border border-slate-300 bg-white pr-9 pl-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" /></label>
-                                  <label className="block"><span className="mb-1.5 block text-xs font-bold text-slate-600">حالة التشغيل</span><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-600"><option value="all">كل الحالات</option><option value="active">نشط</option><option value="inactive">غير نشط</option><option value="frozen">مجمّد</option></select></label>
-                                  <label className="block"><span className="mb-1.5 block text-xs font-bold text-slate-600">التصنيف</span><select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-600"><option value="all">كل التصنيفات</option>{categories.map((category) => <option value={category} key={category}>{category}</option>)}</select></label>
-                                  <label className="block"><span className="mb-1.5 block text-xs font-bold text-slate-600">المحافظة</span><select value={governorateFilter} onChange={(event) => setGovernorateFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-600"><option value="all">كل المحافظات</option>{governorates.map((governorate) => <option value={governorate} key={governorate}>{governorate}</option>)}</select></label>
+                                  <label className="relative block"><span className="mb-1.5 block text-xs font-bold text-slate-600">بحث النشاط</span><Search className="pointer-events-none absolute right-3 top-10 h-4 w-4 text-slate-400" /><input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="الاسم أو التصنيف أو المنطقة" className="min-h-11 w-full rounded-xl border border-slate-300 bg-white pr-9 pl-3 text-sm outline-none focus:border-[#a00000] focus:ring-2 focus:ring-[#f6c04d]/25" /></label>
+                                  <label className="block"><span className="mb-1.5 block text-xs font-bold text-slate-600">حالة التشغيل</span><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-[#a00000]"><option value="all">كل الحالات</option><option value="active">نشط</option><option value="inactive">غير نشط</option><option value="frozen">مجمّد</option></select></label>
+                                  <label className="block"><span className="mb-1.5 block text-xs font-bold text-slate-600">التصنيف</span><select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-[#a00000]"><option value="all">كل التصنيفات</option>{categories.map((category) => <option value={category} key={category}>{category}</option>)}</select></label>
+                                  <label className="block"><span className="mb-1.5 block text-xs font-bold text-slate-600">المحافظة</span><select value={governorateFilter} onChange={(event) => setGovernorateFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-[#a00000]"><option value="all">كل المحافظات</option>{governorates.map((governorate) => <option value={governorate} key={governorate}>{governorate}</option>)}</select></label>
                                 </div>
                                 <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500"><span>النتائج: {filteredBusinesses.length} من {visibleBusinesses.length}</span><button type="button" onClick={() => { setSearchText(''); setStatusFilter('all'); setCategoryFilter('all'); setGovernorateFilter('all'); }} className="min-h-9 rounded-lg border border-slate-300 px-3 font-bold text-slate-700 hover:bg-slate-50">مسح الفلاتر</button></div>
                                 {filteredBusinesses.length ? <div className="mt-3 overflow-hidden rounded-xl border border-slate-200"><div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_auto_minmax(0,0.9fr)_auto] gap-3 bg-slate-50 px-4 py-3 text-xs font-black text-slate-500 md:grid"><span>النشاط</span><span>الموقع</span><span>حالة التشغيل والنشر</span><span>حالة الاشتراك</span><span>الإجراء</span></div><ul className="divide-y divide-slate-100">
@@ -363,7 +363,7 @@ export const ProfessionalDashboard: React.FC = () => {
                                     <p className="break-words text-sm text-slate-600">{[business.governorate, business.markaz, business.village].filter(Boolean).join(' / ') || 'لم يحدد الموقع'}</p>
                                     <div className="flex flex-wrap items-center gap-2"><span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${state.className}`}>{state.label}</span><span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${publication.className}`}>{publication.label}</span></div>
                                     <div className="text-xs font-bold"><span className={payment.className}>{payment.label}</span>{business.paymentDueDate && <p className="mt-1 font-normal text-slate-500">الاستحقاق: {business.paymentDueDate}</p>}</div>
-                                    <button type="button" onClick={() => openBusinessAdmin(business)} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-300 px-3 text-sm font-bold text-slate-700 hover:border-emerald-500 hover:text-emerald-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-600"><ExternalLink className="h-4 w-4" /> فتح الإدارة</button>
+                                    <button type="button" onClick={() => openBusinessAdmin(business)} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-300 px-3 text-sm font-bold text-slate-700 hover:border-[#d9a5a5] hover:text-[#7a0000] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#f6c04d]"><ExternalLink className="h-4 w-4" /> فتح الإدارة</button>
                                   </li>; })}
                                 </ul></div> : <div className="mt-4 rounded-xl border border-dashed border-slate-300 p-8 text-center"><ClipboardList className="mx-auto h-7 w-7 text-slate-400" /><p className="mt-2 font-bold text-slate-700">لا توجد نتائج مطابقة</p><p className="mt-1 text-sm text-slate-500">غيّر البحث أو الفلاتر لعرض نتائج أخرى.</p></div>}
                               </section>
@@ -395,7 +395,7 @@ export const ProfessionalDashboard: React.FC = () => {
               <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div><h3 className="font-black text-slate-900">تسجيل الأنشطة خلال آخر {trendMonths} أشهر</h3><p className="mt-1 text-sm text-slate-500">يعتمد على تاريخ إنشاء النشاط المسجل، ولا يقدّم تقديرًا للزيارات أو المبيعات.</p></div>
-                  <label className="block min-w-40"><span className="mb-1.5 block text-xs font-bold text-slate-600">الفترة الزمنية</span><select value={trendMonths} onChange={(event) => setTrendMonths(Number(event.target.value) as 3 | 6 | 12)} className="min-h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold focus:border-emerald-600"><option value={3}>آخر 3 أشهر</option><option value={6}>آخر 6 أشهر</option><option value={12}>آخر 12 شهرًا</option></select></label>
+                  <label className="block min-w-40"><span className="mb-1.5 block text-xs font-bold text-slate-600">الفترة الزمنية</span><select value={trendMonths} onChange={(event) => setTrendMonths(Number(event.target.value) as 3 | 6 | 12)} className="min-h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold focus:border-[#a00000]"><option value={3}>آخر 3 أشهر</option><option value={6}>آخر 6 أشهر</option><option value={12}>آخر 12 شهرًا</option></select></label>
                 </div>
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
                   {activityTrend.map((month) => {
@@ -403,7 +403,7 @@ export const ProfessionalDashboard: React.FC = () => {
                     const width = month.count ? Math.max(5, Math.round((month.count / maxCount) * 100)) : 0;
                     return <div key={month.label} className="rounded-xl bg-slate-50 p-3">
                       <div className="flex items-center justify-between gap-2"><span className="text-xs font-bold text-slate-600">{month.label}</span><span className="text-sm font-black text-slate-900">{month.count}</span></div>
-                      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200" role="img" aria-label={`${month.label}: ${month.count} نشاط جديد`}><div className="h-full rounded-full bg-indigo-600" style={{ width: `${width}%` }} /></div>
+                      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200" role="img" aria-label={`${month.label}: ${month.count} نشاط جديد`}><div className="h-full rounded-full bg-[#f6c04d]" style={{ width: `${width}%` }} /></div>
                     </div>;
                   })}
                 </div>
