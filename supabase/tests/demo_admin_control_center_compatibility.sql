@@ -380,3 +380,85 @@ ROLLBACK;
 SELECT 'DEMO_ADMIN_BIZCATALOG_AND_DELETE_BEHAVIOR=PASS' AS result;
 
 SELECT 'DEMO_ADMIN_COMPATIBILITY_ACL_RLS_DEFINER_AND_EDGE_DEPS=PASS' AS result;
+
+
+-- Verify canonical registry-only root authority for both shared gates.
+-- Synthetic identities are isolated to this transaction and removed by ROLLBACK.
+BEGIN;
+INSERT INTO auth.users(id,email,email_confirmed_at,raw_user_meta_data)
+VALUES
+ ('00000000-0000-4000-8000-000000009991','demo-platform-root-check@example.test',pg_catalog.now(),'{}'::jsonb),
+ ('00000000-0000-4000-8000-000000009992','demo-tenant-admin-root-check@example.test',pg_catalog.now(),'{}'::jsonb)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.user_memberships
+ (id,user_id,tenant_id,organization_id,business_id,branch_id,role,permissions,status)
+VALUES
+ ('DEMO-ROOT-CHECK-TENANT-ADMIN',
+  '00000000-0000-4000-8000-000000009992',
+  'MNTY-PLATFORM',NULL,NULL,NULL,'ADMIN','{}'::jsonb,'ACTIVE'),
+ ('DEMO-ROOT-CHECK-TENANT-SUPER-ADMIN',
+  '00000000-0000-4000-8000-000000009992',
+  'MNTY-PLATFORM',NULL,NULL,NULL,'SUPER_ADMIN',
+  '{"scope":"PLATFORM","full_control":true}'::jsonb,'ACTIVE')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO private.platform_admins(user_id)
+VALUES ('00000000-0000-4000-8000-000000009991')
+ON CONFLICT (user_id) DO NOTHING;
+
+DO $demo_platform_root_authorization_behavior$
+DECLARE
+  v_registry_owner oid;
+  v_mnty_owner oid;
+  v_is_owner oid;
+  v_mnty_config text[];
+  v_is_config text[];
+  v_registry_force boolean;
+BEGIN
+  PERFORM pg_catalog.set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000009992',true);
+  PERFORM pg_catalog.set_config('request.jwt.claims',
+    '{"sub":"00000000-0000-4000-8000-000000009992","role":"authenticated","is_anonymous":false}',true);
+  IF public.mnty_can_platform_admin() OR public.is_platform_admin() THEN
+    RAISE EXCEPTION 'DEMO_TENANT_ADMIN_MUST_NOT_HAVE_PLATFORM_ROOT';
+  END IF;
+
+  PERFORM pg_catalog.set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000009991',true);
+  PERFORM pg_catalog.set_config('request.jwt.claims',
+    '{"sub":"00000000-0000-4000-8000-000000009991","role":"authenticated","is_anonymous":false}',true);
+  IF NOT public.mnty_can_platform_admin() OR NOT public.is_platform_admin() THEN
+    RAISE EXCEPTION 'DEMO_REGISTRY_ADMIN_MUST_HAVE_PLATFORM_ROOT';
+  END IF;
+
+  SELECT c.relowner,c.relforcerowsecurity
+    INTO v_registry_owner,v_registry_force
+  FROM pg_catalog.pg_class c
+  JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+  WHERE n.nspname='private' AND c.relname='platform_admins';
+  SELECT p.proowner,p.proconfig INTO v_mnty_owner,v_mnty_config
+  FROM pg_catalog.pg_proc p
+  WHERE p.oid=pg_catalog.to_regprocedure('public.mnty_can_platform_admin()');
+  SELECT p.proowner,p.proconfig INTO v_is_owner,v_is_config
+  FROM pg_catalog.pg_proc p
+  WHERE p.oid=pg_catalog.to_regprocedure('public.is_platform_admin()');
+
+  IF NOT v_registry_force OR v_mnty_owner IS DISTINCT FROM v_registry_owner
+     OR v_is_owner IS DISTINCT FROM v_registry_owner
+     OR NOT coalesce(v_mnty_config,ARRAY[]::text[]) @> ARRAY['search_path=""']::text[]
+     OR NOT coalesce(v_is_config,ARRAY[]::text[]) @> ARRAY['search_path=""']::text[] THEN
+    RAISE EXCEPTION 'DEMO_PLATFORM_ROOT_HELPER_OWNER_OR_PATH_CONTRACT_FAILED';
+  END IF;
+  IF pg_catalog.has_function_privilege('anon','public.mnty_can_platform_admin()','EXECUTE')
+     OR pg_catalog.has_function_privilege('anon','public.is_platform_admin()','EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('authenticated','public.mnty_can_platform_admin()','EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('authenticated','public.is_platform_admin()','EXECUTE') THEN
+    RAISE EXCEPTION 'DEMO_PLATFORM_ROOT_HELPER_EXECUTE_ACL_FAILED';
+  END IF;
+  IF pg_catalog.has_table_privilege('anon','private.platform_admins','SELECT')
+     OR pg_catalog.has_table_privilege('authenticated','private.platform_admins','SELECT') THEN
+    RAISE EXCEPTION 'DEMO_PLATFORM_ROOT_REGISTRY_CLIENT_SELECT_GRANTED';
+  END IF;
+END;
+$demo_platform_root_authorization_behavior$;
+ROLLBACK;
+SELECT 'DEMO_PLATFORM_ROOT_AUTHORIZATION_BEHAVIOR=PASS' AS result;
