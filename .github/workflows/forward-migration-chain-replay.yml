@@ -494,7 +494,7 @@ jobs:
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/demo_admin_control_center_compatibility.sql
 
           echo "DEMO_ADMIN_CONTROL_CENTER_EMPLOYEE_BEHAVIOR"
-          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/professional_dashboard_permission_integration.sql
+          psql "$db_url" -v ON_ERROR_STOP=1 -c "BEGIN" -f supabase/tests/professional_dashboard_permission_integration.sql -c "ROLLBACK"
 
           echo "PERSONAL_REFERRAL_SELF_SERVICE_RPC_ACL"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/referral_self_service_rpc_grants.sql
