@@ -62,6 +62,10 @@ assert.match(migration, /v_confirmed_qual not ilike '\(NOT \(%IS DISTINCT FROM%f
 assert.match(migration, /RC931_RC115_TENANT_AND_BUSINESS_SCOPED_CRM_POLICY_REQUIRED/);
 assert.ok(migration.includes("position('um.tenant_id=b.tenant_id' in v_crm_qual_normalized) = 0"),
   "RC931 preflight must retain exact tenant equality after normalizing pg_policies output");
+assert.ok(migration.includes("position('is_platform_admin()' in v_crm_qual_normalized) = 0"),
+  "RC931 postflight must validate the registry-backed platform helper in normalized pg_policies output");
+assert.ok(migration.includes("$rc931_tenant$b.tenant_id<>'mnty-platform'$rc931_tenant$"),
+  "RC931 postflight must validate protected platform-tenant exclusion after normalizing PostgreSQL casts");
 assert.ok(migration.includes(String.raw`v_crm_qual_normalized !~ 'um\.tenant_id\)(::text)?=\(b\.tenant_id\)(::text)?'`),
   "RC931 preflight must recognize PostgreSQL's type-cast rendering of the exact tenant equality");
 assert.ok(migration.includes("regexp_replace(coalesce(v_crm_qual, ''), '::[a-z0-9_.") && migration.includes("'[[:space:]()]'"),
