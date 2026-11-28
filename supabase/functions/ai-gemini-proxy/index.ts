@@ -79,6 +79,10 @@ Deno.serve(async (req: Request) => {
   try {
     const contentType = (req.headers.get("content-type") || "").toLowerCase();
     if (contentType.includes("multipart/form-data")) {
+      const declaredLength = Number(req.headers.get("content-length") || "0");
+      if (Number.isFinite(declaredLength) && declaredLength > 5 * 1024 * 1024 + 128 * 1024) {
+        return reply({ error: "image_upload_request_too_large", message: "حجم طلب رفع الصورة أكبر من الحد المسموح." }, 413);
+      }
       const formData = await req.formData();
       body = Object.fromEntries(formData.entries()) as typeof body;
     } else {
