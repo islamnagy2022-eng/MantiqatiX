@@ -108,7 +108,10 @@ Deno.serve(async (req: Request) => {
     const description = String(body.description || "").trim();
     const branchId = String(body.branchId || "").trim();
     if (!isUuid(businessId)) return reply({ error: "invalid_business_id" }, 400);
-    if (!["activity", "cover", "product", "service"].includes(imageKind)) return reply({ error: "invalid_image_kind" }, 400);
+    const validImageKinds = ["activity", "cover", "product", "service"];
+    if (!(action === "list_catalog_images" && imageKind === "all") && !validImageKinds.includes(imageKind)) {
+      return reply({ error: "invalid_image_kind" }, 400);
+    }
     if ((action !== "list_catalog_images" && (itemName.length < 2 || itemName.length > 160)) ||
         category.length > 120 || description.length > 800 || branchId.length > 80) {
       return reply({ error: "invalid_image_context" }, 400);
@@ -168,29 +171,35 @@ Deno.serve(async (req: Request) => {
       if (!authorized) return reply({ error: "catalog_image_permission_denied" }, 403);
 
       if (action === "list_catalog_images") {
-        const folderPath = "businesses/" + businessId + "/owner-uploads/" + imageKind;
-        const { data: storedFiles, error: listError } = await service.storage.from(IMAGE_BUCKET).list(folderPath, {
-          limit: 100,
-          offset: 0,
-          sortBy: { column: "created_at", order: "desc" },
-        });
-        if (listError) throw listError;
-        const images = (storedFiles || [])
-          .filter((file: any) => file && file.id && typeof file.name === "string" && file.name.length > 0)
-          .map((file: any) => {
-            const objectPath = folderPath + "/" + file.name;
-            const { data: publicUrlData } = service.storage.from(IMAGE_BUCKET).getPublicUrl(objectPath);
-            return {
-              imageUrl: publicUrlData.publicUrl,
-              objectPath,
-              createdAt: file.created_at || file.updated_at || null,
-              fileSize: Number(file.metadata?.size || 0),
-            };
-          })
-          .filter((image: any) => typeof image.imageUrl === "string" && image.imageUrl.startsWith("https://"));
+        const mediaKinds = imageKind === "all" ? validImageKinds : [imageKind];
+        const listedFolders = await Promise.all(mediaKinds.map(async (mediaKind) => {
+          const folderPath = "businesses/" + businessId + "/owner-uploads/" + mediaKind;
+          const { data: storedFiles, error: listError } = await service.storage.from(IMAGE_BUCKET).list(folderPath, {
+            limit: 100,
+            offset: 0,
+            sortBy: { column: "created_at", order: "desc" },
+          });
+          if (listError) throw listError;
+          const images = (storedFiles || [])
+            .filter((file: any) => file && file.id && typeof file.name === "string" && file.name.length > 0)
+            .map((file: any) => {
+              const objectPath = folderPath + "/" + file.name;
+              const { data: publicUrlData } = service.storage.from(IMAGE_BUCKET).getPublicUrl(objectPath);
+              return {
+                imageUrl: publicUrlData.publicUrl,
+                objectPath,
+                sourceKind: mediaKind,
+                createdAt: file.created_at || file.updated_at || null,
+                fileSize: Number(file.metadata?.size || 0),
+              };
+            })
+            .filter((image: any) => typeof image.imageUrl === "string" && image.imageUrl.startsWith("https://"));
+          return images;
+        }));
+        const images = listedFolders.flat()
+          .sort((left: any, right: any) => Date.parse(right.createdAt || "") - Date.parse(left.createdAt || ""));
         return reply({ images, count: images.length, kind: imageKind });
       }
-
       const auditAction = action === "upload_catalog_image" ? "CATALOG_IMAGE_UPLOAD_REQUESTED" : "CATALOG_AI_IMAGE_REQUESTED";
       const requestLimit = action === "upload_catalog_image" ? 60 : 20;
       const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString();
