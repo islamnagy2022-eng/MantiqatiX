@@ -106,6 +106,8 @@ jobs:
           if-no-files-found: error
       - name: Validate additive professional dashboard contract
         run: node scripts/validate-professional-dashboard.mjs
+      - name: Validate DEMO admin compatibility static contract
+        run: npm run validate:demo-admin-compatibility
       - name: Validate additive subscriber account portal contract
         run: node scripts/validate-unified-account-portal.mjs
       - name: Validate business-context navbar logo and fixed install icon
