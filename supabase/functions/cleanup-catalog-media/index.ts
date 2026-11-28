@@ -49,9 +49,33 @@ Deno.serve(async (req: Request) => {
       )
     : [];
 
-  // The database RPC returns only paths proven unreferenced after scanning
-  // persisted application content. Keep this list bounded and delete through Storage.
-  const safeToDelete = paths;
+  // The database RPC returns only paths that have been continuously unreferenced
+  // for five days. Re-check each candidate immediately before Storage deletion so
+  // a newly added catalog reference is not deleted because of a concurrent write.
+  const safeToDelete: string[] = [];
+  for (const path of paths) {
+    const { data: referenced, error: referenceError } = await service.rpc(
+      "mnty_catalog_media_object_is_referenced",
+      { p_object_path: path },
+    );
+    if (referenceError) {
+      console.error("Catalog media final reference check failed", referenceError.code || referenceError.message);
+      return reply({ error: "cleanup_reference_check_failed" }, 503);
+    }
+    if (referenced === true) {
+      const { error: resetError } = await service.rpc(
+        "mnty_clear_catalog_media_retention_state",
+        { p_object_paths: [path] },
+      );
+      if (resetError) {
+        console.error("Catalog media retention reset failed", resetError.code || resetError.message);
+        return reply({ error: "cleanup_retention_reset_failed" }, 503);
+      }
+      continue;
+    }
+    if (referenced !== false) return reply({ error: "cleanup_reference_state_unknown" }, 503);
+    safeToDelete.push(path);
+  }
 
   let deleted = 0;
   for (let offset = 0; offset < safeToDelete.length; offset += MAX_DELETE_BATCH) {
@@ -83,7 +107,7 @@ Deno.serve(async (req: Request) => {
     success: true,
     retentionDays: 5,
     examined: paths.length,
-    retained: 0,
+    retained: paths.length - safeToDelete.length,
     deleted,
   });
 });
