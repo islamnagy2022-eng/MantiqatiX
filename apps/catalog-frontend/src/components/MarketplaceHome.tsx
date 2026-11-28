@@ -7,10 +7,50 @@ import { useApp } from '../context/AppContext';
 import { Business, Product } from '../types';
 import { isMantiqatiXBrandName, resolveDefaultImage } from '../utils/defaultImages';
 import { supabase } from '../lib/production';
-import { isSafeHttpsUrl, loadTargetedAdvertisements, TargetedAdvertisement } from '../utils/targetedAdvertisements';
+import { getPublicGovernorateAdCode, isSafeHttpsUrl, loadTargetedAdvertisements, TargetedAdvertisement } from '../utils/targetedAdvertisements';
 
 const currency = (value: number): string =>
   Number(value || 0).toLocaleString('ar-EG', { maximumFractionDigits: 2 }) + ' ج.م';
+
+const publicAsset = (name: string): string => {
+  const base = import.meta.env.BASE_URL || '/';
+  return (base.endsWith('/') ? base : base + '/') + name;
+};
+
+const BUSINESS_CARD_IMAGE_FALLBACK = publicAsset('business-placeholder.svg');
+const PRODUCT_CARD_IMAGE_FALLBACK = publicAsset('catalog-item-placeholder.svg');
+const AD_CREATIVE_FALLBACK = publicAsset('ad-creative-placeholder.svg');
+const HOME_GEO_DISCOVERY_STORAGE_KEY = 'mantiqatix.geo-discovery.v1';
+
+const applyImageFallback = (image: HTMLImageElement, preferred: string, lastResort: string): void => {
+  if (image.dataset.fallbackStage !== 'preferred') {
+    image.dataset.fallbackStage = 'preferred';
+    image.src = preferred;
+    return;
+  }
+  if (image.dataset.fallbackStage !== 'last-resort') {
+    image.dataset.fallbackStage = 'last-resort';
+    image.src = lastResort;
+    return;
+  }
+  image.onerror = null;
+  image.style.visibility = 'hidden';
+};
+
+const readHomeAdGovernorate = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const routeGovernorate = new URLSearchParams(window.location.search).get('governorate');
+  if (routeGovernorate && getPublicGovernorateAdCode(routeGovernorate)) return routeGovernorate;
+  try {
+    const stored = window.localStorage.getItem(HOME_GEO_DISCOVERY_STORAGE_KEY);
+    if (!stored) return null;
+    const preference = JSON.parse(stored) as { completed?: unknown; governorate?: unknown };
+    if (preference.completed !== true || typeof preference.governorate !== 'string') return null;
+    return getPublicGovernorateAdCode(preference.governorate) ? preference.governorate : null;
+  } catch {
+    return null;
+  }
+};
 
 const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) => void }> = ({ business, onOpen }) => {
   const defaultLogo = resolveDefaultImage({
@@ -29,32 +69,14 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
       <button type="button" onClick={() => onOpen(business)} className="block w-full text-right" aria-label={'فتح كتالوج ' + business.name}>
         <div className="relative h-28 overflow-hidden bg-slate-100 sm:h-32">
           <img src={displayCover} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy"
-            onError={(event) => {
-              const image = event.currentTarget;
-              if (image.dataset.defaultFallbackApplied !== 'true') {
-                image.dataset.defaultFallbackApplied = 'true';
-                image.src = defaultCover;
-              } else {
-                image.onerror = null;
-                image.style.visibility = 'hidden';
-              }
-            }} />
+            onError={(event) => applyImageFallback(event.currentTarget, defaultCover, BUSINESS_CARD_IMAGE_FALLBACK)} />
           <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-700 px-2.5 py-1 text-[10px] font-black text-white shadow">
             <ShieldCheck className="h-3 w-3" /> موثّق
           </span>
         </div>
         <div className="relative px-3 pb-3 pt-9">
           <img src={displayLogo} alt="" className="absolute -top-7 right-3 h-14 w-14 rounded-2xl border-2 border-white bg-white object-cover shadow" loading="lazy"
-            onError={(event) => {
-              const image = event.currentTarget;
-              if (image.dataset.defaultFallbackApplied !== 'true') {
-                image.dataset.defaultFallbackApplied = 'true';
-                image.src = defaultLogo;
-              } else {
-                image.onerror = null;
-                image.style.visibility = 'hidden';
-              }
-            }} />
+            onError={(event) => applyImageFallback(event.currentTarget, defaultLogo, BUSINESS_CARD_IMAGE_FALLBACK)} />
           <div className="min-h-12">
             <h3 className="line-clamp-1 text-sm font-black text-slate-900">{business.name}</h3>
             <p className="mt-1 line-clamp-1 text-xs text-slate-500">{business.category}</p>
@@ -87,16 +109,7 @@ const ProductCard: React.FC<{
       <button type="button" onClick={onOpen} className="block w-full text-right">
         <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
           <img src={image} alt={product.name} className="h-full w-full object-cover" loading="lazy"
-            onError={(event) => {
-              const target = event.currentTarget;
-              if (target.dataset.defaultFallbackApplied !== 'true') {
-                target.dataset.defaultFallbackApplied = 'true';
-                target.src = defaultImage;
-              } else {
-                target.onerror = null;
-                target.style.visibility = 'hidden';
-              }
-            }} />
+            onError={(event) => applyImageFallback(event.currentTarget, defaultImage, PRODUCT_CARD_IMAGE_FALLBACK)} />
           {hasDiscount && <span className="absolute right-2 top-2 rounded-full bg-rose-600 px-2.5 py-1 text-[10px] font-black text-white">خصم {discount}%</span>}
         </div>
         <div className="p-3">
@@ -137,6 +150,17 @@ export const MarketplaceHome: React.FC = () => {
   } = useApp();
   const [advertisements, setAdvertisements] = useState<TargetedAdvertisement[]>([]);
   const [adsLoading, setAdsLoading] = useState(true);
+  const [adGovernorate, setAdGovernorate] = useState<string | null>(() => readHomeAdGovernorate());
+
+  useEffect(() => {
+    const refreshGovernorate = () => setAdGovernorate(readHomeAdGovernorate());
+    window.addEventListener('mantiqatix:routechange', refreshGovernorate);
+    window.addEventListener('storage', refreshGovernorate);
+    return () => {
+      window.removeEventListener('mantiqatix:routechange', refreshGovernorate);
+      window.removeEventListener('storage', refreshGovernorate);
+    };
+  }, []);
   const heroAdvertisements = useMemo(
     () => advertisements.filter((ad) => ad.ad_space_id === 'HOME_HERO'),
     [advertisements]
@@ -182,7 +206,8 @@ export const MarketplaceHome: React.FC = () => {
       setAdsLoading(true);
       try {
         const rows = await loadTargetedAdvertisements((functionName, args) =>
-          supabase.rpc(functionName, args)
+          supabase.rpc(functionName, args),
+          { adSpaces: ['HOME_HERO', 'HOME_SPONSORED'], governorate: adGovernorate, limit: 8 }
         );
         if (active) setAdvertisements(rows);
       } catch {
@@ -193,7 +218,7 @@ export const MarketplaceHome: React.FC = () => {
     };
     void loadAdvertisements();
     return () => { active = false; };
-  }, []);
+  }, [adGovernorate]);
 
   const adminPhone = String(adminSettings.adminWhatsApp || '').replace(/\D/g, '');
   const joinUrl = adminPhone
@@ -271,40 +296,35 @@ export const MarketplaceHome: React.FC = () => {
 
       <div className="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 lg:px-8">
         {heroAdvertisements.length > 0 && (
-          <section aria-label="الإعلان الرئيسي الممول" data-testid="home-hero-sponsored-placement" className="grid gap-4 md:grid-cols-2">
+          <section aria-label="الإعلانات الممولة" data-testid="home-hero-sponsored-placement" className="grid gap-4 md:grid-cols-2">
             {heroAdvertisements.slice(0, 2).map((ad) => {
               const href = isSafeHttpsUrl(ad.target_url);
-              const adFallback = resolveDefaultImage({ name: ad.title || 'إعلان رئيسي', kind: 'cover' });
-              const banner = (
-                <div className="group relative isolate aspect-[16/5] min-h-36 overflow-hidden rounded-3xl border border-[#ead5c5] bg-gradient-to-br from-[#3a0000] via-[#7a0000] to-[#3a0000] shadow-sm">
-                  <img
-                    src={ad.creative_url || adFallback}
-                    alt={ad.title || 'إعلان ممول'}
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-                    onError={(event) => {
-                      const image = event.currentTarget;
-                      if (image.dataset.fallbackApplied !== 'true') {
-                        image.dataset.fallbackApplied = 'true';
-                        image.src = adFallback;
-                      } else {
-                        image.onerror = null;
-                        image.style.visibility = 'hidden';
-                      }
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-l from-[#260000]/90 via-[#260000]/45 to-transparent" />
-                  <div className="absolute inset-y-0 right-0 flex max-w-[82%] flex-col items-start justify-center gap-2 p-4 text-white sm:p-7">
-                    <span className="rounded-full border border-white/25 bg-black/25 px-3 py-1 text-[10px] font-black">إعلان ممول · مساحة رئيسية</span>
-                    <h2 className="line-clamp-2 text-lg font-black leading-tight sm:text-2xl">{ad.title || 'إعلان من شركاء منطقتيX'}</h2>
-                    <span className="inline-flex items-center gap-1 rounded-xl bg-[#f6c04d] px-3 py-2 text-xs font-black text-[#3a0000]">اكتشف الإعلان <ArrowLeft className="h-3.5 w-3.5" /></span>
+              const creative = (
+                <article className="group overflow-hidden rounded-3xl border border-[#ead5c5] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+                  <div className="relative aspect-[16/5] min-h-36 overflow-hidden bg-[#f5eee7]">
+                    <img
+                      src={ad.creative_url || AD_CREATIVE_FALLBACK}
+                      alt={ad.title || 'إعلان ممول'}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.01]"
+                      onError={(event) => applyImageFallback(event.currentTarget, AD_CREATIVE_FALLBACK, BUSINESS_CARD_IMAGE_FALLBACK)}
+                    />
+                    <span className="absolute right-3 top-3 rounded-full border border-white/30 bg-[#3a0000]/90 px-3 py-1 text-[10px] font-black text-white shadow">
+                      إعلان ممول
+                    </span>
                   </div>
-                </div>
+                  <div className="flex items-center justify-between gap-3 px-4 py-3">
+                    <p className="line-clamp-1 min-w-0 text-sm font-black text-slate-900">{ad.title || 'إعلان من شركاء المنصة'}</p>
+                    <span className="shrink-0 rounded-full bg-[#fff3e0] px-3 py-1.5 text-[11px] font-black text-[#7a0000]">
+                      {href ? 'اكتشف الإعلان' : 'محتوى إعلاني'} <ArrowLeft className="inline h-3.5 w-3.5" />
+                    </span>
+                  </div>
+                </article>
               );
               return href
-                ? <a key={ad.advertisement_id} href={href} target="_blank" rel="noopener noreferrer" aria-label={`فتح الإعلان: ${ad.title}`}>{banner}</a>
-                : <div key={ad.advertisement_id}>{banner}</div>;
+                ? <a key={ad.advertisement_id} href={href} target="_blank" rel="sponsored noopener noreferrer" aria-label={`فتح الإعلان: ${ad.title}`}>{creative}</a>
+                : <div key={ad.advertisement_id}>{creative}</div>;
             })}
           </section>
         )}
@@ -335,20 +355,11 @@ export const MarketplaceHome: React.FC = () => {
           {sponsoredAdvertisements.length ? <div className="grid gap-4 md:grid-cols-2">
             {sponsoredAdvertisements.slice(0, 4).map((ad) => {
               const href = isSafeHttpsUrl(ad.target_url);
-              const adFallback = resolveDefaultImage({ name: ad.title || 'إعلان المنصة', kind: 'cover' });
+              const adFallback = AD_CREATIVE_FALLBACK;
               const card = <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                 <div className="relative aspect-[16/7] min-h-36 overflow-hidden bg-gradient-to-br from-[#3a0000] via-[#7a0000] to-[#3a0000]">
                   <img src={ad.creative_url || adFallback} alt={ad.title || 'إعلان المنصة'} className="h-full w-full object-cover" loading="lazy" decoding="async"
-                    onError={(event) => {
-                      const image = event.currentTarget;
-                      if (image.dataset.fallbackApplied !== 'true') {
-                        image.dataset.fallbackApplied = 'true';
-                        image.src = adFallback;
-                      } else {
-                        image.onerror = null;
-                        image.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350"%3E%3Crect width="800" height="350" fill="%237a0000"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="36" fill="white"%3E%D8%A5%D8%B9%D9%84%D8%A7%D9%86%D8%A7%D8%AA%20%D9%85%D9%86%D8%B5%D8%A9%20%D9%85%D9%86%D8%B7%D9%82%D8%AA%D9%8AX%3C/text%3E%3C/svg%3E';
-                      }
-                    }} />
+                    onError={(event) => applyImageFallback(event.currentTarget, adFallback, BUSINESS_CARD_IMAGE_FALLBACK)} />
                   <span className="absolute right-3 top-3 rounded-full bg-[#7a0000]/90 px-3 py-1 text-[10px] font-black text-white shadow">إعلان ممول</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 p-3"><p className="line-clamp-1 text-sm font-black">{ad.title || 'إعلان من شركاء المنصة'}</p><span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">معتمد</span></div>
