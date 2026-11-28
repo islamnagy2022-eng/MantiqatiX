@@ -131,7 +131,7 @@ begin
       ) values (
         v_candidate.name, null, v_now
       )
-      on conflict (object_path) do update
+      on conflict on constraint mnty_catalog_media_retention_state_pkey do update
       set unreferenced_since = null,
           last_scanned_at = excluded.last_scanned_at;
     else
@@ -141,7 +141,7 @@ begin
       ) values (
         v_candidate.name, v_now, v_now
       )
-      on conflict (object_path) do update
+      on conflict on constraint mnty_catalog_media_retention_state_pkey do update
       set unreferenced_since = coalesce(
             public.mnty_catalog_media_retention_state.unreferenced_since,
             excluded.unreferenced_since
