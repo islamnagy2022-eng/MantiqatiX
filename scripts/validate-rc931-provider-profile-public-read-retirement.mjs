@@ -100,6 +100,7 @@ assert.match(workflow, /20261120193000_rc479_restrict_anonymous_auth_provider_pr
 assert.match(workflow, /20261125110000_rc926_provider_profile_confirmed_identity_strict_guard\.sql/);
 assert.match(workflow, /20261125130000_rc115_crm_business_scoped_reads\.sql/);
 assert.match(workflow, /20261125140000_rc116_crm_business_scoped_writes\.sql/);
+assert.match(workflow, /20261125140000_rc116_crm_business_scoped_writes\.sql/);
 assert.match(workflow, /20261128010000_rc931_provider_profile_public_base_read_retirement\.sql/);
 assert.match(workflow, /rc926_provider_profile_confirmed_identity_strict_integration\.sql/);
 assert.match(workflow, /rc931_provider_profile_public_read_integration\.sql/);
@@ -121,22 +122,22 @@ assert.match(webApp, /\.from\(['"]marketing_provider_profiles['"]\)[^\n]*\.eq\([
 const required = contract.match(/REQUIRED_RELEASE_MIGRATION_VERSIONS\s*=\s*\[([\s\S]*?)\n\];/);
 assert.ok(required, "canonical migration contract array must exist");
 const versions = [...required[1].matchAll(/"([0-9]{14})"/g)].map((match) => match[1]);
-assert.equal(versions.length, 91, "canonical contract must include RC115 and RC931 as 90 total source versions");
-assert.equal(new Set(versions).size, 91, "required migration version list must be unique");
+assert.equal(versions.length, 92, "canonical contract must include RC115 and RC931 as 90 total source versions");
+assert.equal(new Set(versions).size, 92, "required migration version list must be unique");
 assert.deepEqual(versions, [...versions].sort(), "required migration versions must be strictly timestamp ordered");
-for (const version of ["20261125130000", "20261128010000"]) {
+for (const version of ["20261125130000", "20261125140000", "20261128010000"]) {
   assert.ok(versions.includes(version), "canonical contract missing " + version);
   assert.ok(verifier.includes(version), "Production verifier missing " + version);
   assert.ok(gate.includes(version), "strict migration gate missing " + version);
   assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes(version), "manifest required_versions missing " + version);
   assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes(version), "manifest must keep " + version + " unapplied to Production");
 }
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 91);
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 92);
 assert.equal(manifest.required_release_migration_ledger_check.found_in_live_ledger, 0);
-assert.equal(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=91"), true);
+assert.equal(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=92"), true);
 assert.match(backupValidator, /20261128010000/);
 assert.match(backupValidator, /20261125130000/);
 
 console.log("RC931_PROVIDER_PROFILE_PUBLIC_READ_RETIREMENT_STATIC=PASS");
 console.log("RC931_PUBLIC_EDGE_PROJECTION_AND_OWNER_CRM_COMPATIBILITY=PASS");
-console.log("RC931_91_VERSION_RELEASE_CONTRACT=PASS");
+console.log("RC931_92_VERSION_RELEASE_CONTRACT=PASS");
