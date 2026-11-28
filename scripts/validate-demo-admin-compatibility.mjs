@@ -43,10 +43,15 @@ const externalRpcSignatures = [
 ];
 
 const serviceOnlyRpcSignature = 'mnty_platform_admin_delete_business';
+assert.ok(demoPlatformRootMigration.includes('pg_catalog.pg_advisory_xact_lock'), 'RC486 catalog price serialization must be preserved after RC485.');
+assert.ok(demoPlatformRootMigration.includes('is_anonymous'), 'RC923/RC925 anonymous-session and missing-claim guards must be preserved.');
+assert.ok(demoPlatformRootMigration.includes("is distinct from 'false'"), 'RC925 must reject a missing is_anonymous claim.');
+assert.equal((demoPlatformRootMigration.match(/^\s*begin;\s*$/gim) || []).length, 1, 'Root convergence migration must be one atomic BEGIN.');
+assert.equal((demoPlatformRootMigration.match(/^\s*commit;\s*$/gim) || []).length, 1, 'Root convergence migration must be one atomic COMMIT.');
 assert.ok(demoPlatformRootMigration.includes('alter table private.platform_admins force row level security;'), 'DEMO root migration must force RLS on the private registry.');
 assert.ok(demoPlatformRootMigration.includes('f307f246e905c9dc1a3964184718b570'), 'DEMO policy inventory fingerprint must match the reviewed baseline.');
 assert.ok(demoPlatformRootMigration.includes('ux_user_memberships_user_business_branch_nullsafe'), 'DEMO root migration must include the null-safe membership index.');
-for (const marker of ['rc464','rc469','rc471','rc472','rc484','rc485']) assert.ok(demoPlatformRootMigration.includes(marker), 'Missing coordinated root dependency: ' + marker.toUpperCase());
+for (const marker of ['rc464','rc469','rc471','rc472','rc484','rc485','rc486','rc923','rc925']) assert.ok(demoPlatformRootMigration.includes(marker), 'Missing coordinated root dependency: ' + marker.toUpperCase());
 
 const internalHelperSignatures = [
   'mnty_business_employee_permission_ceiling_allows(jsonb,varchar,uuid,varchar)',
