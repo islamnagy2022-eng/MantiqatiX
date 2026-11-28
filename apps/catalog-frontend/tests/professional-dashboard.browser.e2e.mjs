@@ -1544,6 +1544,21 @@ try {
     } finally { await context.close(); }
   }
 
+  // Unverified backup/import tools must fail closed even when a legacy URL is opened directly.
+  {
+    const { context, page } = await newScenario(browser, roles.platformAdmin, [], {
+      initialRoute: '?view=super_admin&tab=backup',
+    });
+    try {
+      await page.getByTestId('platform-admin-overview').waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await page.getByRole('heading', { name: 'تصدير بيانات الإدارة (نسخة محدودة)', exact: true }).count(), 0,
+        'unverified backup and restore UI must not render for a direct URL');
+      assert.equal(await page.getByRole('button', { name: 'نسخ احتياطي فوري', exact: true }).count(), 0,
+        'the incomplete export must not be advertised as an immediate backup');
+      results.push('unverified-backup-import-route-and-header-action-fail-closed');
+    } finally { await context.close(); }
+  }
+
   // Geographic regression: verified business in a markaz with no village remains discoverable when village is left unselected.
   {
     const zeftaFixture = {
