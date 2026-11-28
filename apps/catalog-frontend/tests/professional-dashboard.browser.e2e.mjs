@@ -1380,6 +1380,9 @@ try {
       assert.equal(await overviewTab.getAttribute('aria-pressed'), 'true', 'the default Super Admin route must select the overview tab');
       assert.equal(await page.getByTestId('admin-overview-metric').count(), 4, 'the overview must show four operational summary metrics');
       assert.equal(await page.locator('[data-testid^="admin-overview-shortcut-"]').count(), 9, 'all nine existing admin destinations must be reachable');
+      assert.equal(await platformAdminTabs.locator('button').count(), 10, 'the primary navigation must expose all ten platform-admin destinations');
+      const controlCenterTab = page.getByTestId('platform-admin-control-center-tab');
+      assert.equal(await controlCenterTab.getAttribute('aria-pressed'), 'false', 'the control center must start inactive on the overview');
       await page.getByTestId('admin-overview-shortcut-businesses').click();
       assert.equal(await platformAdminTabs.getByRole('button', { name: /الأنشطة التجارية/ }).getAttribute('aria-pressed'), 'true', 'an overview shortcut must navigate to the requested admin section');
       assert.equal(new URL(page.url()).searchParams.get('tab'), 'businesses', 'shortcut navigation must preserve the selected admin tab in the URL');
@@ -1387,6 +1390,10 @@ try {
         await page.setViewportSize(viewport);
         await assertNoHorizontalOverflow(page, 'platform admin overview at ' + viewport.width + 'px');
       }
+      await controlCenterTab.click();
+      await page.getByRole('heading', { name: 'مركز التحكم في المنصة', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await controlCenterTab.getAttribute('aria-pressed'), 'true', 'the top navigation must activate the platform control center');
+      assert.equal(new URL(page.url()).searchParams.get('tab'), 'control_center', 'the control center tab selection must be persisted in the URL');
       results.push('platform-admin-overview-default-route-metrics-shortcuts-and-responsive-layout');
     } finally { await context.close(); }
   }
