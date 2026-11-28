@@ -68,8 +68,15 @@ assert.match(migration, /DROP POLICY IF EXISTS "Public can view active marketing
 assert.match(migration, /RC931_GLOBAL_PROVIDER_PROFILE_READ_POLICY_REMAINS/);
 assert.match(migration, /RC931_SERVICE_ROLE_DIRECTORY_READ_REGRESSED/);
 assert.match(migration, /RC931_AUTHENTICATED_OWNER_AND_CRM_READ_REGRESSED/);
-assert.doesNotMatch(migration, /\b(?:GRANT|REVOKE)\b/i, "RC931 must not change table privileges");
-assert.doesNotMatch(migration, /^\s*(?:INSERT\s+INTO|UPDATE\s+public\.|DELETE\s+FROM\s+public\.|TRUNCATE\s+(?:TABLE\s+)?public\.)/im, "RC931 must not mutate business data");
+// Check executable SQL, not explanatory comments. The migration may document
+// existing GRANT/REVOKE boundaries without executing privilege mutations.
+const executableMigration = migration
+  .replace(/--[^\n]*/g, " ")
+  .replace(/\/\*[\s\S]*?\*\//g, " ");
+assert.doesNotMatch(executableMigration, /^\s*(?:GRANT|REVOKE)\b/im,
+  "RC931 must not change table privileges");
+assert.doesNotMatch(executableMigration, /^\s*(?:INSERT\s+INTO|UPDATE\s+public\.|DELETE\s+FROM\s+public\.|TRUNCATE\s+(?:TABLE\s+)?public\.)/im,
+  "RC931 must not mutate business data");
 assert.match(migration, /^\s*(?:--[^\n]*\n\s*)*begin;/i, "RC931 migration must start with a transaction after optional SQL comments");
 assert.ok(migration.trim().endsWith("commit;"), "RC931 migration must finish the transaction");
 
