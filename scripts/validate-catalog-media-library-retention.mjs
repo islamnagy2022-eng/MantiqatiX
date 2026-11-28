@@ -64,6 +64,11 @@ assert.ok(unusedWindowMigration.includes('mnty_clear_catalog_media_retention_sta
 assert.ok(resumeCleanupMigration.includes("cron.alter_job(v_job_id, null, null, null, null, true)") &&
   resumeCleanupMigration.includes("MNTY_CATALOG_MEDIA_CLEANUP_JOB_MISSING"),
   'the hourly cleanup job may resume only through an explicit post-fix migration that refuses to silently skip a missing job');
+assert.ok(unusedWindowMigration.includes('The existing job remains disabled until migration 810') &&
+  !/update cron\\.job[\\s\\S]*?set active = true/i.test(unusedWindowMigration),
+  'the state migration must not reactivate the hourly worker before the matching cleanup Edge Function deploys');
+assert.ok(unusedWindowIntegration.includes('MEDIA_RETENTION_HOURLY_CLEANUP_JOB_NOT_ACTIVE'),
+  'the retention integration must prove the follow-up migration leaves exactly one cleanup job active');
 assert.ok(unusedWindowIntegration.includes('MEDIA_RETENTION_DELETED_BEFORE_FIVE_UNUSED_DAYS') &&
   unusedWindowIntegration.includes('MEDIA_RETENTION_LIVE_REFERENCE_DID_NOT_RESET_CLOCK') &&
   unusedWindowIntegration.includes('MEDIA_RETENTION_DID_NOT_RELEASE_IMAGE_AFTER_FIVE_UNUSED_DAYS') &&
