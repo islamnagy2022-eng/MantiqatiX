@@ -13,9 +13,10 @@ The root-convergence migration makes `private.platform_admins` the only source o
 ## Preconditions
 
 1. PR #1216 has been reviewed and intentionally applied to the DEMO project only.
-2. The DEMO migration ledger shows both:
+2. The DEMO migration ledger shows all three applied versions:
    - `20261128112058_demo_platform_root_authority_convergence`
    - `20261128112119_demo_admin_control_center_compatibility`
+   - `20261128112653_demo_mnty_permission_helper_empty_search_path`
 3. An authorized project owner has approved the exact DEMO account that should receive platform-root authority.
 4. The chosen user is an Auth account in this DEMO project with a confirmed email.
 5. The operator has verified the Auth UUID from the DEMO Auth Users view. Do not identify a target from a display name alone.
@@ -103,4 +104,4 @@ Do not disable RLS, widen grants, or add a tenant membership as a substitute for
 
 ## Current state
 
-This runbook is documentation only. The coordinated migrations and their tests have passed in an isolated replay and a transactionally rolled-back rehearsal against DEMO's actual schema. The live DEMO project has **not** been migrated, no identity has been added to `private.platform_admins`, no admin Edge Function has been deployed, and Production has not been changed.
+The three migrations listed in the preconditions are already applied to MantiqatiX-DEMO, and `catalog-platform-admin` is deployed there as ACTIVE version 1. The registry still contains **zero** platform-admin identities; this runbook has not been executed and no user has been promoted. Direct DEMO HTTP/browser authorization smoke tests remain outstanding. Production and GitHub Pages production have not been changed.
