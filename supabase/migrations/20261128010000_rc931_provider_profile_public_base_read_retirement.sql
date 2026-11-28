@@ -228,7 +228,8 @@ begin
       and p.permissive = 'PERMISSIVE'
       and p.cmd = 'SELECT'
       and 'authenticated' = any (p.roles)
-      and coalesce(p.qual, '') ilike '%public.is_platform_admin()%'
+      -- pg_get_expr may omit the schema for a function resolved through the policy's search_path.
+      and coalesce(p.qual, '') ilike '%is_platform_admin()%'
       and coalesce(p.qual, '') not ilike '%MNTY-PLATFORM%'
   ) then
     raise exception 'RC931_REGISTRY_ONLY_CRM_POLICY_REQUIRED';
