@@ -5,7 +5,7 @@ import type { PublicDirectoryListing } from '../../lib/directoryListings';
 import { useApp } from '../../context/AppContext';
 import { resolveActivityModuleConfig } from './activityModuleRegistry';
 import { resolveCanonicalSpecialty } from '../../data/productionDefaults';
-import { isMantiqatiXBrandName, resolveDefaultImage } from '../../utils/defaultImages';
+import { resolveDefaultImage } from '../../utils/defaultImages';
 import { EGYPT_GEO_GOVERNORATES } from '../../data/egyptGeoDiscovery';
 
 type Section = 'overview' | 'specialties' | 'marketing' | 'operations';
