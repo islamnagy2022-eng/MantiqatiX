@@ -141,11 +141,17 @@ begin
   );
 
   if v_crm_qual is null
-     or position('um.tenant_id=b.tenant_id' in v_crm_qual_normalized) = 0
+     or (
+       position('um.tenant_id=b.tenant_id' in v_crm_qual_normalized) = 0
+       and v_crm_qual_normalized !~ 'um\.tenant_id\)(::text)?=\(b\.tenant_id\)(::text)?'
+     )
      or v_crm_qual_normalized !~ 'b\.id=(public\.)?marketing_provider_profiles\.business_id' then
     raise exception
       'RC931_RC115_TENANT_AND_BUSINESS_SCOPED_CRM_POLICY_REQUIRED: tenant_match=%, business_join_match=%, policy_qual=%',
-      position('um.tenant_id=b.tenant_id' in v_crm_qual_normalized) > 0,
+      (
+        position('um.tenant_id=b.tenant_id' in v_crm_qual_normalized) > 0
+        or v_crm_qual_normalized ~ 'um\.tenant_id\)(::text)?=\(b\.tenant_id\)(::text)?'
+      ),
       v_crm_qual_normalized ~ 'b\.id=(public\.)?marketing_provider_profiles\.business_id',
       coalesce(v_crm_qual, '<missing>');
   end if;
