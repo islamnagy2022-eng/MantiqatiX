@@ -889,7 +889,12 @@ export const AdminDashboard: React.FC = () => {
                                 className="w-8 h-8 rounded-lg object-cover bg-slate-100 flex-shrink-0"
                                 onError={(event) => {
                                   const image = event.currentTarget;
-                                  if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                                  if (!image.src.endsWith('/business-placeholder.svg')) {
+                                    image.src = BUSINESS_PLACEHOLDER;
+                                  } else {
+                                    image.onerror = null;
+                                    image.style.visibility = 'hidden';
+                                  }
                                 }}
                               />
                               <div className="truncate">
@@ -1376,7 +1381,13 @@ export const AdminDashboard: React.FC = () => {
                         className="w-full h-full object-cover"
                         onError={(event) => {
                           const image = event.currentTarget;
-                          image.src = resolveDefaultImage({ name: b.name, description: b.bio, category: b.category, kind: 'cover' });
+                          if (image.dataset.fallbackApplied !== 'true') {
+                            image.dataset.fallbackApplied = 'true';
+                            image.src = resolveDefaultImage({ name: b.name, description: b.bio, category: b.category, kind: 'cover' });
+                          } else {
+                            image.onerror = null;
+                            image.style.visibility = 'hidden';
+                          }
                         }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
