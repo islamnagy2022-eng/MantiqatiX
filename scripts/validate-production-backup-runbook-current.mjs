@@ -55,8 +55,8 @@ const currentRunbook = currentRunbookEnd > currentRunbookStart
   : runbook.slice(currentRunbookStart);
 for (const required of [
   "310 rows through",
-  "91 unique, chronologically ordered migration versions",
-  "0/91",
+  "92 unique, chronologically ordered migration versions",
+  "0/92",
   "79 canonical core/payment/control-center objects",
   "matched 37",
   "42 absent or non-matching",
