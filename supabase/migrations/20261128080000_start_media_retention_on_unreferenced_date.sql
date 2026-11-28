@@ -136,19 +136,15 @@ begin
           last_scanned_at = excluded.last_scanned_at;
     else
       -- First observed unused scan starts the five-day grace period.
-      insert into public.mnty_catalog_media_retention_state (
+      insert into public.mnty_catalog_media_retention_state as state (
         object_path, unreferenced_since, last_scanned_at
       ) values (
         v_candidate.name, v_now, v_now
       )
       on conflict (object_path) do update
-      set unreferenced_since = coalesce(
-            public.mnty_catalog_media_retention_state.unreferenced_since,
-            excluded.unreferenced_since
-          ),
+      set unreferenced_since = coalesce(state.unreferenced_since, excluded.unreferenced_since),
           last_scanned_at = excluded.last_scanned_at
-      returning public.mnty_catalog_media_retention_state.unreferenced_since
-      into v_unreferenced_since;
+      returning unreferenced_since into v_unreferenced_since;
 
       if v_unreferenced_since <= v_now - interval '5 days' then
         object_path := v_candidate.name;
