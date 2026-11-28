@@ -20,9 +20,9 @@ assert.equal((migration.match(/^\s+business_id is null$/gm) || []).length, 3);
 assert.match(migration, /business_id cannot be changed because it[\s\S]*?is not included/i);
 assert.match(migration, /revoke insert, update, delete[\s\S]*?from authenticated/i);
 assert.match(migration, /grant update \(profile_image_path, settings, updated_at\)/i);
-assert.match(migration, /current_user <> 'authenticated'/i);
-assert.match(migration, /coalesce\(v_new_settings->'branding', '\{\}'::jsonb\) - 'logo_path'/);
-assert.match(migration, /before update of settings on public\.marketing_provider_profiles/i);
+// RC116 is immutable historical SQL. The JSONB branding guard is introduced
+// by the forward-only RC931 migration and verified in its dedicated workflow.
+assert.doesNotMatch(migration, /mnty_guard_provider_profile_branding_only/);
 assert.equal((migration.match(/auth\.jwt\(\)->>'is_anonymous'/g) || []).length, 4);
 
 assert.match(fixture, /create policy "Owners manage their marketing provider profile"/);
