@@ -48,7 +48,8 @@ END;
 $fixture$;
 
 -- RC926 adversarial regression. Disposable PostgreSQL / Supabase replay only.
--- Tests raw anon, Anonymous Auth, missing claim, confirmed user and owner DML compatibility.
+-- Tests raw anon, Anonymous Auth, missing claim, confirmed owner read and owner DML compatibility.
+-- Later RC931 removes the global directory read; the compatible confirmed read must therefore be owner-scoped.
 
 DO $acl$
 BEGIN
@@ -121,7 +122,7 @@ RESET ROLE;
 SET ROLE authenticated;
 SELECT set_config(
   'request.jwt.claims',
-  '{"sub":"30000000-0000-4000-8000-000000000002","role":"authenticated","is_anonymous":false}',
+  '{"sub":"f7914ac7-4b03-4456-afdd-e386f2ac6a5b","role":"authenticated","is_anonymous":false}',
   false
 );
 DO $confirmed$
