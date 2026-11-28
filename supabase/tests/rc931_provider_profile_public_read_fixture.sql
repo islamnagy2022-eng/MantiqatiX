@@ -180,6 +180,19 @@ INSERT INTO public.user_memberships(id,user_id,tenant_id,business_id,role,status
 INSERT INTO private.platform_admins(user_id)
 VALUES ('30000000-0000-4000-8000-000000000015');
 
+-- Platform-owned settings prove that owner logo changes preserve all other keys.
+UPDATE public.marketing_provider_profiles
+SET settings = jsonb_build_object(
+  'official_showcase', true,
+  'managed_by', 'SUPER_ADMIN',
+  'activity_code', 'HEALTH',
+  'branding', jsonb_build_object(
+    'logo_path', 'assets/original-provider-a.svg',
+    'preserve_me', 'platform-owned'
+  )
+)
+WHERE id = '40000000-0000-4000-8000-000000000001';
+
 INSERT INTO public.marketing_provider_profiles(id,business_id,owner_user_id,name_ar,status,settings) VALUES
   ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000016','Provider A','ACTIVE','{"private":"synthetic-A"}'),
   ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000001',NULL,'Pending Provider A','PENDING','{"private":"pending-A"}'),
