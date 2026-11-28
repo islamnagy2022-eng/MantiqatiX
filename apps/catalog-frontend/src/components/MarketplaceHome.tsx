@@ -191,9 +191,11 @@ export const MarketplaceHome: React.FC = () => {
   useEffect(() => {
     const refreshGovernorate = () => setAdGovernorate(readHomeAdGovernorate());
     window.addEventListener('mantiqatix:routechange', refreshGovernorate);
+    window.addEventListener('mantiqatix:geo-preference-change', refreshGovernorate);
     window.addEventListener('storage', refreshGovernorate);
     return () => {
       window.removeEventListener('mantiqatix:routechange', refreshGovernorate);
+      window.removeEventListener('mantiqatix:geo-preference-change', refreshGovernorate);
       window.removeEventListener('storage', refreshGovernorate);
     };
   }, []);
