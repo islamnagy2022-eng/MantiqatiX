@@ -120,7 +120,7 @@ assert.ok(platformAdminEdge.includes('const activity_module_settings_write_enabl
   'Activity-module platform settings must remain server-side disabled until atomic audit is proven.');
 assert.ok(migration.includes('revoke all on table public.bizcatalog_platform_settings from public, anon, authenticated;'), 'BizCatalog settings must remain closed to browser roles.');
 assert.ok(migration.includes('revoke all on function public.' + serviceOnlyRpcSignature) && migration.includes('to service_role;'), 'Business delete RPC must be service-role-only.');
-for (const marker of ['demo_admin_bizcatalog_settings_client_privilege_granted','demo_admin_delete_rpc_must_be_invoker','demo_admin_delete_rpc_acl_failed','demo_admin_delete_rpc_history_or_audit_guard_missing','demo_admin_delete_rpc_service_select_missing','demo_admin_delete_rpc_service_delete_missing','demo_admin_delete_rpc_service_lock_or_audit_privilege_missing']) {
+for (const marker of ['demo_admin_bizcatalog_settings_client_privilege_granted','demo_admin_delete_rpc_must_be_invoker','demo_admin_delete_rpc_acl_failed','demo_admin_delete_rpc_history_or_audit_guard_missing','demo_admin_delete_rpc_service_select_missing','demo_admin_delete_rpc_service_delete_missing','demo_admin_delete_rpc_service_lock_or_audit_privilege_missing','demo_admin_bizcatalog_and_delete_behavior']) {
   assert.ok(postgresTest.includes(marker), 'PostgreSQL integration contract missing assertion marker: ' + marker);
 }
 
