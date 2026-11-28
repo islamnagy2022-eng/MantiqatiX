@@ -142,25 +142,66 @@ END;
 $confirmed$;
 RESET ROLE;
 
--- The restrictive policy is SELECT-only; the existing confirmed owner update remains valid.
+-- RC931 narrows the confirmed owner's settings write to branding.logo_path.
+-- Keep the positive owner test within that explicitly allowed nested field.
 SET ROLE authenticated;
 SELECT set_config(
   'request.jwt.claims',
   '{"sub":"f7914ac7-4b03-4456-afdd-e386f2ac6a5b","role":"authenticated","is_anonymous":false}',
   false
 );
-DO $owner_update$
+DO $owner_branding_update$
 DECLARE affected integer;
 BEGIN
   UPDATE public.marketing_provider_profiles
-     SET settings=jsonb_set(settings,'{rc926_owner_regression}','true'::jsonb,true)
+     SET settings=jsonb_set(
+       settings,
+       '{branding}',
+       jsonb_set(
+         coalesce(settings->'branding','{}'::jsonb),
+         '{logo_path}',
+         '"rc926-owner-logo.svg"'::jsonb,
+         true
+       ),
+       true
+     )
    WHERE id='10000000-0000-4000-8000-000000000001';
   GET DIAGNOSTICS affected = ROW_COUNT;
   IF affected <> 1 THEN
-    RAISE EXCEPTION 'RC926_CONFIRMED_OWNER_UPDATE_REGRESSED:%',affected;
+    RAISE EXCEPTION 'RC926_CONFIRMED_OWNER_BRANDING_UPDATE_REGRESSED:%',affected;
   END IF;
 END;
-$owner_update$;
+$owner_branding_update$;
+RESET ROLE;
+
+-- Owner must not be able to modify root settings outside the branding object.
+SET ROLE authenticated;
+SELECT set_config(
+  'request.jwt.claims',
+  '{"sub":"f7914ac7-4b03-4456-afdd-e386f2ac6a5b","role":"authenticated","is_anonymous":false}',
+  false
+);
+DO $owner_non_branding_update$
+DECLARE
+  denied boolean := false;
+  v_message text;
+BEGIN
+  BEGIN
+    UPDATE public.marketing_provider_profiles
+       SET settings=jsonb_set(settings,'{rc926_owner_regression}','true'::jsonb,true)
+     WHERE id='10000000-0000-4000-8000-000000000001';
+  EXCEPTION WHEN insufficient_privilege THEN
+    GET STACKED DIAGNOSTICS v_message = MESSAGE_TEXT;
+    IF v_message <> 'PROVIDER_PROFILE_OWNER_SETTINGS_NOT_BRANDING' THEN
+      RAISE;
+    END IF;
+    denied := true;
+  END;
+  IF NOT denied THEN
+    RAISE EXCEPTION 'RC931_OWNER_NON_BRANDING_SETTINGS_UPDATE_SUCCEEDED';
+  END IF;
+END;
+$owner_non_branding_update$;
 RESET ROLE;
 
 SET ROLE authenticated;
