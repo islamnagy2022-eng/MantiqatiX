@@ -37,7 +37,7 @@ import {
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { supabase } from '../lib/production';
-import { getPublicCenterAdCode, getTargetedAdvertisementAudienceLabel, isSafeHttpsUrl, loadTargetedAdvertisements, type TargetedAdvertisement } from '../utils/targetedAdvertisements';
+import { getPublicAreaDisplayLabel, getPublicCenterAdCode, getTargetedAdvertisementAudienceLabel, isSafeHttpsUrl, loadTargetedAdvertisements, type TargetedAdvertisement } from '../utils/targetedAdvertisements';
 const DirectoryListingsView = lazy(() => import('./DirectoryListingsView').then((module) => ({ default: module.DirectoryListingsView })));
 const ActivityModuleView = lazy(() => import('../modules/activities/ActivityModuleView').then((module) => ({ default: module.ActivityModuleView })));
 
@@ -754,17 +754,16 @@ export const DirectoryView: React.FC = () => {
         targetingLabel,
       };
     });
+  const selectedAdAreaLabel = getPublicAreaDisplayLabel(selectedGovFilter, selectedMarkazFilter);
   const platformPromoCoverSlides: CoverSlide[] = DIRECTORY_PLATFORM_PROMOS.map((promo) => ({
       image: promo.image,
       badge: 'خدمات المنصة',
       title: promo.title,
-      subtitle: selectedGovFilter === 'all'
-        ? 'خدمات لأصحاب الأنشطة في جميع محافظات مصر.'
-        : 'اعرض نشاطك واستقبل عملاء من ' + selectedGovFilter + '.',
+      subtitle: 'خدمات لأصحاب الأنشطة في ' + selectedAdAreaLabel + '.',
       governorates: selectedGovFilter === 'all' ? ['all'] : [selectedGovFilter],
       platformPromoId: promo.id,
       targetUrl: catalogRequestPhone
-        ? 'https://wa.me/' + catalogRequestPhone + '?text=' + encodeURIComponent('مرحبًا، أريد معرفة خدمات منصة MantiqatiX لأصحاب الأنشطة في ' + (selectedGovFilter === 'all' ? 'مصر' : selectedGovFilter) + '.')
+        ? 'https://wa.me/' + catalogRequestPhone + '?text=' + encodeURIComponent('مرحبًا، أريد معرفة خدمات منصة MantiqatiX لأصحاب الأنشطة في ' + selectedAdAreaLabel + '.')
         : undefined,
     }));
   const coverSlides: CoverSlide[] = [...targetedCoverSlides, ...platformPromoCoverSlides, ...businessCoverSlides];
@@ -1142,7 +1141,7 @@ export const DirectoryView: React.FC = () => {
                         </span>
                       )}
                       {slide.platformPromoId && selectedGovFilter !== 'all' && (
-                        <span className="rounded-full border border-white/35 bg-slate-950/80 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">خدمات لأصحاب الأنشطة في {selectedGovFilter}</span>
+                        <span className="rounded-full border border-white/35 bg-slate-950/80 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">لأصحاب الأنشطة في {selectedAdAreaLabel}</span>
                       )}
                     </div>
                   )}
