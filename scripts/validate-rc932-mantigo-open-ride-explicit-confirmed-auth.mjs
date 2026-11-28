@@ -32,6 +32,9 @@ assert.doesNotMatch(
   /coalesce\s*\(\s*\(\s*auth\.jwt\(\)\s*->>\s*'is_anonymous'/i,
   "RC932 must not coalesce a missing/null identity claim to confirmed"
 );
+assert.match(integration, /INSERT INTO auth\\.users\\(id\\)[\\s\\S]*?VALUES \\(v_captain\\),\\(v_customer\\)/,
+  "RC932 replay fixture must seed captain and customer Auth users before FK-backed rows");
+
 for (const marker of [
   "RC932 anon EXECUTE must remain denied",
   "RC932 authenticated EXECUTE must remain enabled",
