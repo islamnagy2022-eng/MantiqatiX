@@ -135,6 +135,13 @@ begin
     raise exception 'MEDIA_RETENTION_STATE_NOT_CLEARED';
   end if;
 
+  if (
+    select count(*) from cron.job
+    where jobname='mnty-cleanup-unused-catalog-media' and active
+  ) <> 1 then
+    raise exception 'MEDIA_RETENTION_HOURLY_CLEANUP_JOB_NOT_ACTIVE';
+  end if;
+
   raise notice 'CATALOG_MEDIA_CONTINUOUS_FIVE_DAY_RETENTION=PASS';
 end;
 $test$;
