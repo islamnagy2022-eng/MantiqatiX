@@ -809,12 +809,12 @@ export const DirectoryView: React.FC = () => {
   }, [selectedGovFilter, activeCoverSlides.length]);
 
   useEffect(() => {
-    if (activeCoverSlides.length <= 1) return;
+    if (isPlatformServicesOpen || activeCoverSlides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentCoverIndex((prev) => (prev + 1) % activeCoverSlides.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, [activeCoverSlides.length]);
+  }, [activeCoverSlides.length, isPlatformServicesOpen]);
 
   const normalizeSearch = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
     .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
