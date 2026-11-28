@@ -710,8 +710,8 @@ export const CartDrawer: React.FC = () => {
                 form="order-form"
                 className={`w-full py-3.5 px-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-white ${
                   paymentMethod === 'paymob'
-                    ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/25'
-                    : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25'
+                    ? 'bg-[#7a0000] hover:bg-[#5a0000] shadow-[#7a0000]/25'
+                    : 'bg-[#7a0000] hover:bg-[#5a0000] shadow-[#7a0000]/25'
                 }`}
               >
                 {paymentMethod === 'paymob' ? (
