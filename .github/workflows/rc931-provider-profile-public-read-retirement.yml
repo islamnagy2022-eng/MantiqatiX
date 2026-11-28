@@ -8,6 +8,7 @@ on:
       - "supabase/migrations/20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql"
       - "supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql"
       - "supabase/migrations/20261125130000_rc115_crm_business_scoped_reads.sql"
+      - "supabase/migrations/20261125140000_rc116_crm_business_scoped_writes.sql"
       - "supabase/migrations/20261128010000_rc931_provider_profile_public_base_read_retirement.sql"
       - "supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql"
       - "supabase/tests/rc931_provider_profile_public_read_fixture.sql"
@@ -69,12 +70,13 @@ jobs:
           psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261118190000_rc479_revoke_anon_provider_profile_base_read.sql
           psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql
           psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql
-      - name: Apply tenant-business CRM scope before retiring the global read
+      - name: Apply tenant-business CRM scope and preserve RC116 owner actions
         env:
           PGPASSWORD: postgres
         run: |
           set -euo pipefail
           psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261125130000_rc115_crm_business_scoped_reads.sql
+          psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261125140000_rc116_crm_business_scoped_writes.sql
       - name: Verify RC926 strict identity and owner compatibility before RC931
         env:
           PGPASSWORD: postgres
