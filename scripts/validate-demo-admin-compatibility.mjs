@@ -128,6 +128,11 @@ for (const marker of [
   'demo_admin_requires_rc464_registry_backed_root',
   'demo_admin_requires_rc464_empty_search_path',
   'demo_admin_requires_rc464_registry_force_rls',
+]) {
+  assert.ok(migration.includes(marker), 'Migration fail-fast preflight missing marker: ' + marker);
+}
+
+for (const marker of [
   'demo_admin_definer_search_path_not_empty',
   'demo_admin_internal_definer_path_failed',
   'demo_admin_membership_scope_index_missing_or_invalid',
