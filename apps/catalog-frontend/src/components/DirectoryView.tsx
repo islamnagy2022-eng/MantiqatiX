@@ -33,11 +33,12 @@ import {
   Palette,
   GraduationCap,
   Utensils,
+  X,
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { supabase } from '../lib/production';
-import { isSafeHttpsUrl, loadTargetedAdvertisements, type TargetedAdvertisement } from '../utils/targetedAdvertisements';
+import { getPublicAreaDisplayLabel, getPublicCenterAdCode, getTargetedAdvertisementAudienceLabel, isSafeHttpsUrl, loadTargetedAdvertisements, type TargetedAdvertisement } from '../utils/targetedAdvertisements';
 const DirectoryListingsView = lazy(() => import('./DirectoryListingsView').then((module) => ({ default: module.DirectoryListingsView })));
 const ActivityModuleView = lazy(() => import('../modules/activities/ActivityModuleView').then((module) => ({ default: module.ActivityModuleView })));
 
@@ -93,6 +94,7 @@ interface CoverSlide {
   advertisementId?: string;
   targetUrl?: string;
   matchLevel?: string;
+  targetingLabel?: string;
   platformPromoId?: string;
 }
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
@@ -100,6 +102,15 @@ const DIRECTORY_PLATFORM_PROMOS = [
   { id: 'platform-growth', image: (import.meta.env.BASE_URL || '/') + 'assets/mnty-cover-ad-1.svg', title: 'حوّل نشاطك إلى عملاء جدد' },
   { id: 'platform-registration', image: (import.meta.env.BASE_URL || '/') + 'assets/mnty-cover-ad-2.svg', title: 'سجّل نشاطك على MantiqatiX' },
   { id: 'platform-provider', image: (import.meta.env.BASE_URL || '/') + 'assets/mnty-cover-ad-3.svg', title: 'فرصتك تبدأ هنا' },
+] as const;
+
+const PLATFORM_SERVICE_ITEMS = [
+  { id: 'catalog', title: 'كتالوج ذكي لنشاطك', description: 'اعرض نشاطك ومنتجاتك وخدماتك بصورة منظمة وسهلة الوصول للعملاء.' },
+  { id: 'identity', title: 'تصميم وهوية بصرية', description: 'شعارات وهويات ومنشورات إعلانية متناسقة مع طبيعة نشاطك.' },
+  { id: 'social', title: 'إدارة صفحات التواصل', description: 'إعداد المحتوى وتنظيم النشر وتحسين حضور نشاطك على المنصات الاجتماعية.' },
+  { id: 'campaigns', title: 'حملات إعلانية ممولة', description: 'تخطيط حملات موجهة حسب الجمهور والمنطقة والهدف التسويقي.' },
+  { id: 'production', title: 'تصوير وفيديو إعلاني', description: 'إنتاج محتوى مرئي للمنتجات والخدمات ومقر النشاط.' },
+  { id: 'strategy', title: 'خطة تسويقية', description: 'تحديد الجمهور والرسائل والقنوات المناسبة لنمو نشاطك.' },
 ] as const;
 
 // Resolve category-aware covers locally when an activity has no uploaded cover.
@@ -206,8 +217,17 @@ export const DirectoryView: React.FC = () => {
   const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
   const [coverAdvertisements, setCoverAdvertisements] = useState<TargetedAdvertisement[]>([]);
   const [coverAdvertisementsLoading, setCoverAdvertisementsLoading] = useState(false);
+  const [isPlatformServicesOpen, setIsPlatformServicesOpen] = useState(false);
   const [locationBusy, setLocationBusy] = useState(false);
   const [locationMessage, setLocationMessage] = useState('');
+  useEffect(() => {
+    if (!isPlatformServicesOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsPlatformServicesOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [isPlatformServicesOpen]);
   const [unconfirmedListings, setUnconfirmedListings] = useState<PublicDirectoryListing[]>([]);
   const [directoryListingsLoaded, setDirectoryListingsLoaded] = useState(false);
   const [directoryListingsHasMore, setDirectoryListingsHasMore] = useState(false);
@@ -393,11 +413,17 @@ export const DirectoryView: React.FC = () => {
     let active = true;
     setCoverAdvertisements([]);
     setCoverAdvertisementsLoading(true);
+    const centerCode = getPublicCenterAdCode(
+      selectedMarkazFilter,
+      selectedGovFilter,
+      EGYPT_GEO_DISTRICTS,
+    );
     void loadTargetedAdvertisements(
       (functionName, args) => supabase.rpc(functionName, args),
       {
         adSpaces: ['HOME_HERO'],
         governorate: selectedGovFilter,
+        centerCode,
         latitude: geoPreferenceMode === 'auto' ? userCoordinates?.latitude ?? null : null,
         longitude: geoPreferenceMode === 'auto' ? userCoordinates?.longitude ?? null : null,
         limit: 8,
@@ -410,7 +436,7 @@ export const DirectoryView: React.FC = () => {
       if (active) setCoverAdvertisementsLoading(false);
     });
     return () => { active = false; };
-  }, [selectedGovFilter, geoPreferenceMode, userCoordinates?.latitude, userCoordinates?.longitude]);
+  }, [selectedGovFilter, selectedMarkazFilter, geoPreferenceMode, userCoordinates?.latitude, userCoordinates?.longitude]);
 
   const applyGovernorateScope = (requestedGovernorate: string) => {
     const governorate = requestedGovernorate === 'all'
@@ -730,29 +756,34 @@ export const DirectoryView: React.FC = () => {
       governorates: [business.governorate || 'all'],
       businessId: business.id,
     }));
-  const targetedCoverSlides: CoverSlide[] = coverAdvertisements.map((ad) => ({
-      image: ad.creative_url,
-      badge: 'إعلان ممول',
-      title: ad.title || 'خدمات وعروض من منطقتك',
-      subtitle: selectedGovFilter === 'all'
-        ? 'إعلان معتمد لخدمات متاحة داخل مصر.'
-        : 'إعلان يظهر ضمن نطاق البحث: ' + selectedGovFilter,
-      governorates: selectedGovFilter === 'all' ? ['all'] : [selectedGovFilter],
-      advertisementId: ad.advertisement_id,
-      targetUrl: ad.target_url || undefined,
-      matchLevel: ad.match_level,
-    }));
+  const targetedCoverSlides: CoverSlide[] = coverAdvertisements.map((ad) => {
+      const targetingLabel = getTargetedAdvertisementAudienceLabel(
+        ad.match_level,
+        selectedGovFilter,
+        selectedMarkazFilter,
+      );
+      return {
+        image: ad.creative_url,
+        badge: 'إعلان ممول',
+        title: ad.title || 'خدمات وعروض من منطقتك',
+        subtitle: targetingLabel + ' — حملة معتمدة لخدمات وعروض مناسبة لنطاقك.',
+        governorates: selectedGovFilter === 'all' ? ['all'] : [selectedGovFilter],
+        advertisementId: ad.advertisement_id,
+        targetUrl: ad.target_url || undefined,
+        matchLevel: ad.match_level,
+        targetingLabel,
+      };
+    });
+  const selectedAdAreaLabel = getPublicAreaDisplayLabel(selectedGovFilter, selectedMarkazFilter);
   const platformPromoCoverSlides: CoverSlide[] = DIRECTORY_PLATFORM_PROMOS.map((promo) => ({
       image: promo.image,
       badge: 'خدمات المنصة',
       title: promo.title,
-      subtitle: selectedGovFilter === 'all'
-        ? 'خدمات لأصحاب الأنشطة في جميع محافظات مصر.'
-        : 'اعرض نشاطك واستقبل عملاء من ' + selectedGovFilter + '.',
+      subtitle: 'خدمات لأصحاب الأنشطة في ' + selectedAdAreaLabel + '.',
       governorates: selectedGovFilter === 'all' ? ['all'] : [selectedGovFilter],
       platformPromoId: promo.id,
       targetUrl: catalogRequestPhone
-        ? 'https://wa.me/' + catalogRequestPhone + '?text=' + encodeURIComponent('مرحبًا، أريد معرفة خدمات منصة MantiqatiX لأصحاب الأنشطة في ' + (selectedGovFilter === 'all' ? 'مصر' : selectedGovFilter) + '.')
+        ? 'https://wa.me/' + catalogRequestPhone + '?text=' + encodeURIComponent('مرحبًا، أريد معرفة خدمات منصة MantiqatiX لأصحاب الأنشطة في ' + selectedAdAreaLabel + '.')
         : undefined,
     }));
   const coverSlides: CoverSlide[] = [...targetedCoverSlides, ...platformPromoCoverSlides, ...businessCoverSlides];
@@ -779,12 +810,12 @@ export const DirectoryView: React.FC = () => {
   }, [selectedGovFilter, activeCoverSlides.length]);
 
   useEffect(() => {
-    if (activeCoverSlides.length <= 1) return;
+    if (isPlatformServicesOpen || activeCoverSlides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentCoverIndex((prev) => (prev + 1) % activeCoverSlides.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, [activeCoverSlides.length]);
+  }, [activeCoverSlides.length, isPlatformServicesOpen]);
 
   const normalizeSearch = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
     .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
@@ -1075,7 +1106,7 @@ export const DirectoryView: React.FC = () => {
         {/* Paid HOME_HERO campaigns take priority; published businesses remain a fallback when no eligible campaign exists. */}
         <section aria-label="إعلانات الخدمات والأنشطة حسب المنطقة" data-testid="directory-cover-advertisements" className="space-y-3">
           {activeCoverSlides.length > 0 ? (
-            <div className="relative aspect-[4/3] sm:aspect-[650/228] w-full rounded-3xl overflow-hidden shadow-2xl bg-slate-900 group">
+            <div className="relative aspect-[45/26] w-full rounded-3xl overflow-hidden border border-[#ead5c5] shadow-xl bg-[#160809] group">
               {activeCoverSlides.map((slide, idx) => (
                 <div
                   key={slide.advertisementId || slide.platformPromoId || slide.businessId || `${slide.title}-${idx}`}
@@ -1088,9 +1119,13 @@ export const DirectoryView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      if (slide.advertisementId || slide.platformPromoId) {
+                      if (slide.advertisementId) {
                         const safeTarget = isSafeHttpsUrl(slide.targetUrl);
                         if (safeTarget) window.open(safeTarget, '_blank', 'noopener,noreferrer');
+                        return;
+                      }
+                      if (slide.platformPromoId) {
+                        setIsPlatformServicesOpen(true);
                         return;
                       }
                       if (!slide.businessId) return;
@@ -1127,8 +1162,13 @@ export const DirectoryView: React.FC = () => {
                   {(slide.advertisementId || slide.platformPromoId) && (
                     <div className="pointer-events-none absolute right-3 top-3 z-20 flex items-center gap-2" aria-label={slide.advertisementId ? 'إعلان ممول' : 'إعلان من المنصة'}>
                       <span className="rounded-full border border-white/40 bg-[#7a0000]/95 px-3 py-1.5 text-[10px] font-black text-white shadow-lg">{slide.advertisementId ? 'إعلان ممول' : 'خدمات المنصة'}</span>
-                      {selectedGovFilter !== 'all' && (
-                        <span className="rounded-full border border-white/35 bg-slate-950/75 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">لمنطقة {selectedGovFilter}</span>
+                      {slide.advertisementId && slide.targetingLabel && (
+                        <span data-testid="directory-cover-ad-targeting" className="rounded-full border border-white/35 bg-slate-950/80 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">
+                          {slide.targetingLabel}
+                        </span>
+                      )}
+                      {slide.platformPromoId && selectedGovFilter !== 'all' && (
+                        <span className="rounded-full border border-white/35 bg-slate-950/80 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">لأصحاب الأنشطة في {selectedAdAreaLabel}</span>
                       )}
                     </div>
                   )}
@@ -1542,6 +1582,68 @@ export const DirectoryView: React.FC = () => {
           activityName={shareActivity.name}
           onClose={() => setShareActivity(null)}
         />
+      )}
+      {isPlatformServicesOpen && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-slate-950/75 p-3 backdrop-blur-sm sm:p-6"
+          onClick={() => setIsPlatformServicesOpen(false)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="platform-services-title"
+            data-testid="platform-services-dialog"
+            className="my-auto w-full max-w-3xl rounded-3xl border border-[#ead5c5] bg-white p-5 text-right shadow-2xl sm:p-7"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#fff3e0] px-3 py-1 text-[10px] font-black text-[#7a0000]">
+                  <Sparkles className="h-3 w-3" /> خدمات MantiqatiX
+                </span>
+                <h2 id="platform-services-title" className="mt-2 text-xl font-black text-slate-950 sm:text-2xl">
+                  خدمات لأصحاب الأنشطة في {selectedAdAreaLabel}
+                </h2>
+                <p className="mt-2 text-xs leading-6 text-slate-600">
+                  اختر الخدمة المناسبة لنشاطك. يتم تحديد التفاصيل والتكلفة بعد مراجعة احتياجات النشاط، دون عرض أسعار ثابتة غير معتمدة.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPlatformServicesOpen(false)}
+                aria-label="إغلاق خدمات المنصة"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {PLATFORM_SERVICE_ITEMS.map((service) => (
+                <article key={service.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <h3 className="text-sm font-black text-[#7a0000]">{service.title}</h3>
+                  <p className="mt-1 text-xs leading-5 text-slate-600">{service.description}</p>
+                </article>
+              ))}
+            </div>
+
+            {catalogRequestPhone ? (
+              <a
+                data-testid="platform-services-whatsapp-request"
+                href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد معرفة خدمات منصة MantiqatiX لأصحاب الأنشطة في ' + selectedAdAreaLabel + '.')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#7a0000] px-5 py-3 text-xs font-black text-white transition hover:bg-[#5a0000] sm:w-auto"
+              >
+                <MessageCircle className="h-4 w-4" /> اطلب التواصل عبر واتساب
+              </a>
+            ) : (
+              <p role="status" className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                رقم التواصل الرسمي لإدارة المنصة غير مضبوط بعد. أضفه من إعدادات المنصة لتفعيل طلب الخدمة عبر واتساب.
+              </p>
+            )}
+          </section>
+        </div>
       )}
     </div>
   );

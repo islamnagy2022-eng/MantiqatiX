@@ -56,6 +56,91 @@ export const getPublicGovernorateAdCode = (governorate: string | null | undefine
   return GOVERNORATE_CODE_BY_NAME.get(normalized) ?? null;
 };
 
+/**
+ * Describes the geographic scope actually matched by the public ad-delivery RPC.
+ * The label intentionally follows match_level rather than assuming every ad
+ * belongs to the visitor's selected governorate.
+ */
+export interface PublicCenterDirectoryEntry {
+  id: string;
+  name: string;
+  governorateName: string;
+}
+
+const normalizeAdGeographyName = (value: unknown): string => String(value || '')
+  .toLocaleLowerCase('ar-EG')
+  .normalize('NFKC')
+  .replace(/[أإآ]/g, 'ا')
+  .replace(/[ىي]/g, 'ي')
+  .replace(/ة/g, 'ه')
+  .replace(/[\u064B-\u065F\u0670]/g, '')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+/**
+ * Resolve only known Egyptian Markaz rows whose displayed name and governorate
+ * exactly match the bundled administrative directory. Non-center units (qism,
+ * city, village, etc.) intentionally fall back to governorate-level targeting.
+ */
+export const getPublicCenterAdCode = (
+  center: string | null | undefined,
+  governorate: string | null | undefined,
+  directory: readonly PublicCenterDirectoryEntry[],
+): string | null => {
+  const selectedCenter = normalizeAdGeographyName(center);
+  const selectedGovernorate = normalizeAdGeographyName(governorate);
+  if (!selectedCenter || selectedCenter === 'all' ||
+      !selectedGovernorate || selectedGovernorate === 'all') return null;
+
+  const match = directory.find((entry) =>
+    /^مركز\s/.test(String(entry.name || '').trim()) &&
+    normalizeAdGeographyName(entry.name) === selectedCenter &&
+    normalizeAdGeographyName(entry.governorateName) === selectedGovernorate &&
+    /^EG\d{4}$/.test(String(entry.id || ''))
+  );
+  return match?.id || null;
+};
+
+/**
+ * Builds location copy for platform-owned promotional slides and their request
+ * link. The selected label is descriptive only; it does not claim a paid ad
+ * has been booked or that a campaign is live in that area.
+ */
+export const getPublicAreaDisplayLabel = (
+  governorate?: string | null,
+  center?: string | null,
+): string => {
+  const selectedGovernorate = String(governorate || '').trim();
+  const hasGovernorate = Boolean(selectedGovernorate && selectedGovernorate.toLowerCase() !== 'all');
+  const selectedCenter = String(center || '').trim();
+  const hasCenter = Boolean(selectedCenter && selectedCenter.toLowerCase() !== 'all');
+  if (hasCenter && hasGovernorate) return `${selectedCenter}، ${selectedGovernorate}`;
+  if (hasCenter) return selectedCenter;
+  if (hasGovernorate) return selectedGovernorate;
+  return 'جميع محافظات مصر';
+};
+
+export const getTargetedAdvertisementAudienceLabel = (
+  matchLevel: unknown,
+  governorate?: string | null,
+  center?: string | null,
+): string => {
+  const level = String(matchLevel || '').trim().toUpperCase();
+  const selectedGovernorate = String(governorate || '').trim();
+  const hasGovernorate = Boolean(selectedGovernorate && selectedGovernorate.toLowerCase() !== 'all');
+  const selectedCenter = String(center || '').trim();
+  const hasCenter = Boolean(selectedCenter && selectedCenter.toLowerCase() !== 'all');
+
+  if (level === 'CENTER') {
+    const centerName = selectedCenter.replace(/^مركز\s*/u, '').trim();
+    return hasCenter && centerName ? `موجه لمركز ${centerName}` : 'موجه لمركز محدد';
+  }
+  if (level === 'GOVERNORATE') return hasGovernorate ? `موجه لمحافظة ${selectedGovernorate}` : 'موجه لمحافظة محددة';
+  if (level === 'COUNTRY') return 'حملة عامة على مستوى مصر';
+  if (level === 'NEAREST') return 'أقرب نطاق إعلاني متاح';
+  return 'نطاق الاستهداف غير محدد';
+};
+
 const validEgyptCoordinates = (latitude: unknown, longitude: unknown): { latitude: number; longitude: number } | null => {
   if (typeof latitude !== 'number' || typeof longitude !== 'number' ||
       !Number.isFinite(latitude) || !Number.isFinite(longitude) ||
@@ -131,6 +216,14 @@ export async function loadTargetedAdvertisements(
     const id = typeof row.advertisement_id === 'string' ? row.advertisement_id.trim() : '';
     const creativeUrl = isSafeHttpsUrl(row.creative_url);
     if (!id || !creativeUrl) continue;
+
+    // The RPC's historical fallback can label an unmatched normal geo-targeted
+    // row as GLOBAL. Only platform_global_advertisements receives the GLOBAL-
+    // identity prefix; reject a mismatch rather than widening a local campaign.
+    const matchLevel = typeof row.match_level === 'string' ? row.match_level.trim().toUpperCase() : '';
+    const isPlatformGlobalAdvertisement = id.startsWith('GLOBAL-');
+    if (matchLevel === 'GLOBAL' && !isPlatformGlobalAdvertisement) continue;
+    if (isPlatformGlobalAdvertisement && matchLevel !== 'GLOBAL') continue;
 
     if (!unique.has(id)) {
       unique.set(id, {

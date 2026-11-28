@@ -20,6 +20,7 @@ const defaults = fs.readFileSync('apps/catalog-frontend/src/data/productionDefau
 const publicConfig = fs.readFileSync('apps/catalog-frontend/public/config.js', 'utf8');
 const webConfig = fs.readFileSync('web/config.js', 'utf8');
 const directory = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryView.tsx', 'utf8');
+const targetedAdvertisements = fs.readFileSync('apps/catalog-frontend/src/utils/targetedAdvertisements.ts', 'utf8');
 const directoryListingsView = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryListingsView.tsx', 'utf8');
 const directoryListingsLib = fs.readFileSync('apps/catalog-frontend/src/lib/directoryListings.ts', 'utf8');
 const activityModuleView = fs.readFileSync('apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx', 'utf8');
@@ -249,7 +250,42 @@ assert.match(context, /const toggleBusinessFreeze = async/, 'manual freeze chang
 assert.match(context, /Freeze is an independent operational flag[\s\S]{0,180}await updateBillingSetting\(businessId, \{ isFrozen: frozen \}\)/, 'Freeze/unfreeze must not overwrite the underlying payment status');
 assert.ok(directory.includes("if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.operationalStatus !== 'ACTIVE' || biz.isFrozen) return false;"), 'The public directory must hide unpublished, inactive, and frozen businesses except official showcases');
 assert.ok(directory.includes('const businessCoverSlides: CoverSlide[] = liveFeaturedBusinesses.map((business) =>'), 'Published business records remain the non-sponsored fallback for the home cover');
-assert.ok(directory.includes('const targetedCoverSlides: CoverSlide[] = coverAdvertisements.map((ad) => ({') && directory.includes("badge: 'إعلان ممول'") && directory.includes('advertisementId: ad.advertisement_id'), 'The home cover must render real targeted HOME_HERO advertisement records');
+assert.ok(
+  directory.includes("adSpaces: ['HOME_HERO']") &&
+  directory.includes('loadTargetedAdvertisements(') &&
+  directory.includes('const targetedCoverSlides: CoverSlide[] = coverAdvertisements.map((ad) => {') &&
+  directory.includes("badge: 'إعلان ممول'") &&
+  directory.includes('advertisementId: ad.advertisement_id') &&
+  directory.includes('matchLevel: ad.match_level') &&
+  directory.includes('getTargetedAdvertisementAudienceLabel') &&
+  directory.includes('getPublicCenterAdCode(') &&
+  directory.includes('selectedMarkazFilter,') &&
+  directory.includes('centerCode,'),
+  'The home cover must render real targeted HOME_HERO advertisement records and preserve their actual geographic match level'
+);
+assert.match(targetedAdvertisements, /p_ad_space_id: space/);
+assert.match(targetedAdvertisements, /p_governorate_code: governorateCode/);
+assert.match(targetedAdvertisements, /p_center_code: centerCode/);
+assert.match(targetedAdvertisements, /export const getTargetedAdvertisementAudienceLabel/);
+assert.match(targetedAdvertisements, /export const getPublicCenterAdCode/);
+assert.match(targetedAdvertisements, /export const getPublicAreaDisplayLabel/);
+assert.match(targetedAdvertisements, /const isPlatformGlobalAdvertisement = id\.startsWith\('GLOBAL-'\)/);
+assert.match(targetedAdvertisements, /if \(matchLevel === 'GLOBAL' && !isPlatformGlobalAdvertisement\) continue;/,
+  'unmatched geographic ads must never be widened into an all-Egypt global placement');
+assert.match(targetedAdvertisements, /if \(isPlatformGlobalAdvertisement && matchLevel !== 'GLOBAL'\) continue;/,
+  'platform-global identity and the RPC global match level must agree');
+assert.ok(directory.includes('const selectedAdAreaLabel = getPublicAreaDisplayLabel(selectedGovFilter, selectedMarkazFilter)') &&
+  directory.includes('selectedAdAreaLabel +') &&
+  directory.includes('encodeURIComponent') &&
+  directory.includes('selectedAdAreaLabel'), 'platform-owned cover promos and their request link must reflect the visitor-selected area');
+assert.ok(directory.includes('if (slide.platformPromoId) {') &&
+  directory.includes('setIsPlatformServicesOpen(true)') &&
+  directory.includes('data-testid="platform-services-dialog"') &&
+  directory.includes('PLATFORM_SERVICE_ITEMS.map'), 'platform cover promos must open an in-app service information dialog when selected');
+assert.match(directory, /if \(isPlatformServicesOpen \|\| activeCoverSlides\.length <= 1\) return;/, 'cover autoplay must pause while the platform services dialog is open');
+assert.ok(directory.includes('data-testid="platform-services-whatsapp-request"') &&
+  directory.includes('{catalogRequestPhone ? (') &&
+  directory.includes('رقم التواصل الرسمي لإدارة المنصة غير مضبوط بعد'), 'the service request link must use only configured official WhatsApp contact and explain when it is unavailable');
 assert.ok(directory.includes('const platformPromoCoverSlides: CoverSlide[] = DIRECTORY_PLATFORM_PROMOS.map((promo) => ({') && directory.includes('assets/mnty-cover-ad-1.svg') && directory.includes("badge: 'خدمات المنصة'"), 'Official platform service promos must fill the cover when no regional paid campaign exists');
 assert.ok(directoryCoverPromoAssets.length === 3 && directoryCoverPromoAssets.every((asset) => asset.startsWith('<svg') && asset.includes('MantiqatiX')), 'All three official platform promo creatives must ship inside the catalog app public assets'); 
 assert.ok(directory.includes('const coverSlides: CoverSlide[] = [...targetedCoverSlides, ...platformPromoCoverSlides, ...businessCoverSlides]'), 'Targeted paid cover campaigns must appear first, followed by official platform promos and local business fallback');

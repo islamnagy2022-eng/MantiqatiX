@@ -1564,6 +1564,54 @@ try {
     } finally { await context.close(); }
   }
 
+  // Region-aware platform cover promos must remain actionable without inventing a support contact.
+  {
+    const { context, page } = await newScenario(browser, null, [], { initialRoute: '?view=directory' });
+    try {
+      const cover = page.getByTestId('directory-cover-advertisements');
+      await cover.waitFor({ state: 'visible', timeout: 15000 });
+
+      const openActivePlatformPromo = async () => {
+        const activeSlide = cover.locator('div[aria-hidden="false"]');
+        await activeSlide.getByTestId('directory-cover-platform-promo')
+          .waitFor({ state: 'visible', timeout: 10000 });
+        await activeSlide.locator('button').click();
+      };
+
+      await openActivePlatformPromo();
+      const dialog = page.getByTestId('platform-services-dialog');
+      await dialog.waitFor({ state: 'visible', timeout: 5000 });
+      await dialog.getByRole('heading', {
+        name: 'خدمات لأصحاب الأنشطة في جميع محافظات مصر',
+        exact: true,
+      }).waitFor({ state: 'visible' });
+      assert.equal(await dialog.locator('article').count(), 6,
+        'the platform promo dialog must list the six available service categories');
+      assert.equal(await dialog.getByTestId('platform-services-whatsapp-request').count(), 0,
+        'the dialog must not invent a WhatsApp link when no official support number is configured');
+      await dialog.getByText('رقم التواصل الرسمي لإدارة المنصة غير مضبوط بعد', { exact: false })
+        .waitFor({ state: 'visible' });
+
+      await dialog.getByRole('button', { name: 'إغلاق خدمات المنصة' }).click();
+      await dialog.waitFor({ state: 'hidden', timeout: 5000 });
+
+      const governorateSelect = page.locator('label').filter({ hasText: 'المحافظة' }).locator('select').first();
+      await governorateSelect.selectOption({ label: 'المنوفية' });
+      const centerSelect = page.locator('label').filter({ hasText: 'المركز / المدينة' }).locator('select').first();
+      await centerSelect.selectOption({ label: 'مركز بركة السبع' });
+
+      await openActivePlatformPromo();
+      await dialog.getByRole('heading', {
+        name: 'خدمات لأصحاب الأنشطة في مركز بركة السبع، المنوفية',
+        exact: true,
+      }).waitFor({ state: 'visible', timeout: 5000 });
+      await page.keyboard.press('Escape');
+      await dialog.waitFor({ state: 'hidden', timeout: 5000 });
+      await assertNoHorizontalOverflow(page, 'region-aware platform services dialog at 390px');
+      results.push('region-aware-cover-platform-services-dialog-with-safe-contact-and-markaz-copy');
+    } finally { await context.close(); }
+  }
+
   // 12. Stale unclaimed directory fixtures must never render in the V1 public activity route.
   {
     const staleUnclaimed = {

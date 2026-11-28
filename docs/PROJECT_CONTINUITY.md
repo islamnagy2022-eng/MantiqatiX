@@ -1,3 +1,13 @@
+## 2026-11-28 — Homepage regional ads and merchant image continuation
+
+- PR #1205 merged and deployed: region-aware governorate homepage placements, branded broken-ad creative, and category-aware/local image fallbacks. Post-merge Pages/deployed-origin verification passed.
+- PR #1208 merged as `af59e31fcf50ff47e095535670ae8ffbd56a20c8`; added merchant dashboard and subscriber activity image recovery. At this checkpoint its build and RBAC jobs passed, browser E2E and Pages validation were still in progress; deployment status must be read from the exact main SHA before claiming release.
+- New source-only branch: `feat/center-aware-homepage-cover-and-service-dialog-20261128`. Adds exact Markaz-code targeting only for verified Egyptian administrative directory matches; corrects misleading GLOBAL labels defensively by requiring GLOBAL IDs to use the existing `GLOBAL-` prefix; adds actual-match-level labels and in-page service details with area-specific copy. Missing official support phone remains explicitly unavailable; no contact number is invented.
+- Regression work includes RPC filtering, Markaz code mapping, regional copy, browser interaction at desktop/mobile width, and production-source contract assertions. Exact-head CI is pending.
+- Production safety unchanged: no Production SQL/migrations, Auth, RLS/GRANT, Storage, Edge, ad campaign, payment, or customer/business-data writes. Frontend GLOBAL filter is only a mitigation; the live RPC still requires a separately reviewed forward migration. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 ## 2026-11-28 — RC932 MantiGO confirmed-identity repair and current release gate
 
 - [x] Reconfirmed connected Production is `MANTIQATIX FINAL` ACTIVE_HEALTHY on PostgreSQL 17.6.1.155; live migration ledger remains 310 rows through `20261110150618`.
