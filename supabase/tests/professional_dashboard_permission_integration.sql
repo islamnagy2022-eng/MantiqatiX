@@ -116,6 +116,34 @@ INSERT INTO public.user_memberships(id,user_id,tenant_id,organization_id,busines
 ('employee-update-a','00000000-0000-0000-0000-000000000010','tenant-a','org-a','10000000-0000-0000-0000-000000000001',null,'EMPLOYEE','{"modules":{"EMPLOYEES":["update"]}}','ACTIVE')
 ON CONFLICT (id) DO NOTHING;
 
+-- The tenant-wide OWNER's access is explicit and permission-backed, not implicit.
+-- This matches the second forward definition of the HR RPCs and keeps cross-tenant
+-- calls denied by the assignment's tenant scope.
+INSERT INTO public.platform_custom_roles
+  (id,role_key,display_name,description,scope,permissions,is_system,is_active,created_by,updated_by)
+VALUES
+  ('40000000-0000-4000-8000-000000000001',
+   'TENANT_A_EMPLOYEE_MANAGER',
+   'Tenant A Employee Manager',
+   'RBAC fixture: create/manage employee roles inside tenant A only',
+   'TENANT',
+   '{"modules":{"EMPLOYEES":["create","manage"]}}'::jsonb,
+   false,true,
+   '00000000-0000-0000-0000-000000000009',
+   '00000000-0000-0000-0000-000000000009')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.platform_role_assignments
+  (id,user_id,role_id,tenant_id,business_id,branch_id,is_active,created_by,updated_by)
+VALUES
+  ('50000000-0000-4000-8000-000000000001',
+   '00000000-0000-0000-0000-000000000009',
+   '40000000-0000-4000-8000-000000000001',
+   'tenant-a',NULL,NULL,true,
+   '00000000-0000-0000-0000-000000000009',
+   '00000000-0000-0000-0000-000000000009')
+ON CONFLICT (id) DO NOTHING;
+
 -- Owner-owned seed rows: no browser role has direct table access.
 INSERT INTO public.business_job_positions
   (id,tenant_id,business_id,branch_id,title,description,department,employment_type,permission_template,is_hiring,is_active,created_by,updated_by)
