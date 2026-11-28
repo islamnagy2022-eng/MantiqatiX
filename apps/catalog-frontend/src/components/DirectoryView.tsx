@@ -1108,8 +1108,16 @@ export const DirectoryView: React.FC = () => {
                       loading={idx === currentCoverIndex ? 'eager' : 'lazy'}
                       onError={(event) => {
                         const image = event.currentTarget;
-                        const fallback = resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' });
-                        if (!image.src.endsWith(fallback.replace(/^.*\//, ''))) image.src = fallback;
+                        const fallback = slide.advertisementId
+                          ? (import.meta.env.BASE_URL || '/') + 'ad-creative-placeholder.svg'
+                          : resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' });
+                        if (!image.dataset.coverFallbackApplied) {
+                          image.dataset.coverFallbackApplied = 'true';
+                          image.src = fallback;
+                        } else {
+                          image.onerror = null;
+                          image.style.visibility = 'hidden';
+                        }
                       }}
                     />
 
