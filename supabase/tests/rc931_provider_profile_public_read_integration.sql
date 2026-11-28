@@ -241,11 +241,28 @@ RESET ROLE;
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims',
   '{"sub":"30000000-0000-4000-8000-000000000015","role":"authenticated","is_anonymous":false}', false);
+-- RC926's confirmed-owner integration inserts one additional synthetic ACTIVE
+-- profile into this same disposable database. Require the six RC931 fixture rows
+-- plus that known RC926 row, and reject any seventh unexpected profile.
 DO $platform_admin$
 BEGIN
-  IF (SELECT count(*) FROM public.marketing_provider_profiles) <> 6 THEN
+  IF (SELECT count(*) FROM public.marketing_provider_profiles) <> 7 THEN
     RAISE EXCEPTION 'RC931_PLATFORM_ADMIN_GLOBAL_READ_REGRESSED:%',
       (SELECT count(*) FROM public.marketing_provider_profiles);
+  END IF;
+  IF (SELECT count(*) FROM public.marketing_provider_profiles WHERE id IN (
+    '40000000-0000-4000-8000-000000000001',
+    '40000000-0000-4000-8000-000000000002',
+    '40000000-0000-4000-8000-000000000003',
+    '40000000-0000-4000-8000-000000000004',
+    '40000000-0000-4000-8000-000000000005',
+    '40000000-0000-4000-8000-000000000006'
+  )) <> 6 OR NOT EXISTS (
+    SELECT 1 FROM public.marketing_provider_profiles
+     WHERE id='10000000-0000-4000-8000-000000000001'
+       AND status='ACTIVE'
+  ) THEN
+    RAISE EXCEPTION 'RC931_PLATFORM_ADMIN_FIXTURE_ROWS_MISSING';
   END IF;
 END;
 $platform_admin$;
@@ -284,7 +301,8 @@ DO $service_role$
 DECLARE visible integer; active_public integer;
 BEGIN
   SELECT count(*) INTO visible FROM public.marketing_provider_profiles;
-  IF visible <> 6 THEN
+  -- The same disposable DB includes the additional RC926 synthetic profile.
+  IF visible <> 7 THEN
     RAISE EXCEPTION 'RC931_SERVICE_ROLE_READ_REGRESSED:%', visible;
   END IF;
   SELECT count(*) INTO active_public FROM (
@@ -292,7 +310,8 @@ BEGIN
     FROM public.marketing_provider_profiles
     WHERE status='ACTIVE'
   ) approved_projection;
-  IF active_public <> 2 THEN
+  -- Two RC931 fixture profiles plus the confirmed RC926 synthetic row are ACTIVE.
+  IF active_public <> 3 THEN
     RAISE EXCEPTION 'RC931_SERVICE_ROLE_PUBLIC_PROJECTION_SOURCE_REGRESSED:%', active_public;
   END IF;
 END;
