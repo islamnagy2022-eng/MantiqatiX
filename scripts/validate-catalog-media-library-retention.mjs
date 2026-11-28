@@ -9,6 +9,7 @@ const migration = readFileSync('supabase/migrations/20261128070000_mnty_catalog_
 const optimizedMigration = readFileSync('supabase/migrations/20261128071000_optimize_catalog_media_reference_scan.sql', 'utf8');
 const allTextMigration = readFileSync('supabase/migrations/20261128072000_include_all_text_catalog_media_references.sql', 'utf8');
 const unusedWindowMigration = readFileSync('supabase/migrations/20261128080000_start_media_retention_on_unreferenced_date.sql', 'utf8');
+const unusedWindowIntegration = readFileSync('supabase/tests/catalog_media_unreferenced_five_day_window_integration.sql', 'utf8');
 const config = readFileSync('supabase/config.toml', 'utf8');
 
 assert.ok(proxy.includes('action === "list_catalog_images"'), 'the authenticated image proxy must expose image-library listing');
@@ -59,6 +60,11 @@ assert.ok(!unusedWindowMigration.includes("o.created_at <= now() - interval '5 d
   'an old upload that was used recently must not be deleted until it has been continuously unreferenced for five days');
 assert.ok(unusedWindowMigration.includes('mnty_clear_catalog_media_retention_state(text[])'),
   'successful Storage deletion must clear its retention-state row');
+assert.ok(unusedWindowIntegration.includes('MEDIA_RETENTION_DELETED_BEFORE_FIVE_UNUSED_DAYS') &&
+  unusedWindowIntegration.includes('MEDIA_RETENTION_LIVE_REFERENCE_DID_NOT_RESET_CLOCK') &&
+  unusedWindowIntegration.includes('MEDIA_RETENTION_DID_NOT_RELEASE_IMAGE_AFTER_FIVE_UNUSED_DAYS') &&
+  unusedWindowIntegration.includes('mnty_clear_catalog_media_retention_state'),
+  'PostgreSQL integration must prove the five-day timer starts on becoming unused, resets on reuse, and expires after five continuous unused days');
 assert.ok(migration.includes('cron.schedule(') && migration.includes("'17 * * * *'"),
   'unused media cleanup must be scheduled automatically every hour');
 assert.ok(migration.includes('revoke all on function public.mnty_catalog_media_cleanup_token_valid(text) from public, anon, authenticated'),
