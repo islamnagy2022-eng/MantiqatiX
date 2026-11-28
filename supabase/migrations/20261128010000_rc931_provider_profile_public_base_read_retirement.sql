@@ -242,6 +242,53 @@ create policy "CRM managers view marketing providers"
     )
   );
 
+-- The JSONB settings column is wider than the owner branding capability.
+-- Keep owner self-service to the provider logo path; platform-managed metadata
+-- remains writable only through trusted platform/service-role workflows.
+create or replace function public.mnty_guard_provider_profile_branding_only()
+returns trigger
+language plpgsql
+set search_path to ''
+as $function$
+declare
+  v_old_settings jsonb;
+  v_new_settings jsonb;
+begin
+  if current_user <> 'authenticated' then
+    return new;
+  end if;
+
+  v_old_settings := coalesce(old.settings, '{}'::jsonb);
+  v_new_settings := coalesce(new.settings, '{}'::jsonb);
+
+  if (v_new_settings - 'branding') is distinct from (v_old_settings - 'branding') then
+    raise exception 'PROVIDER_PROFILE_OWNER_SETTINGS_NOT_BRANDING'
+      using errcode = '42501';
+  end if;
+
+  if v_new_settings ? 'branding'
+     and pg_catalog.jsonb_typeof(v_new_settings->'branding') is distinct from 'object' then
+    raise exception 'PROVIDER_PROFILE_OWNER_BRANDING_OBJECT_REQUIRED'
+      using errcode = '42501';
+  end if;
+
+  if (coalesce(v_new_settings->'branding', '{}'::jsonb) - 'logo_path')
+       is distinct from
+     (coalesce(v_old_settings->'branding', '{}'::jsonb) - 'logo_path') then
+    raise exception 'PROVIDER_PROFILE_OWNER_SETTINGS_NOT_BRANDING'
+      using errcode = '42501';
+  end if;
+
+  return new;
+end;
+$function$;
+
+drop trigger if exists mnty_provider_profile_branding_only on public.marketing_provider_profiles;
+create trigger mnty_provider_profile_branding_only
+  before update of settings on public.marketing_provider_profiles
+  for each row
+  execute function public.mnty_guard_provider_profile_branding_only();
+
 do $postflight$
 declare
   v_crm_qual text;
@@ -287,6 +334,19 @@ begin
      or position('is_platform_admin()' in v_crm_qual_normalized) = 0
      or position($rc931_tenant$b.tenant_id<>'mnty-platform'$rc931_tenant$ in v_crm_qual_normalized) = 0 then
     raise exception 'RC931_REGISTRY_ONLY_CRM_POLICY_REQUIRED';
+  end if;
+
+  if not exists (
+    select 1
+    from pg_catalog.pg_trigger t
+    join pg_catalog.pg_proc p on p.oid = t.tgfoid
+    where t.tgrelid = 'public.marketing_provider_profiles'::regclass
+      and t.tgname = 'mnty_provider_profile_branding_only'
+      and not t.tgisinternal
+      and p.proname = 'mnty_guard_provider_profile_branding_only'
+      and p.prosecdef = false
+  ) then
+    raise exception 'RC931_PROVIDER_PROFILE_BRANDING_GUARD_REQUIRED';
   end if;
 end;
 $postflight$;
