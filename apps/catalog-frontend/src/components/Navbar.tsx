@@ -194,7 +194,7 @@ export const Navbar: React.FC = () => {
               <div>
                 <div className="flex items-baseline gap-1">
                   <h1 className="font-black text-base sm:text-lg text-slate-900 tracking-tight leading-tight">
-                    منطقتي <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 text-xs sm:text-sm font-black">X</span>
+                    منطقتي <span className="text-[#7a0000] bg-[#fff3e0] px-1.5 py-0.5 rounded-md border border-[#ead5c5] text-xs sm:text-sm font-black">X</span>
                   </h1>
                 </div>
                 <p className="text-[10px] text-slate-400 font-bold -mt-0.5 hidden sm:block">
