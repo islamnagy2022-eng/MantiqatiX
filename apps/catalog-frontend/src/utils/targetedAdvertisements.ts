@@ -101,6 +101,25 @@ export const getPublicCenterAdCode = (
   return match?.id || null;
 };
 
+/**
+ * Builds location copy for platform-owned promotional slides and their request
+ * link. The selected label is descriptive only; it does not claim a paid ad
+ * has been booked or that a campaign is live in that area.
+ */
+export const getPublicAreaDisplayLabel = (
+  governorate?: string | null,
+  center?: string | null,
+): string => {
+  const selectedGovernorate = String(governorate || '').trim();
+  const hasGovernorate = Boolean(selectedGovernorate && selectedGovernorate.toLowerCase() !== 'all');
+  const selectedCenter = String(center || '').trim();
+  const hasCenter = Boolean(selectedCenter && selectedCenter.toLowerCase() !== 'all');
+  if (hasCenter && hasGovernorate) return `${selectedCenter}، ${selectedGovernorate}`;
+  if (hasCenter) return selectedCenter;
+  if (hasGovernorate) return selectedGovernorate;
+  return 'جميع محافظات مصر';
+};
+
 export const getTargetedAdvertisementAudienceLabel = (
   matchLevel: unknown,
   governorate?: string | null,
