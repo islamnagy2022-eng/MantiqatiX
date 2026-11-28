@@ -59,6 +59,30 @@ The live DEMO registry currently has only the `user_id` and `created_at` columns
 
 After the insert, verify as the authorized operator that the exact approved UUID is present and its Auth account remains confirmed. Then sign in to the DEMO site using that account and verify the server-backed root guard through the application.
 
+Run this read-back query in the DEMO SQL Editor, replacing the UUID with the same verified DEMO Auth UUID. It deliberately does not return the user's email address.
+
+```sql
+SELECT
+  pa.user_id,
+  (u.email_confirmed_at IS NOT NULL) AS email_confirmed,
+  c.relrowsecurity AS registry_rls_enabled,
+  c.relforcerowsecurity AS registry_force_rls,
+  pg_catalog.has_table_privilege('anon','private.platform_admins','SELECT')
+    AS anon_can_read_registry,
+  pg_catalog.has_table_privilege('authenticated','private.platform_admins','SELECT')
+    AS authenticated_can_read_registry,
+  pg_catalog.has_function_privilege('authenticated','public.mnty_can_platform_admin()','EXECUTE')
+    AS authenticated_can_call_root_guard,
+  pg_catalog.has_function_privilege('authenticated','public.is_platform_admin()','EXECUTE')
+    AS authenticated_can_call_shared_guard
+FROM private.platform_admins pa
+JOIN auth.users u ON u.id=pa.user_id
+JOIN pg_catalog.pg_class c ON c.oid='private.platform_admins'::regclass
+WHERE pa.user_id='REPLACE_WITH_THE_EXACT_DEMO_AUTH_USER_UUID';
+```
+
+Expected: exactly one row, `email_confirmed`, `registry_rls_enabled`, `registry_force_rls`, and both authenticated guard-execute values are `true`; both direct registry-read values are `false`. If the query returns no row or any other values, stop and do not weaken the RLS or grants.
+
 The automated PostgreSQL contract already checks that:
 - a tenant-level `ADMIN` / `SUPER_ADMIN` cannot pass `mnty_can_platform_admin()` or `is_platform_admin()`;
 - a user present in `private.platform_admins` can pass both guards;
