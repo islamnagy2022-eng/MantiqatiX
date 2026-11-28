@@ -125,7 +125,7 @@ for (const required of [
   assert.ok(currentRunbook.includes(required), "Current Production backup overlay is missing: " + required);
 }
 assert.ok(!currentRunbook.includes("87-source"), "Current Production backup overlay must not retain a superseded 87-source gate.");
-assert.ok(runbook.includes("exact ordered 90-source migration effects"), "Production release gate must reconcile the current 88-source migration chain.");
+assert.ok(runbook.includes("exact ordered 90-source migration effects"), "Production release gate must reconcile the current 90-source migration chain.");
 
 
 const backlogRequirements = [
@@ -154,7 +154,7 @@ for (const required of backlogRequirements) {
 assert.ok(!backlog.includes("76 required migration IDs"), "Release backlog still describes 76 as the current required migration count.");
 assert.ok(!backlog.includes("0/76 present") && !backlog.includes("0/78 exact required identifiers"), "Release backlog still uses a superseded migration status.");
 
-assert.equal(ledger.expected_migration_versions, 90, "manifest must use the 88-version contract");
+assert.equal(ledger.expected_migration_versions, 90, "manifest must use the 90-version contract");
 assert.ok(ledger.required_versions.includes("20261125120000"), "manifest must list RC927");
 assert.ok(ledger.missing_versions.includes("20261125120000"), "RC927 must remain explicitly unapplied in Production");
 assert.ok(ledger.required_versions.includes("20261126010000"), "manifest must list RC928");
