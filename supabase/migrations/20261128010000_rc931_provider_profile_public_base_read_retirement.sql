@@ -243,6 +243,9 @@ create policy "CRM managers view marketing providers"
   );
 
 do $postflight$
+declare
+  v_crm_qual text;
+  v_crm_qual_normalized text;
 begin
   if exists (
     select 1
