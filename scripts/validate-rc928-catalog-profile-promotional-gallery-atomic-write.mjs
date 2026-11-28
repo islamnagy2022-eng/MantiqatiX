@@ -104,7 +104,7 @@ assert.ok(ownerIntegration.includes("set_config('request.jwt.claim.sub', v_owner
 assert.ok(releaseGate.includes("20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"));
 assert.ok(productionVerifier.includes("20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"));
 assert.ok(liveContract.includes('"20261126010000"'));
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 89);
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 91);
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261126010000"));
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261126010000"));
 assert.ok(crosswalk.includes("20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"));
