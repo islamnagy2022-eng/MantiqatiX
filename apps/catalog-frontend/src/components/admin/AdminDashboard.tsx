@@ -715,18 +715,6 @@ export const AdminDashboard: React.FC = () => {
           <span>إعدادات وحدات الأنشطة</span>
         </button>
 
-        {/* Direct access to the platform roles, assignments, employees, and audit center. */}
-        <button
-          type="button"
-          aria-pressed={activeAdminTab === 'control_center'}
-          onClick={() => setActiveAdminTab('control_center')}
-          className={adminTabClass('control_center')}
-          data-testid="platform-admin-control-center-tab"
-        >
-          <UserCog className="w-4 h-4 text-amber-500" />
-          <span>مركز التحكم والصلاحيات</span>
-        </button>
-
         {/* Tab 5: Settings */}
         <button
           type="button"
@@ -738,17 +726,6 @@ export const AdminDashboard: React.FC = () => {
           <span>إعدادات الإدارة وواتساب الكتالوج</span>
         </button>
 
-        {/* Limited export/import tools. These are not a complete database or Storage backup. */}
-        <button
-          type="button"
-          aria-pressed={activeAdminTab === 'backup'}
-          onClick={() => setActiveAdminTab('backup')}
-          className={adminTabClass('backup')}
-          data-testid="platform-admin-backup-tab"
-        >
-          <Database className="w-4 h-4 text-amber-500" />
-          <span>التصدير المحدود والاستعادة</span>
-        </button>
       </nav>
 
       {activeAdminTab === 'overview' && (
