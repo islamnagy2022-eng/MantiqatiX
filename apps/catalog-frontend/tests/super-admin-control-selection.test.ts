@@ -38,6 +38,7 @@ console.log('SUPER_ADMIN_PERSON_SEARCH_SELECTION=PASS');
 // Business subscriber role editor must stay aligned with the backend allowlist and retain branch scope.
 const businessSubscriberSource = readFileSync('src/components/admin/BusinessSubscriberAdmin.tsx', 'utf8');
 const platformAdminEndpointSource = readFileSync('../../supabase/functions/catalog-platform-admin/index.ts', 'utf8');
+const browserE2ESource = readFileSync('tests/professional-dashboard.browser.e2e.mjs', 'utf8');
 assert.ok(!businessSubscriberSource.includes('window.prompt('), 'Role changes must use the controlled role editor, not free-form text.');
 assert.ok(businessSubscriberSource.includes("branchId:m.branch_id||''"), 'Role changes must preserve the selected membership branch.');
 assert.ok(platformAdminEndpointSource.includes('select("id,user_id,tenant_id,business_id,branch_id,role,status,permissions")'), 'The protected admin list must expose the current branch scope to the UI.');
@@ -74,3 +75,11 @@ assert.ok(businessSubscriberSource.includes('الدور الحالي غير مو
 assert.ok(businessSubscriberSource.includes('onClick={()=>openRoleEditor(m)}'), 'Membership role controls must use the guarded editor opener.');
 assert.ok(!businessSubscriberSource.includes("?String(m.role).toUpperCase():'CUSTOMER'"), 'No unknown membership role may be silently downgraded to CUSTOMER.');
 console.log('BUSINESS_SUBSCRIBER_UNKNOWN_ROLE_FAILS_CLOSED=PASS');
+
+
+// Branch-scoped role updates stay disabled until the deployed Edge Function advertises the required read contract.
+assert.ok(platformAdminEndpointSource.includes('capabilities: { branchScopedRoleEdits: true }'), 'The list endpoint must advertise branch-scoped role edit capability explicitly.');
+assert.ok(businessSubscriberSource.includes('data.capabilities?.branchScopedRoleEdits === true'), 'The UI must fail closed when the deployed list endpoint is old.');
+assert.ok(businessSubscriberSource.includes('تغيير الدور متوقف مؤقتًا حتى تؤكد خدمة الإدارة دعم نطاق الفرع'), 'The UI must explain the deployment compatibility guard.');
+assert.ok(browserE2ESource.includes('omitScopedRoleCapabilities'), 'Browser E2E must exercise an older API response without the capability marker.');
+console.log('BUSINESS_SUBSCRIBER_ROLE_EDITOR_REQUIRES_SERVER_CAPABILITY=PASS');
