@@ -1,11 +1,34 @@
 -- RC932: strict confirmed-identity gate for MantiGO open-ride location disclosure.
 -- Disposable PostgreSQL 17 only; exercise missing, null, true and explicit-false JWT claims.
 BEGIN;
--- The migration replay starts a disposable Supabase stack without running GoTrue.
--- Create only the referenced Auth principal key as its schema owner; never run outside CI.
-SET ROLE supabase_auth_admin;
-CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY);
-RESET ROLE;
+-- Supply only the Auth principal key required by this disposable fixture.
+-- Vanilla PostgreSQL CI owns its fresh auth schema; Supabase replay uses the
+-- schema owner when the current runner role cannot create objects there.
+DO $auth_fixture$
+DECLARE
+  v_schema_owner name;
+BEGIN
+  IF pg_catalog.to_regclass('auth.users') IS NULL THEN
+    IF pg_catalog.has_schema_privilege(current_user, 'auth', 'CREATE') THEN
+      EXECUTE 'CREATE TABLE auth.users (id uuid PRIMARY KEY)';
+    ELSE
+      SELECT r.rolname INTO v_schema_owner
+      FROM pg_catalog.pg_namespace n
+      JOIN pg_catalog.pg_roles r ON r.oid = n.nspowner
+      WHERE n.nspname = 'auth';
+
+      IF v_schema_owner IS NULL
+         OR NOT pg_catalog.pg_has_role(current_user, v_schema_owner, 'MEMBER') THEN
+        RAISE EXCEPTION 'RC932_TEST_AUTH_FIXTURE_CANNOT_CREATE_AUTH_USERS';
+      END IF;
+
+      EXECUTE pg_catalog.format('SET ROLE %I', v_schema_owner);
+      EXECUTE 'CREATE TABLE auth.users (id uuid PRIMARY KEY)';
+      EXECUTE 'RESET ROLE';
+    END IF;
+  END IF;
+END;
+$auth_fixture$;
 DO $test$
 DECLARE
   v_captain uuid := '30000000-0000-4000-8000-000000000481';
