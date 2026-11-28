@@ -47,11 +47,8 @@ $demo_admin_root_authority_preflight$;
 
 -- Preflight requirements: all referenced base tables and columns must exist.
 -- RLS remains enabled/forced for the privileged role registry and employee tables.
--- The user-membership index is intentionally created only after duplicate preflight.
-
--- DEMO already has uk_user_biz_branch. The supplemental null-safe index is
--- deferred; changing NULL uniqueness semantics requires a separate membership
--- lifecycle compatibility review before it can be introduced.
+-- The preceding 085000 root-convergence migration performs a duplicate preflight
+-- and installs the RC472 null-safe user/business/branch uniqueness index.
 
 -- RC113: Super Admin Control Center foundation.
 -- Dynamic, auditable custom roles and scoped assignments. Platform authority remains
