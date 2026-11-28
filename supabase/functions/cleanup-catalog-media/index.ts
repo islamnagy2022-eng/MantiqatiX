@@ -61,11 +61,21 @@ Deno.serve(async (req: Request) => {
       console.error("Catalog media Storage removal failed", error.name || error.message);
       return reply({ error: "cleanup_storage_remove_failed", deleted, remaining: safeToDelete.length - deleted }, 502);
     }
+
+    const { error: stateClearError } = await service.rpc(
+      "mnty_clear_catalog_media_retention_state",
+      { p_object_paths: batch },
+    );
+    if (stateClearError) {
+      // Storage already removed the files; a later scan will garbage-collect
+      // their stale state rows. Do not turn a successful deletion into a retry.
+      console.warn("Catalog media retention state cleanup deferred", stateClearError.code || stateClearError.message);
+    }
     deleted += batch.length;
   }
 
   console.log("CATALOG_MEDIA_RETENTION_RUN", JSON.stringify({
-    expiredCandidates: paths.length,
+    unreferencedForFiveDays: paths.length,
     retainedAsReferencedOrUnconfirmed: 0,
     deleted,
   }));
