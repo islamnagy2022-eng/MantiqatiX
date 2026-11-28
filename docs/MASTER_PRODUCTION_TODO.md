@@ -1,3 +1,13 @@
+# Latest continuation — 2026-11-28
+
+- [x] Record the current homepage image/advertising continuation in this ledger before implementation; master intake issue: https://github.com/islamnagy2022-eng/MantiqatiX/issues/599.
+- [x] PR #1205 merged as `740ca692314056383d2577d449a6a877a9ead3e9`; the main-branch Pages release and deployed-origin checks passed for governorate-targeted homepage ads and emergency image fallbacks.
+- [x] PR #1208 merged as `af59e31fcf50ff47e095535670ae8ffbd56a20c8`; it adds category-aware merchant/subscriber image previews with local emergency fallbacks. On this snapshot, build and employee RBAC pass; the browser E2E and main-branch Pages validation are still running. Do not mark that commit deployed until its deploy job succeeds.
+- [ ] Current source-only continuation branch `feat/center-aware-homepage-cover-and-service-dialog-20261128` adds verified Markaz-level cover targeting, global-ad identity/match-level consistency filtering, area-aware platform-services dialog and its responsive/browser regression. Exact-head validation and deployment remain pending.
+- **Safety boundary:** no Production database, migration ledger, Auth, RLS/GRANT, Storage, Edge, live campaign, customer, business, financial or payment data has been mutated. The global-RPC mislabel mitigation is frontend-only; the server function still needs a reviewed forward-only repair. Preserve `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 # CURRENT PRODUCTION GATE — 2026-11-28 00:55 EET
 
 This dated overlay supersedes every older migration-count and Production-status snapshot below it. Historical records are retained as evidence, not as current instructions.

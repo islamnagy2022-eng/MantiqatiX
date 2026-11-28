@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getPublicGovernorateAdCode, loadTargetedAdvertisements } from '../src/utils/targetedAdvertisements';
+import { getPublicAreaDisplayLabel, getPublicCenterAdCode, getPublicGovernorateAdCode, getTargetedAdvertisementAudienceLabel, loadTargetedAdvertisements } from '../src/utils/targetedAdvertisements';
+import { EGYPT_GEO_DISTRICTS } from '../src/data/egyptGeoDiscovery';
 
 const validAd = (id: string, overrides: Record<string, unknown> = {}) => ({
   advertisement_id: id,
@@ -8,6 +9,23 @@ const validAd = (id: string, overrides: Record<string, unknown> = {}) => ({
   creative_url: 'https://cdn.example.test/ad.webp',
   target_url: 'https://example.test/offer',
   ...overrides,
+});
+
+test('rejects unmatched regional ads mislabeled as global and preserves real platform-global ads', async () => {
+  const ads = await loadTargetedAdvertisements(async () => ({
+    data: [
+      validAd('normal-center-ad-mislabeled-global', { match_level: 'GLOBAL' }),
+      validAd('GLOBAL-00000000-0000-4000-8000-000000000101', { match_level: 'GLOBAL' }),
+      validAd('GLOBAL-00000000-0000-4000-8000-000000000102', { match_level: 'CENTER' }),
+    ],
+    error: null,
+  }), { adSpaces: ['HOME_HERO'] });
+
+  assert.deepEqual(
+    ads.map((ad) => ad.advertisement_id),
+    ['GLOBAL-00000000-0000-4000-8000-000000000101'],
+    'only the RPC global-ad identity prefix may carry GLOBAL match level',
+  );
 });
 
 test('keeps successful placement ads when the other placement rejects', async () => {
@@ -210,6 +228,53 @@ test('rejects out-of-Egypt or partial coordinates for location targeting', async
   assert.equal(seenArgs[0]?.p_lat, null);
   assert.equal(seenArgs[0]?.p_lon, null);
 });
+
+
+test('describes paid cover ads using the actual geographic match level', () => {
+  assert.equal(getTargetedAdvertisementAudienceLabel('CENTER', 'المنوفية', 'مركز بركة السبع'), 'موجه لمركز بركة السبع');
+  assert.equal(getTargetedAdvertisementAudienceLabel('GOVERNORATE', 'المنوفية'), 'موجه لمحافظة المنوفية');
+  assert.equal(getTargetedAdvertisementAudienceLabel('COUNTRY', 'المنوفية'), 'حملة عامة على مستوى مصر');
+  assert.equal(getTargetedAdvertisementAudienceLabel('NEAREST', 'المنوفية'), 'أقرب نطاق إعلاني متاح');
+});
+
+test('does not invent a precise region when the ad RPC returns no match level', () => {
+  assert.equal(getTargetedAdvertisementAudienceLabel(null, 'المنوفية'), 'نطاق الاستهداف غير محدد');
+  assert.equal(getTargetedAdvertisementAudienceLabel(undefined, 'all'), 'نطاق الاستهداف غير محدد');
+});
+
+
+test('resolves only exact seeded Markaz codes from the administrative directory', () => {
+  assert.equal(getPublicCenterAdCode('مركز بركة السبع', 'المنوفية', EGYPT_GEO_DISTRICTS), 'EG1706');
+  assert.equal(getPublicCenterAdCode('مركز شبين الكوم', 'المنوفية', EGYPT_GEO_DISTRICTS), 'EG1702');
+  assert.equal(getPublicCenterAdCode('مركز طنطا', 'الغربية', EGYPT_GEO_DISTRICTS), 'EG1603');
+  assert.equal(getPublicCenterAdCode('قسم شبين الكوم', 'المنوفية', EGYPT_GEO_DISTRICTS), null);
+  assert.equal(getPublicCenterAdCode('مركز بركة السبع', 'الغربية', EGYPT_GEO_DISTRICTS), null);
+  assert.equal(getPublicCenterAdCode('مركز غير مسجل', 'المنوفية', EGYPT_GEO_DISTRICTS), null);
+});
+
+test('sends the selected, verified center code to HOME_HERO ad discovery', async () => {
+  const seenArgs: Array<Record<string, unknown>> = [];
+  const centerCode = getPublicCenterAdCode('مركز بركة السبع', 'المنوفية', EGYPT_GEO_DISTRICTS);
+  await loadTargetedAdvertisements(async (_name, args) => {
+    seenArgs.push(args);
+    return { data: [validAd('cover-center', { ad_space_id: 'HOME_HERO', match_level: 'CENTER' })], error: null };
+  }, {
+    adSpaces: ['HOME_HERO'],
+    governorate: 'المنوفية',
+    centerCode,
+  });
+
+  assert.equal(seenArgs[0]?.p_governorate_code, '17');
+  assert.equal(seenArgs[0]?.p_center_code, 'EG1706');
+});
+
+
+test('builds area-specific platform promo copy without claiming a paid campaign exists', () => {
+  assert.equal(getPublicAreaDisplayLabel('المنوفية', 'مركز بركة السبع'), 'مركز بركة السبع، المنوفية');
+  assert.equal(getPublicAreaDisplayLabel('المنوفية', 'all'), 'المنوفية');
+  assert.equal(getPublicAreaDisplayLabel('all', 'all'), 'جميع محافظات مصر');
+});
+
 
 test('requests both homepage placements within the selected governorate', async () => {
   const seen: Array<Record<string, unknown>> = [];

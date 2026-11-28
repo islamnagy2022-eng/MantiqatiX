@@ -4518,3 +4518,13 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - **Menoufia:** PR #1182's existing-section/unverified change remains active and its current-main validator passed. PRs #1179/#1180 remain paused and untouched. New rows stay hidden DRAFT / UNVERIFIED; public unclaimed listing publication remains disabled.
 - **Next:** continue read-only coordinated release preparation; do not deploy individual admin/payment Edge functions or apply migrations alone. Keep issue #96 open until a real authenticated multi-business E2E passes.
 
+
+
+## 2026-11-28 — Regional homepage promotion continuation
+
+- User said to continue the MantiqatiX build after the successful main-branch release of the region-aware homepage/ad image fallbacks.
+- PR #1208 was reviewed and merged as `af59e31fcf50ff47e095535670ae8ffbd56a20c8`. It adds merchant product, Facebook preview, business cover/logo and subscriber activity image fallbacks. Exact-head pre-merge build and employee RBAC checks passed; post-merge browser E2E and Pages checks were still running at this checkpoint.
+- The master TODO intake issue #599 was updated before starting the next source change.
+- Started source-only branch `feat/center-aware-homepage-cover-and-service-dialog-20261128` to improve HOME_HERO ad targeting to exact verified Markaz codes, fail closed on mismatched GLOBAL ad identity, add area-aware platform-services dialog, and extend regressions. Existing PR #1207's browser test failed only because a longer status sentence was asserted with exact text; the new branch changes that assertion to substring matching.
+- No Production database, migration, Auth, RLS/GRANT, Storage, Edge, campaigns, payments, wallets, settlements, customer or business data were changed.
+- Release state remains `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
