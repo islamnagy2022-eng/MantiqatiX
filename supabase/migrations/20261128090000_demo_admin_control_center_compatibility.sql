@@ -1216,3 +1216,105 @@ revoke all on function public.mnty_business_employee_list(varchar,uuid) from pub
 grant execute on function public.mnty_business_employee_list(varchar,uuid) to authenticated;
 revoke all on function public.mnty_business_employee_permission_ceiling_allows(jsonb,varchar,uuid,varchar) from public, anon, authenticated;
 revoke all on function public.mnty_business_employee_permissions_subset(jsonb,jsonb) from public, anon, authenticated;
+
+
+-- RC108/RC109: service-role-only BizCatalog platform settings.
+CREATE TABLE IF NOT EXISTS public.bizcatalog_platform_settings (
+  settings_key text PRIMARY KEY CHECK (settings_key = 'bizcatalog'),
+  settings jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_by uuid NULL,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.bizcatalog_platform_settings ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.bizcatalog_platform_settings FROM PUBLIC, anon, authenticated;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.bizcatalog_platform_settings TO service_role;
+DROP POLICY IF EXISTS bizcatalog_platform_settings_service_role_only
+  ON public.bizcatalog_platform_settings;
+CREATE POLICY bizcatalog_platform_settings_service_role_only
+  ON public.bizcatalog_platform_settings FOR ALL TO service_role
+  USING (true) WITH CHECK (true);
+
+-- Server-only, invoker-safe business deletion. The Edge function authenticates
+-- and confirms mnty_can_platform_admin() before invoking this RPC as service_role.
+CREATE OR REPLACE FUNCTION public.mnty_platform_admin_delete_business(
+  p_tenant_id text, p_business_id uuid, p_actor_user_id uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $function$
+DECLARE
+  v_business public.businesses%rowtype;
+  v_branch_ids text[] := ARRAY[]::text[];
+BEGIN
+  SELECT b.* INTO v_business FROM public.businesses b
+   WHERE b.id = p_business_id AND b.tenant_id = p_tenant_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION USING MESSAGE = 'BUSINESS_NOT_FOUND'; END IF;
+
+  SELECT coalesce(array_agg(br.id::text), ARRAY[]::text[]) INTO v_branch_ids
+    FROM public.branches br WHERE br.tenant_id = p_tenant_id AND br.business_id = p_business_id;
+
+  -- Preserve legal, order, payment, referral and accounting history.
+  IF EXISTS (SELECT 1 FROM public.orders o WHERE o.tenant_id=p_tenant_id AND o.business_id=p_business_id)
+     OR EXISTS (SELECT 1 FROM public.restaurant_orders o WHERE o.business_id=p_business_id)
+     OR EXISTS (SELECT 1 FROM public.fashion_orders o WHERE o.business_id=p_business_id)
+     OR EXISTS (SELECT 1 FROM public.erp_purchase_orders o WHERE o.tenant_id=p_tenant_id AND o.business_id=p_business_id)
+     OR EXISTS (SELECT 1 FROM public.erp_purchase_receipts r WHERE r.tenant_id=p_tenant_id AND r.business_id=p_business_id)
+     OR EXISTS (SELECT 1 FROM public.erp_stock_transfers t WHERE t.tenant_id=p_tenant_id AND t.business_id=p_business_id)
+     OR EXISTS (SELECT 1 FROM public.refund_transactions r WHERE r.tenant_id=p_tenant_id AND r.business_id=p_business_id)
+     OR EXISTS (SELECT 1 FROM public.subscription_payment_intents spi WHERE spi.business_id=p_business_id)
+     OR EXISTS (SELECT 1 FROM public.business_referral_events e WHERE e.business_id=p_business_id)
+     OR EXISTS (SELECT 1 FROM public.agreements a WHERE a.business_id=p_business_id)
+     OR EXISTS (SELECT 1 FROM public.inventory_transactions t WHERE t.branch_id::text=ANY(v_branch_ids))
+     OR EXISTS (SELECT 1 FROM public.journal_entries j WHERE j.branch_id::text=ANY(v_branch_ids))
+     OR EXISTS (SELECT 1 FROM public.order_status_history h WHERE h.branch_id::text=ANY(v_branch_ids))
+     OR EXISTS (SELECT 1 FROM public.stock_balances sb WHERE sb.branch_id::text=ANY(v_branch_ids)) THEN
+    RAISE EXCEPTION USING MESSAGE = 'BUSINESS_DELETE_BLOCKED_BY_HISTORY';
+  END IF;
+
+  DELETE FROM public.user_memberships m WHERE m.tenant_id=p_tenant_id AND m.business_id=p_business_id;
+  DELETE FROM public.departments d WHERE d.tenant_id=p_tenant_id AND d.business_id=p_business_id;
+  DELETE FROM public.restaurant_inventory i WHERE i.business_id=p_business_id;
+  DELETE FROM public.restaurant_menu_items i WHERE i.business_id=p_business_id;
+  DELETE FROM public.restaurant_tables rt WHERE rt.business_id=p_business_id;
+  DELETE FROM public.fashion_products fp WHERE fp.business_id=p_business_id;
+
+  IF cardinality(v_branch_ids)>0 THEN
+    DELETE FROM public.warehouses w WHERE w.tenant_id=p_tenant_id AND w.branch_id::text=ANY(v_branch_ids);
+  END IF;
+  DELETE FROM public.catalog_items ci WHERE ci.tenant_id=p_tenant_id AND ci.business_id=p_business_id;
+  DELETE FROM public.catalog_business_settings cbs WHERE cbs.tenant_id=p_tenant_id AND cbs.business_id=p_business_id;
+  DELETE FROM public.advertisements ad WHERE ad.tenant_id=p_tenant_id AND ad.business_id=p_business_id;
+  DELETE FROM public.marketing_provider_profiles mpp WHERE mpp.business_id=p_business_id;
+  DELETE FROM public.branches br WHERE br.tenant_id=p_tenant_id AND br.business_id=p_business_id;
+  DELETE FROM public.businesses b WHERE b.id=p_business_id AND b.tenant_id=p_tenant_id;
+
+  INSERT INTO public.audit_logs(id,tenant_id,actor_user_id,action,entity_type,entity_id,old_values,new_values,result)
+  VALUES (
+    pg_catalog.gen_random_uuid()::text,p_tenant_id,p_actor_user_id,
+    'BIZCATALOG_BUSINESS_DELETED','business',p_business_id::text,
+    pg_catalog.jsonb_build_object('name',v_business.name,'code',v_business.code),
+    pg_catalog.jsonb_build_object('deleted',true),'SUCCESS'
+  );
+  RETURN pg_catalog.jsonb_build_object('success',true,'businessId',p_business_id,'tenantId',p_tenant_id,'deleted',true);
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.mnty_platform_admin_delete_business(text,uuid,uuid)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.mnty_platform_admin_delete_business(text,uuid,uuid) TO service_role;
+ALTER FUNCTION public.mnty_platform_admin_delete_business(text,uuid,uuid) SECURITY INVOKER;
+ALTER FUNCTION public.mnty_platform_admin_delete_business(text,uuid,uuid) SET search_path = '';
+
+GRANT SELECT ON
+  public.orders, public.restaurant_orders, public.fashion_orders, public.erp_purchase_orders,
+  public.erp_purchase_receipts, public.erp_stock_transfers, public.refund_transactions,
+  public.subscription_payment_intents, public.business_referral_events, public.agreements
+TO service_role;
+GRANT SELECT, DELETE ON
+  public.restaurant_inventory, public.restaurant_menu_items, public.restaurant_tables,
+  public.fashion_products, public.catalog_business_settings
+TO service_role;
+GRANT DELETE ON public.catalog_items, public.marketing_provider_profiles TO service_role;
+
