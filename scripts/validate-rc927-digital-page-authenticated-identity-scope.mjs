@@ -100,7 +100,7 @@ assert.ok(productionVerifier.includes("20261125120000_rc927_digital_page_authent
   "production verifier must enumerate RC927");
 assert.ok(migrationGate.includes("20261125120000_rc927_digital_page_authenticated_identity_scope.sql"),
   "strict release gate must enumerate RC927");
-assert.match(migrationGate, /required\.length,\s*89/, "strict release gate must enforce 89 exact source migrations");
+assert.match(migrationGate, /required\.length,\s*92/, "strict release gate must enforce 92 exact source migrations");
 assert.ok(forwardReplay.includes("node scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"),
   "forward replay must execute RC927 source validation");
 assert.ok(forwardReplay.includes(testPath), "forward replay must execute RC927 PostgreSQL integration");
