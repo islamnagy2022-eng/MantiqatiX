@@ -21,7 +21,7 @@ const dependentReleaseCountValidators = [
 for (const validatorPath of dependentReleaseCountValidators) {
   const validatorSource = fs.readFileSync(validatorPath, "utf8");
   assert.ok(!validatorSource.includes("expected_migration_versions, 88"),
-    validatorPath + " must use the current 89-version migration manifest");
+    validatorPath + " must use the current 92-version migration manifest");
   assert.ok(!validatorSource.includes("CURRENT_RELEASE_MIGRATION_COUNT=88"),
     validatorPath + " must not pin the superseded 88-version backup contract");
   assert.ok(!validatorSource.includes("88-version contract") && !validatorSource.includes("88 exact source migrations"),
@@ -122,13 +122,16 @@ const required = [
   "20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql",
   "20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql",
   "20261125120000_rc927_digital_page_authenticated_identity_scope.sql",
+  "20261125130000_rc115_crm_business_scoped_reads.sql",
+  "20261125140000_rc116_crm_business_scoped_writes.sql",
   "20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql",
   "20261126020000_preserve_marketing_service_image_provenance.sql",
   "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql",
   "20261127010000_rc930_serialize_job_deactivation_and_application.sql",
-  "20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql"
+  "20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql",
+  "20261128010000_rc931_provider_profile_public_base_read_retirement.sql"
 ];
-assert.equal(required.length, 89, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921–RC932 and the RC117 image-provenance forward repair");
+assert.equal(required.length, 92, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921–RC932, RC115–RC116, RC931 and the RC117 image-provenance forward repair");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");

@@ -1,18 +1,20 @@
-## 2026-11-28 — RC932 full replay fixture FK repair
+## 2026-11-28 — Unified RC115 / RC931 / RC932 source release
 
-- [x] Read the failed full 128-migration chronological replay log. RC932 migration itself applied successfully in the disposable database; the RC932 integration then failed because the synthetic captain ID (and customer ID) were not seeded in auth.users before inserting into FK-backed MantiGO rows.
-- [x] Added idempotent auth.users fixture seeding for both v_captain and v_customer before inserting the captain profile and ride.
-- [x] Added a static validator assertion requiring both test principals to be seeded in auth.users.
-- [ ] Corrected-head dedicated RC932 suite and full chronological replay are queued; no pass is claimed until GitHub Actions completes.
-- **Production:** unchanged and read-only. RC932 remains source-only; no MantiGO ride/captain/customer/financial rows were read or changed.
-- **Next:** inspect exact-head workflow conclusions/logs, fix any new failure, and keep PR #1199 draft until the entire replay and companion checks pass.
+- [x] RC932 (`20261127235334`) merged to main in PR #1199 at `160228ee40590c27992cee5952895d0ed90b3ff6`. Its exact-head focused PostgreSQL 17 suite, MantiGO privacy checks and full chronological replay passed.
+- [x] Rebased RC931 work on a fresh branch from post-RC932 main instead of carrying a 59-ahead / 52-behind stale branch.
+- [x] Added RC115 (`20261125130000`), RC116 (`20261125140000`) and RC931 (`20261128010000`) to the release source list alongside RC932. The unified contract contains 92 unique, timestamp-ordered migration versions.
+- [x] Added the RC931 forward migration, RC116-compatible owner read/update preflight, synthetic PostgreSQL 17 fixtures, tenant-isolation integration and dedicated workflow.
+- [x] Restored the historical RC116 migration byte-for-byte to `main`; placed the authenticated owner `settings` JSONB guard in new RC931, restricting updates to `branding.logo_path`. The RC931 PG17 integration now checks that official showcase, activity classification and other branding metadata cannot be changed by provider owners; exact-head CI is pending.
+- [ ] Unified exact-head RC931 PostgreSQL 17 workflow, full 92-version chronological replay and companion checks are pending; queued CI is not counted as passing.
+- **Production:** read-only. RC115, RC116, RC931 and RC932 are unapplied source versions; live ledger remains 310 rows through `20261110150618`, exact source-ID match 0/92. This is an identity gap, not proof that every physical effect is absent.
+- **Release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Backup/restore, platform-root authorization, Edge parity, payment/finance sandbox and coordinated release remain blockers.
 
 ---
 
 ## 2026-11-28 — Autonomous Production gate recheck and source evidence inventory
 
 - [x] Reconfirmed Production project `MANTIQATIX FINAL` ACTIVE_HEALTHY, PostgreSQL 17.6.1.155; live ledger 310 migrations through `20261110150618`.
-- [x] Current canonical source release set is 89 unique, sorted migration versions after the source-only RC932 candidate; direct read-only Production ledger comparison is 0/89 exact ID matches. This is an identity gap, not proof every physical effect is absent. Three known alias targets are present; do not synthesize ledger rows or blindly replay.
+- [x] Current canonical source release set is 92 unique, sorted migration versions after the source-only RC932 candidate; direct read-only Production ledger comparison is 0/92 exact ID matches. This is an identity gap, not proof every physical effect is absent. Three known alias targets are present; do not synthesize ledger rows or blindly replay.
 - [x] Probed the exact 79 core/payment/control-center object contracts read-only: 37 resolved and 42 did not resolve by exact required name/signature (42 group entries / 36 unique names, six intentional Core/Payment overlaps). Full mapping: `docs/audits/PRODUCTION_REQUIRED_79_OBJECT_READBACK_20261128.md`.
 - [x] Inventoried all 149 public SECURITY DEFINER routines with exact signature, owner, language, function-level search_path and effective anon/authenticated/service_role EXECUTE metadata. Counts: anon 1 (the intentional bounded targeted-ad-read RPC), authenticated 65, service_role 34 (sets overlap). Six no-direct-auth-token routines were individually triaged by delegated authorization; P0 platform-root and P1 commission preview scope findings remain. Full report: `docs/audits/PRODUCTION_SECURITY_DEFINER_INVENTORY_20261128.md`.
 - [x] Confirmed live MantiGO global admin/report routines still use broad tenant-role authorization. Live global financial report also references absent ledger columns `amount` / `captain_amount`; RC471 source replaces the report with registry authorization and canonical fields. The dashboard uses canonical fields but still accepts broad tenant roles. Issue #118 was updated with the current global-admin/report evidence. Issues #92/#94 remain open for their own follow-up; no comment was posted there in this checkpoint.
@@ -20,12 +22,12 @@
 - [x] Confirmed live MantiGO customer bid list discloses captain phone/vehicle plate before acceptance; RC477 masks until ACCEPTED. Issue #913 updated.
 - [x] Confirmed live MantiGO open ride list lacks ACTIVE/VERIFIED/AVAILABLE captain and vehicle-category gate; RC478 supplies the forward repair. Issue #911 updated.
 - [x] Found the additional RC478 missing/null `is_anonymous` JWT claim gap: its `coalesce(...,false)` predicate treats missing/null claim as confirmed, and the existing integration did not cover those cases. Added a forward-only RC932 repair requiring explicit `is_anonymous=false`; generated the timestamped migration through pinned Supabase CLI 2.122.0 as `20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql` and added PG17 missing/null/true/false tests.
-- [ ] PR #1199 is draft and now targets `main` after PR #1196 merged. The focused RC932 PostgreSQL 17 migration/integration workflow passed; the exact-head full 89-version replay and remaining PR checks are still running. Do not merge or apply RC932 to Production before every required check passes.
+- [ ] PR #1199 is draft and now targets `main` after PR #1196 merged. PR #1199 merged to main at 160228ee40590c27992cee5952895d0ed90b3ff6 after its focused RC932 PostgreSQL 17 suite and full chronological replay passed.
 - [x] Confirmed `preview_commission_backend` uses tenant finance membership without exact business/branch binding; RC467 source fixes after RC464. Issue #884 updated.
 - [x] Compared nine selected critical live Edge entrypoints with current main; all nine differ. This is a selected-file comparison, not a full 42-function bundle audit.
-- [x] Updated the backup/restore runbook, exact object map, SECDEF inventory and a source validator on current-main branch `docs/backup-restore-current-main-rebase-20261128`. Local-equivalent consistency checks pass: 19 base runbook requirements, 70 current overlay requirements, 32 SECDEF/delegation requirements, 16 object mapping requirements, 14 backlog requirements; no missing strings; 149 unique routine rows; 42 group entries/36 unique objects; 89 migration IDs; both push/PR path triggers.
+- [x] Updated the backup/restore runbook, exact object map, SECDEF inventory and a source validator on current-main branch `docs/backup-restore-current-main-rebase-20261128`. Local-equivalent consistency checks pass: 19 base runbook requirements, 70 current overlay requirements, 32 SECDEF/delegation requirements, 16 object mapping requirements, 14 backlog requirements; no missing strings; 149 unique routine rows; 42 group entries/36 unique objects; 92 migration IDs; both push/PR path triggers.
 - [x] PR #1196 merged to `main` as `c32bdb47ff3db2cebf19e38fd3e97f880b8e1f74` after eight workflow groups completed successfully. Its strict 88-version PostgreSQL 17 replay passed; deploy-only steps were intentionally skipped in PR validation.
-- [ ] PR #1199 exact-head CI on `main` remains the active merge gate. RC932 focused PostgreSQL 17 tests passed; full 89-version replay is pending completion.
+- [x] PR #1199 merged to `main` as `160228ee40590c27992cee5952895d0ed90b3ff6` after the focused RC932 tests and full chronological replay passed on its exact head.
 - [ ] Owner-controlled encrypted DB + separate Storage exports, Auth/Vault recovery, independent PG17 restore/rollback and measured RPO/RTO remain NOT VERIFIED.
 - [ ] Full chronological DB migration + Edge source/ACL/RLS parity release remains BLOCKED. Do not deploy any admin/payment/MantiGO function individually or apply isolated migrations.
 - [ ] Protected Edge `/health` remains NOT CHECKED because `HEALTH_MONITOR_TOKEN` is missing.

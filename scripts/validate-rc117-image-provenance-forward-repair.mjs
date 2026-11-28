@@ -43,16 +43,16 @@ for (const token of [
 assert.ok(contract.includes('"20261126020000"'), "live release contract must include the repair version");
 assert.ok(productionVerifier.includes("20261126020000_preserve_marketing_service_image_provenance.sql"));
 assert.ok(migrationGate.includes("20261126020000_preserve_marketing_service_image_provenance.sql"));
-assert.match(migrationGate, /required\.length,\s*89/);
-assert.equal(ledger.expected_migration_versions, 89);
+assert.match(migrationGate, /required\.length,\s*92/);
+assert.equal(ledger.expected_migration_versions, 92);
 assert.ok(ledger.required_versions.includes("20261126020000"));
 assert.ok(ledger.missing_versions.includes("20261126020000"));
 assert.equal(ledger.found_in_live_ledger, 0, "never manufacture a Production ledger entry");
-assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=89"));
+assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=92"));
 assert.ok(forwardReplay.includes("node scripts/validate-rc117-image-provenance-forward-repair.mjs"));
 assert.ok(forwardReplay.includes("supabase/tests/rc117_marketing_service_image_provenance_forward_repair.sql"));
 assert.ok(forwardReplay.includes('psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/rc117_marketing_service_image_provenance_forward_repair.sql'));
 
 assert.deepEqual(ledger.required_versions, [...ledger.required_versions].sort(),
   "all exact source versions must remain chronologically ordered");
-console.log("RC117 image-provenance forward repair source contract: PASS (89-version gate)");
+console.log("RC117 image-provenance forward repair source contract: PASS (92-version gate)");

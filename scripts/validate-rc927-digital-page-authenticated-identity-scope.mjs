@@ -100,20 +100,20 @@ assert.ok(productionVerifier.includes("20261125120000_rc927_digital_page_authent
   "production verifier must enumerate RC927");
 assert.ok(migrationGate.includes("20261125120000_rc927_digital_page_authenticated_identity_scope.sql"),
   "strict release gate must enumerate RC927");
-assert.match(migrationGate, /required\.length,\s*89/, "strict release gate must enforce 89 exact source migrations");
+assert.match(migrationGate, /required\.length,\s*92/, "strict release gate must enforce 92 exact source migrations");
 assert.ok(forwardReplay.includes("node scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"),
   "forward replay must execute RC927 source validation");
 assert.ok(forwardReplay.includes(testPath), "forward replay must execute RC927 PostgreSQL integration");
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 89,
-  "live reconciliation manifest must use the 89-source contract");
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 92,
+  "live reconciliation manifest must use the 92-source contract");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261125120000"),
   "manifest must list RC927 as required");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261125120000"),
   "RC927 must remain unapplied in Production until the coordinated release");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261126010000"), "manifest must require RC928");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261126010000"), "manifest must keep RC928 unapplied until coordinated release");
-assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=89"),
-  "backup validator must use the 89-source contract");
+assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=92"),
+  "backup validator must use the 92-source contract");
 assert.ok(crosswalk.includes("20261125120000") && crosswalk.includes("RC927"),
   "the 87-source source-to-live crosswalk must include RC927");
 
