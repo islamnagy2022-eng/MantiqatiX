@@ -75,11 +75,11 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ business, isOpen, onCl
         </button>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-200">
+          <div className="p-3 bg-[#fff3e0] text-[#7a0000] rounded-2xl border border-[#ead5c5]">
             <QrCode className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+            <span className="text-[11px] font-bold text-[#7a0000] bg-[#fff3e0] px-2.5 py-0.5 rounded-full">
               QR كود دائم ومستقر
             </span>
             <h3 className="text-xl font-black text-slate-900 mt-0.5">{business.name}</h3>
@@ -100,7 +100,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ business, isOpen, onCl
             />
           </div>
 
-          <a href={storeUrl} target="_blank" rel="noopener noreferrer" className="block text-[11px] font-semibold text-slate-600 bg-white px-3 py-2 rounded-xl border border-slate-200 break-all hover:text-emerald-700" dir="ltr">
+          <a href={storeUrl} target="_blank" rel="noopener noreferrer" className="block text-[11px] font-semibold text-slate-600 bg-white px-3 py-2 rounded-xl border border-slate-200 break-all hover:text-[#7a0000]" dir="ltr">
             {storeUrl}
           </a>
         </div>
@@ -129,7 +129,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ business, isOpen, onCl
             download={`${business.slug || business.id}-qrcode.png`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs py-3 px-4 rounded-xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+            className="flex items-center justify-center gap-2 bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs py-3 px-4 rounded-xl shadow-md shadow-[#7a0000]/20 transition-all cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>تحميل QR كود</span>
