@@ -15,6 +15,7 @@ on:
       - "supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql"
       - "scripts/validate-rc926-provider-profile-confirmed-identity-strict-guard.mjs"
       - "supabase/migrations/20261125130000_rc115_crm_business_scoped_reads.sql"
+      - "supabase/migrations/20261125140000_rc116_crm_business_scoped_writes.sql"
       - "supabase/migrations/20261128010000_rc931_provider_profile_public_base_read_retirement.sql"
       - "supabase/tests/rc931_provider_profile_public_read_fixture.sql"
       - "supabase/tests/rc931_provider_profile_public_read_integration.sql"
@@ -281,7 +282,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 91-version contract
+      - name: Validate strict Production release gate and exact 92-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate current backup runbook and release migration scope
@@ -301,7 +302,7 @@ jobs:
       - name: Validate RC485/RC923 catalog RPC registry-root and anonymous-auth contract
         run: node scripts/validate-rc485-catalog-rpc-registry-root.mjs
 
-      - name: Validate RC924 agreement participant and unified 91-version release contract
+      - name: Validate RC924 agreement participant and unified 92-version release contract
         run: node scripts/validate-rc924-agreement-participant-read-scope.mjs
 
       - name: Validate RC925 explicit confirmed-identity catalog RPC guard
