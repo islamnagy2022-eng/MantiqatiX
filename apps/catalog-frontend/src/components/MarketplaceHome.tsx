@@ -69,14 +69,38 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
       <button type="button" onClick={() => onOpen(business)} className="block w-full text-right" aria-label={'فتح كتالوج ' + business.name}>
         <div className="relative h-28 overflow-hidden bg-slate-100 sm:h-32">
           <img src={displayCover} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy"
-            onError={(event) => applyImageFallback(event.currentTarget, defaultCover, BUSINESS_CARD_IMAGE_FALLBACK)} />
+            onError={(event) => {
+              const image = event.currentTarget;
+              if (!image.dataset.defaultFallbackApplied) {
+                image.dataset.defaultFallbackApplied = 'true';
+                image.src = defaultCover;
+              } else if (!image.dataset.emergencyFallbackApplied) {
+                image.dataset.emergencyFallbackApplied = 'true';
+                image.src = BUSINESS_CARD_IMAGE_FALLBACK;
+              } else {
+                image.onerror = null;
+                image.style.visibility = 'hidden';
+              }
+            }} />
           <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-700 px-2.5 py-1 text-[10px] font-black text-white shadow">
             <ShieldCheck className="h-3 w-3" /> موثّق
           </span>
         </div>
         <div className="relative px-3 pb-3 pt-9">
           <img src={displayLogo} alt="" className="absolute -top-7 right-3 h-14 w-14 rounded-2xl border-2 border-white bg-white object-cover shadow" loading="lazy"
-            onError={(event) => applyImageFallback(event.currentTarget, defaultLogo, BUSINESS_CARD_IMAGE_FALLBACK)} />
+            onError={(event) => {
+              const image = event.currentTarget;
+              if (!image.dataset.defaultFallbackApplied) {
+                image.dataset.defaultFallbackApplied = 'true';
+                image.src = defaultLogo;
+              } else if (!image.dataset.emergencyFallbackApplied) {
+                image.dataset.emergencyFallbackApplied = 'true';
+                image.src = BUSINESS_CARD_IMAGE_FALLBACK;
+              } else {
+                image.onerror = null;
+                image.style.visibility = 'hidden';
+              }
+            }} />
           <div className="min-h-12">
             <h3 className="line-clamp-1 text-sm font-black text-slate-900">{business.name}</h3>
             <p className="mt-1 line-clamp-1 text-xs text-slate-500">{business.category}</p>
@@ -109,7 +133,19 @@ const ProductCard: React.FC<{
       <button type="button" onClick={onOpen} className="block w-full text-right">
         <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
           <img src={image} alt={product.name} className="h-full w-full object-cover" loading="lazy"
-            onError={(event) => applyImageFallback(event.currentTarget, defaultImage, PRODUCT_CARD_IMAGE_FALLBACK)} />
+            onError={(event) => {
+              const target = event.currentTarget;
+              if (!target.dataset.defaultFallbackApplied) {
+                target.dataset.defaultFallbackApplied = 'true';
+                target.src = defaultImage;
+              } else if (!target.dataset.emergencyFallbackApplied) {
+                target.dataset.emergencyFallbackApplied = 'true';
+                target.src = PRODUCT_CARD_IMAGE_FALLBACK;
+              } else {
+                target.onerror = null;
+                target.style.visibility = 'hidden';
+              }
+            }} />
           {hasDiscount && <span className="absolute right-2 top-2 rounded-full bg-rose-600 px-2.5 py-1 text-[10px] font-black text-white">خصم {discount}%</span>}
         </div>
         <div className="p-3">
